@@ -10,9 +10,14 @@ const config = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "*",
+        hostname: "img.shields.io",
         pathname: "/**",
       },
+      {
+        protocol: "https", 
+        hostname: "github.com",
+        pathname: "/**",
+      }
     ],
   },
   experimental: {
