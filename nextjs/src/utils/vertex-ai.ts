@@ -20,7 +20,7 @@ const vertex_ai = new VertexAI({
 
 // Select a model
 const model = vertex_ai.preview.getGenerativeModel({
-  model: "gemini-1.5-flash",
+  model: "gemini-2.0-flash-001",
   generationConfig: {
     maxOutputTokens: 2048,
     temperature: 0.4,
@@ -68,44 +68,36 @@ export async function generateReadmeWithAI(
         )
         .join("\n") ?? "";
 
-    const readmePrompt = `You are an expert technical writer tasked with creating a comprehensive README.md file for a GitHub repository.
+    const readmePrompt = `
+      <repository contents>
+      ${repoContent}
+      </repository contents>
 
-CRITICAL FORMATTING REQUIREMENTS:
-- DO NOT wrap the output in markdown formatting tags like \`\`\`md (other code blocks are allowed)
-- START your response directly with the content
-- ONLY return the raw README content
-- ANY deviation from these requirements will result in failure
-- YOU MUST PRESERVE ALL HTML TAGS AND ATTRIBUTES EXACTLY AS SHOWN IN THE TEMPLATE
-- DO NOT MODIFY OR OMIT ANY HTML FORMATTING
-- INCLUDE ALL <div>, <p>, <h3>, <details>, <summary>, AND OTHER HTML TAGS
-- MAINTAIN ALL align="center" AND OTHER HTML ATTRIBUTES
-- KEEP THE EXACT SAME STRUCTURE INCLUDING NEWLINES AND SPACING
+      <file contents uploaded by user>
+      ${fileContents}
+      </file contents uploaded by user>
 
-CONTENT REQUIREMENTS:
-- Create a detailed, well-structured README.md file
-- Make it engaging, professional, and informative
-- Use proper Markdown syntax for headings, lists, code blocks, etc.
-- Follow the template structure EXACTLY
-- Incorporate specific requirements from additional context
-- Include relevant information from uploaded files
-- NEVER skip or modify HTML formatting from the template
+      <template content>
+      ${templateContent}
+      </template content>
 
-HERE IS THE EXACT TEMPLATE TO FOLLOW - COPY ITS STRUCTURE AND HTML EXACTLY:
-${templateContent}
+      <additional instructions>
+      ${additionalContext}
+      </additional instructions>
 
-ADDITIONAL INSTRUCTIONS AND CONTEXT PROVIDED BY THE USER: ${additionalContext}
+      You are an expert technical writer tasked with creating a comprehensive README.md file for a GitHub repository.
 
-${fileContents ? `FILE CONTENT UPLOADED BY THE USER:\n${fileContents}\n` : ""}
+      CRITICAL REQUIREMENTS:
+      - Follow the template structure. 
+      - DO NOT wrap your entire response in \`\`\`md markdown formatting tags. Start your response with the first line of the template and continue from there.
+      - Replace logos with this placeholder: https://github.com/user-attachments/assets/0ae1b6d5-1a62-4b41-b2c7-c595a0460497.
+      - Replace demo videos with this placeholder: https://github.com/user-attachments/assets/3b6baea2-cb25-4670-86b8-094d69d2bf83.
+      - Replace images with this placeholder: https://github.com/user-attachments/assets/79d3c0f6-21b6-413b-9f30-5117c6b60e7d.
+      - Keep any HTML tags and attributes from the template. 
+      - Carefully analyze the repository contents to accurately describe the project, especially if the template includes sections like "Features" or "File Structure".
 
-REPOSITORY CONTENT:
-${repoContent}
-
-Remember: 
-1. Start your response DIRECTLY with the README content
-2. DO NOT WRAP THE OUTPUT IN MARKDOWN FORMATTING TAGS
-3. PRESERVE ALL HTML TAGS AND ATTRIBUTES EXACTLY AS SHOWN IN THE TEMPLATE ABOVE
-4. FOLLOW THE TEMPLATE STRUCTURE PRECISELY
-5. COPY THE HTML STRUCTURE FROM THE TEMPLATE`;
+      Analyze the repository contents and the file contents uploaded by the user. Then create a README.md file, taking into account any additional instructions provided.
+      `;
 
     const result = await model.generateContent(readmePrompt);
     let readme = result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -113,12 +105,6 @@ Remember:
     if (!readme) {
       throw new Error("No response from AI model");
     }
-
-    // Clean up the response by removing any markdown tags
-    readme = readme
-      .replace(/```md\n?/g, "") // Remove opening md tag
-      .replace(/```\n?/g, "") // Remove closing tag
-      .trim(); // Remove any extra whitespace
 
     return {
       readme,
