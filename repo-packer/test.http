@@ -1,0 +1,10 @@
+
+
+POST http://localhost:5000/api/pack
+Content-Type: application/json
+
+{
+    "repo_url": "https://github.com/owengretzinger/hackmate",
+    "max_tokens": 10,
+    "max_file_size": 500000
+}
