@@ -20,6 +20,7 @@ export const env = createEnv({
     GOOGLE_CLOUD_PROJECT_ID: z.string(),
     GOOGLE_CLOUD_LOCATION: z.string(),
     USE_MOCK_RESPONSES: z.enum(["true", "false"]).default("true"),
+    REPO_PACKER_URL: z.string().url(),
     REPO_PACKER_TOKEN: z.string().min(1),
   },
 
@@ -45,6 +46,7 @@ export const env = createEnv({
     GOOGLE_CLOUD_PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID,
     GOOGLE_CLOUD_LOCATION: process.env.GOOGLE_CLOUD_LOCATION,
     USE_MOCK_RESPONSES: process.env.USE_MOCK_RESPONSES,
+    REPO_PACKER_URL: process.env.REPO_PACKER_URL,
     REPO_PACKER_TOKEN: process.env.REPO_PACKER_TOKEN,
   },
   /**

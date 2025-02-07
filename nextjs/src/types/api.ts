@@ -12,6 +12,10 @@ export type PackRepositoryResponse = {
     path: string;
     size_kb: number;
   }>;
+  rateLimitInfo?: {
+    limit: string;
+    reset?: string;
+  };
 };
 
 export type GenerateReadmeResponse = {
@@ -28,6 +32,10 @@ export type GenerateReadmeResponse = {
     path: string;
     size_kb: number;
   }>;
+  rateLimitInfo?: {
+    limit: string;
+    reset?: string;
+  };
 };
 
 export type GenerateArchitectureResponse = {
@@ -44,4 +52,8 @@ export type GenerateArchitectureResponse = {
     path: string;
     size_kb: number;
   }>;
+  rateLimitInfo?: {
+    limit: string;
+    reset?: string;
+  };
 }; 
