@@ -19,6 +19,8 @@ export const env = createEnv({
       .default("development"),
     GOOGLE_CLOUD_PROJECT_ID: z.string(),
     GOOGLE_CLOUD_LOCATION: z.string(),
+    GOOGLE_CLIENT_EMAIL: z.string(),
+    GOOGLE_PRIVATE_KEY: z.string(),
     USE_MOCK_RESPONSES: z.enum(["true", "false"]).default("true"),
     REPO_PACKER_URL: z.string().url(),
     REPO_PACKER_TOKEN: z.string().min(1),
@@ -30,6 +32,8 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
+    NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1),
+    NEXT_PUBLIC_POSTHOG_HOST: z.string().url(),
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
   },
 
@@ -45,9 +49,13 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     GOOGLE_CLOUD_PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID,
     GOOGLE_CLOUD_LOCATION: process.env.GOOGLE_CLOUD_LOCATION,
+    GOOGLE_CLIENT_EMAIL: process.env.GOOGLE_CLIENT_EMAIL,
+    GOOGLE_PRIVATE_KEY: process.env.GOOGLE_PRIVATE_KEY,
     USE_MOCK_RESPONSES: process.env.USE_MOCK_RESPONSES,
     REPO_PACKER_URL: process.env.REPO_PACKER_URL,
     REPO_PACKER_TOKEN: process.env.REPO_PACKER_TOKEN,
+    NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+    NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
