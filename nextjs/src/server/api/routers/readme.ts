@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { generateReadmeWithAI } from "~/utils/vertex-ai";
-import { templates } from "~/components/readme-templates/readme-templates";
 import { packRepository } from "~/utils/api-client";
 import { type GenerateReadmeResponse } from "~/types/api";
 

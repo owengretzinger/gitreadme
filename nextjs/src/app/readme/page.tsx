@@ -31,8 +31,6 @@ import {
   CollapsibleTrigger,
 } from "~/components/ui/collapsible";
 import { Separator } from "~/components/ui/separator";
-import { type FileData } from "~/utils/vertex-ai";
-// import pdfToText from "react-pdftotext";
 
 const formSchema = z.object({
   repoUrl: z.string().url("Please enter a valid URL"),
@@ -44,8 +42,6 @@ const formSchema = z.object({
 function ReadmeForm() {
   const [activeTab, setActiveTab] = useState("settings");
   const [generatedReadme, setGeneratedReadme] = useState<string | null>(null);
-  const [repoPackerOutput, setrepoPackerOutput] = useState<string | null>(null);
-  const [showrepoPackerOutput, setShowrepoPackerOutput] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [readmeViewMode, setReadmeViewMode] = useState<ViewMode>("preview");
   const [templateViewMode, setTemplateViewMode] = useState<ViewMode>("preview");
@@ -103,7 +99,8 @@ function ReadmeForm() {
                   variant="outline"
                   className="mt-2"
                   onClick={() => {
-                    const patterns = data.largestFiles?.map((f) => f.path) ?? [];
+                    const patterns =
+                      data.largestFiles?.map((f) => f.path) ?? [];
                     form.setValue("excludePatterns", patterns);
                     void form.handleSubmit(handleSubmit)();
                   }}
@@ -113,7 +110,7 @@ function ReadmeForm() {
               </div>
             ),
           });
-        } else if ('rateLimitInfo' in data) {
+        } else if ("rateLimitInfo" in data) {
           // Show rate limit error toast
           toast({
             variant: "destructive",
@@ -138,13 +135,11 @@ function ReadmeForm() {
           });
         }
         setGeneratedReadme(null);
-        setrepoPackerOutput(null);
       } else {
         toast({
           description: "README generated successfully!",
         });
         setGeneratedReadme(data.readme);
-        setrepoPackerOutput(data.repoPackerOutput ?? null);
         setActiveTab("readme");
       }
       setIsLoading(false);
@@ -157,7 +152,6 @@ function ReadmeForm() {
       });
       setIsLoading(false);
       setGeneratedReadme(null);
-      setrepoPackerOutput(null);
     },
   });
 
@@ -174,17 +168,17 @@ function ReadmeForm() {
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     setGeneratedReadme(null);
-    setrepoPackerOutput(null);
-    setShowrepoPackerOutput(false);
     await generateReadme.mutateAsync({
       ...values,
       templateContent: templateContent,
       additionalContext: additionalContext,
-      files: uploadedFiles ? Array.from(uploadedFiles).map(file => ({
-        name: file.name,
-        type: file.type,
-        content: "" // Content will be read server-side
-      })) : undefined
+      files: uploadedFiles
+        ? Array.from(uploadedFiles).map((file) => ({
+            name: file.name,
+            type: file.type,
+            content: "", // Content will be read server-side
+          }))
+        : undefined,
     });
   };
 
