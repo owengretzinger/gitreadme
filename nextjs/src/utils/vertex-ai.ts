@@ -97,7 +97,7 @@ export async function generateReadmeWithAI(
 
       CRITICAL REQUIREMENTS:
       - Follow the template structure. 
-      - DO NOT wrap your entire response in \`\`\`md markdown formatting tags. Start your response with the first line of the template and continue from there.
+      - DO NOT wrap your entire response in \`\`\`md formatting tags or \`\`\`html tags. Start your response with the first line of the template and continue from there.
       - Replace logos with this placeholder: https://github.com/user-attachments/assets/0ae1b6d5-1a62-4b41-b2c7-c595a0460497.
       - Replace demo videos with this placeholder: https://github.com/user-attachments/assets/3b6baea2-cb25-4670-86b8-094d69d2bf83.
       - Replace images with this placeholder: https://github.com/user-attachments/assets/79d3c0f6-21b6-413b-9f30-5117c6b60e7d.
@@ -108,10 +108,24 @@ export async function generateReadmeWithAI(
       `;
 
     const result = await model.generateContent(readmePrompt);
-    const readme = result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
+    let readme = result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!readme) {
       throw new Error("No response from AI model");
+    }
+
+    if (readme.startsWith("```md")) {
+      // take ```md off the start
+      readme = readme.slice(4);
+      // take ``` off the end
+      readme = readme.slice(0, -3);
+    }
+
+    if (readme.startsWith("```html")) {
+      // take ```html off the start
+      readme = readme.slice(7);
+      // take ``` off the end
+      readme = readme.slice(0, -3);
     }
 
     return {
