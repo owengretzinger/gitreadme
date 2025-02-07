@@ -100,7 +100,7 @@ export async function generateReadmeWithAI(
       `;
 
     const result = await model.generateContent(readmePrompt);
-    let readme = result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const readme = result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!readme) {
       throw new Error("No response from AI model");
