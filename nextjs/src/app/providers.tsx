@@ -12,7 +12,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
     posthog.init(env.NEXT_PUBLIC_POSTHOG_KEY, {
       api_host: "/ingest",
       ui_host: "https://us.posthog.com",
-      capture_pageview: false, // Disable automatic pageview capture, as we capture manually
+      capture_pageview: true,
     });
   }, []);
 
