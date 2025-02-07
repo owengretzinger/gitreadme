@@ -37,8 +37,8 @@ const formSchema = z.object({
 
 function ArchitectureForm() {
   const [generatedDiagram, setGeneratedDiagram] = useState<string | null>(null);
-  const [repomixOutput, setRepomixOutput] = useState<string | null>(null);
-  const [showRepomixOutput, setShowRepomixOutput] = useState(false);
+  const [repoPackerOutput, setrepoPackerOutput] = useState<string | null>(null);
+  const [showrepoPackerOutput, setShowrepoPackerOutput] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [diagramViewMode, setDiagramViewMode] = useState<ViewMode>("preview");
   const [isCopied, setIsCopied] = useState(false);
@@ -85,13 +85,13 @@ function ArchitectureForm() {
           });
         }
         setGeneratedDiagram(null);
-        setRepomixOutput(null);
+        setrepoPackerOutput(null);
       } else {
         toast({
           description: "Architecture diagram generated successfully!",
         });
         setGeneratedDiagram(data.diagram);
-        setRepomixOutput(data.repomixOutput ?? null);
+        setrepoPackerOutput(data.repoPackerOutput ?? null);
       }
       setIsLoading(false);
     },
@@ -103,7 +103,7 @@ function ArchitectureForm() {
       });
       setIsLoading(false);
       setGeneratedDiagram(null);
-      setRepomixOutput(null);
+      setrepoPackerOutput(null);
     },
   });
 
@@ -118,8 +118,8 @@ function ArchitectureForm() {
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     setGeneratedDiagram(null);
-    setRepomixOutput(null);
-    setShowRepomixOutput(false);
+    setrepoPackerOutput(null);
+    setShowrepoPackerOutput(false);
     await generateDiagram.mutateAsync(values);
   };
 
@@ -261,24 +261,24 @@ function ArchitectureForm() {
                   />
                 </div>
 
-                {repomixOutput && (
+                {repoPackerOutput && (
                   <div>
                     <Button
                       variant="outline"
                       className="mb-4 w-full"
-                      onClick={() => setShowRepomixOutput(!showRepomixOutput)}
+                      onClick={() => setShowrepoPackerOutput(!showrepoPackerOutput)}
                     >
-                      {showRepomixOutput ? (
+                      {showrepoPackerOutput ? (
                         <ChevronUp className="mr-2 h-4 w-4" />
                       ) : (
                         <ChevronDown className="mr-2 h-4 w-4" />
                       )}
-                      {showRepomixOutput ? "Hide" : "Show"} Repomix Output
+                      {showrepoPackerOutput ? "Hide" : "Show"} repoPacker Output
                     </Button>
-                    {showRepomixOutput && (
+                    {showrepoPackerOutput && (
                       <div className="rounded-lg border p-4">
                         <pre className="whitespace-pre-wrap text-sm">
-                          {repomixOutput}
+                          {repoPackerOutput}
                         </pre>
                       </div>
                     )}

@@ -38,24 +38,24 @@ export const readmeRouter = createTRPCRouter({
         }
 
         // Pack repository using Python server
-        const repomixResult = await packRepository(
+        const repoPackerResult = await packRepository(
           input.repoUrl,
           undefined,
           undefined,
           input.excludePatterns
         );
-        if (!repomixResult.success) {
+        if (!repoPackerResult.success) {
           return {
             success: false,
-            error: repomixResult.error,
-            largestFiles: repomixResult.largest_files,
+            error: repoPackerResult.error,
+            largestFiles: repoPackerResult.largest_files,
           };
         }
 
         // Generate README using Vertex AI
         console.log("Generating content with Vertex AI...");
         const result = await generateReadmeWithAI(
-          repomixResult.content,
+          repoPackerResult.content,
           template.content,
           input.additionalContext,
           input.files
@@ -67,7 +67,7 @@ export const readmeRouter = createTRPCRouter({
         return {
           success: true,
           readme: result.readme,
-          repomixOutput: repomixResult.content,
+          repoPackerOutput: repoPackerResult.content,
         };
       } catch (error) {
         console.log("Error:", error);

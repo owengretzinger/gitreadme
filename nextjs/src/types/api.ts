@@ -17,12 +17,12 @@ export type PackRepositoryResponse = {
 export type GenerateReadmeResponse = {
   success: true;
   readme: string;
-  repomixOutput?: string;
+  repoPackerOutput?: string;
   error?: never;
 } | {
   success: false;
   error: string;
-  repomixOutput?: string;
+  repoPackerOutput?: string;
   readme?: never;
   largestFiles?: Array<{
     path: string;
@@ -33,12 +33,12 @@ export type GenerateReadmeResponse = {
 export type GenerateArchitectureResponse = {
   success: true;
   diagram: string;
-  repomixOutput?: string;
+  repoPackerOutput?: string;
   error?: never;
 } | {
   success: false;
   error: string;
-  repomixOutput?: string;
+  repoPackerOutput?: string;
   diagram?: never;
   largestFiles?: Array<{
     path: string;

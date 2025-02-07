@@ -20,30 +20,30 @@ export const architectureRouter = createTRPCRouter({
 
       try {
         // Pack repository using Python server
-        const repomixResult = await packRepository(
+        const repoPackerResult = await packRepository(
           input.repoUrl,
           undefined,
           undefined,
           input.excludePatterns
         );
-        if (!repomixResult.success) {
+        if (!repoPackerResult.success) {
           return {
             success: false,
-            error: repomixResult.error,
-            largestFiles: repomixResult.largest_files,
+            error: repoPackerResult.error,
+            largestFiles: repoPackerResult.largest_files,
           };
         }
 
         // Generate diagram using Vertex AI
         console.log("Generating content with Vertex AI...");
         const result = await generateArchitectureDiagram(
-          repomixResult.content,
+          repoPackerResult.content,
         );
 
         return {
           success: true,
           diagram: result.diagram,
-          repomixOutput: repomixResult.content,
+          repoPackerOutput: repoPackerResult.content,
         };
       } catch (error) {
         console.log("Error:", error);

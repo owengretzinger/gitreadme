@@ -44,8 +44,8 @@ const formSchema = z.object({
 function ReadmeForm() {
   const [activeTab, setActiveTab] = useState("settings");
   const [generatedReadme, setGeneratedReadme] = useState<string | null>(null);
-  const [repomixOutput, setRepomixOutput] = useState<string | null>(null);
-  const [showRepomixOutput, setShowRepomixOutput] = useState(false);
+  const [repoPackerOutput, setrepoPackerOutput] = useState<string | null>(null);
+  const [showrepoPackerOutput, setShowrepoPackerOutput] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [readmeViewMode, setReadmeViewMode] = useState<ViewMode>("preview");
   const [templateViewMode, setTemplateViewMode] = useState<ViewMode>("preview");
@@ -121,13 +121,13 @@ function ReadmeForm() {
           });
         }
         setGeneratedReadme(null);
-        setRepomixOutput(null);
+        setrepoPackerOutput(null);
       } else {
         toast({
           description: "README generated successfully!",
         });
         setGeneratedReadme(data.readme);
-        setRepomixOutput(data.repomixOutput ?? null);
+        setrepoPackerOutput(data.repoPackerOutput ?? null);
         setActiveTab("readme");
       }
       setIsLoading(false);
@@ -140,7 +140,7 @@ function ReadmeForm() {
       });
       setIsLoading(false);
       setGeneratedReadme(null);
-      setRepomixOutput(null);
+      setrepoPackerOutput(null);
     },
   });
 
@@ -157,8 +157,8 @@ function ReadmeForm() {
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     setGeneratedReadme(null);
-    setRepomixOutput(null);
-    setShowRepomixOutput(false);
+    setrepoPackerOutput(null);
+    setShowrepoPackerOutput(false);
     await generateReadme.mutateAsync(values);
   };
 

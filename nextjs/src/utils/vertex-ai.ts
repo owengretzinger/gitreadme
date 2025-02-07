@@ -8,7 +8,7 @@ import {
 // Flags for testing - set to true to use mock responses
 export const USE_MOCK = {
   ai: env.USE_MOCK_RESPONSES === "true", // Use mock AI responses instead of calling Vertex AI
-  repomix: env.USE_MOCK_RESPONSES === "true", // Skip repomix and use mock repository content
+  repoPacker: env.USE_MOCK_RESPONSES === "true", // Skip repoPacker and use mock repository content
 } as const;
 
 // Initialize Vertex with your Cloud project and location
@@ -30,12 +30,12 @@ export const USE_MOCK = {
 
 export type GenerateReadmeResponse = {
   readme: string;
-  repomixOutput: string;
+  repoPackerOutput: string;
 };
 
 export type GenerateArchitectureResponse = {
   diagram: string;
-  repomixOutput: string;
+  repoPackerOutput: string;
 };
 
 export type FileData = {
@@ -54,7 +54,7 @@ export async function generateReadmeWithAI(
     await new Promise((resolve) => setTimeout(resolve, 300));
     return {
       readme: EXAMPLE_README,
-      repomixOutput: USE_MOCK.repomix ? MOCK_REPO_CONTENT : repoContent,
+      repoPackerOutput: USE_MOCK.repoPacker ? MOCK_REPO_CONTENT : repoContent,
     };
   }
 
@@ -121,7 +121,7 @@ export async function generateReadmeWithAI(
 
 //     return {
 //       readme,
-//       repomixOutput: repoContent,
+//       repoPackerOutput: repoContent,
 //     };
 //   } catch (error) {
 //     console.error("Error generating README with Vertex AI:", error);
@@ -136,7 +136,7 @@ export async function generateArchitectureDiagram(
     await new Promise((resolve) => setTimeout(resolve, 300));
     return {
       diagram: EXAMPLE_DIAGRAM,
-      repomixOutput: USE_MOCK.repomix ? MOCK_REPO_CONTENT : repoContent,
+      repoPackerOutput: USE_MOCK.repoPacker ? MOCK_REPO_CONTENT : repoContent,
     };
   }
 
@@ -250,7 +250,7 @@ export async function generateArchitectureDiagram(
 
 //     return {
 //       diagram,
-//       repomixOutput: repoContent,
+//       repoPackerOutput: repoContent,
 //     };
 //   } catch (error) {
 //     console.error("Error generating diagram with Vertex AI:", error);
