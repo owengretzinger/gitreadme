@@ -1,7 +1,37 @@
 from flask import Flask, request, jsonify
-from gitingest import ingest
+from functools import wraps
+from dotenv import load_dotenv
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+import requests
+import os
+import sys
+import traceback
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
+
+# Initialize rate limiter
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["5 per second", "100 per minute"],
+    storage_uri="memory://",
+)
+
+try:
+    from gitingest import ingest
+except Exception as e:
+    print(f"Error importing gitingest: {str(e)}", file=sys.stderr)
+    traceback.print_exc()
+    sys.exit(1)
+
+# Get token from environment variable
+REPO_PACKER_TOKEN = os.getenv("REPO_PACKER_TOKEN")
+if not REPO_PACKER_TOKEN:
+    raise ValueError("REPO_PACKER_TOKEN environment variable is not set")
 
 DEFAULT_EXCLUDE_PATTERNS = [
     "node_modules",
@@ -9,7 +39,37 @@ DEFAULT_EXCLUDE_PATTERNS = [
     "build",
     "*.log",
     "*.log.*",
+    "package-lock.json",
+    "yarn.lock",
+    "pnpm-lock.yaml",
+    "bun.lockb",
+    "Gemfile.lock",
+    "Gemfile.lock.*",
 ]
+
+
+def require_token(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header:
+            return jsonify({"error": "No authorization header"}), 401
+
+        try:
+            # Extract token from "Bearer <token>"
+            token_type, token = auth_header.split()
+            if token_type.lower() != "bearer":
+                return jsonify({"error": "Invalid authorization header format"}), 401
+
+            if token != REPO_PACKER_TOKEN:
+                return jsonify({"error": "Invalid token"}), 401
+
+        except ValueError:
+            return jsonify({"error": "Invalid authorization header format"}), 401
+
+        return f(*args, **kwargs)
+
+    return decorated_function
 
 
 def parse_content(content):
@@ -43,8 +103,49 @@ def get_largest_files(files, n=10):
     return [{"path": path, "size_kb": size / 1024} for path, size in largest_files]
 
 
+def check_repo_access(repo_url):
+    """Check if the repository exists and is accessible"""
+    # Convert github.com URL to API URL
+    if "github.com" in repo_url:
+        api_url = repo_url.replace("github.com", "api.github.com/repos")
+        try:
+            response = requests.get(api_url)
+            if response.status_code == 404:
+                return False, "Repository not found"
+            elif response.status_code == 403:
+                return False, "Repository is not accessible. Make sure it is public"
+            elif not response.ok:
+                return False, f"GitHub API error: {response.status_code}"
+            return True, None
+        except requests.RequestException as e:
+            return False, f"Error checking repository: {str(e)}"
+    return True, None
+
+
+def normalize_github_url(url):
+    """Convert various GitHub URL formats to a consistent format."""
+    if not url:
+        return None
+
+    # Remove trailing .git if present
+    if url.endswith(".git"):
+        url = url[:-4]
+
+    # Remove trailing slash if present
+    if url.endswith("/"):
+        url = url[:-1]
+
+    # Ensure it's a valid GitHub URL
+    if not url.startswith(("https://github.com/", "http://github.com/")):
+        return None
+
+    return url
+
+
 @app.route("/api/pack", methods=["POST"])
+@require_token
 def pack_repository():
+    print("Packing repository...")
     data = request.get_json()
 
     # Get parameters from request
@@ -56,13 +157,30 @@ def pack_repository():
     if not repo_url:
         return jsonify({"error": "repo_url is required"}), 400
 
+    # Normalize and validate GitHub URL
+    normalized_url = normalize_github_url(repo_url)
+    if not normalized_url:
+        return (
+            jsonify(
+                {
+                    "error": "Invalid GitHub repository URL. Please provide a valid GitHub repository URL."
+                }
+            ),
+            400,
+        )
+
+    # Check repository access
+    can_access, error_message = check_repo_access(normalized_url)
+    if not can_access:
+        return jsonify({"error": error_message}), 403
+
     # Combine exclude patterns
     exclude_patterns = DEFAULT_EXCLUDE_PATTERNS + additional_exclude_patterns
 
     try:
         # Get repository contents
         summary, _, content = ingest(
-            repo_url,
+            normalized_url,
             max_file_size=max_file_size,
             exclude_patterns=exclude_patterns,
         )
@@ -101,7 +219,13 @@ def pack_repository():
         )
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        error_details = {
+            "error": str(e),
+            "type": type(e).__name__,
+            "traceback": traceback.format_exc(),
+        }
+        print("Error in pack_repository:", error_details, file=sys.stderr)
+        return jsonify(error_details), 500
 
 
 if __name__ == "__main__":

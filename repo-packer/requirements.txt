@@ -1,2 +1,6 @@
 flask
 gitingest
+gunicorn
+python-dotenv
+Flask-Limiter
+requests
