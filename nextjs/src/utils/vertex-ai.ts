@@ -12,10 +12,18 @@ export const USE_MOCK = {
   repoPacker: env.USE_MOCK_RESPONSES === "true", // Skip repoPacker and use mock repository content
 } as const;
 
+const authOptions = {
+  credentials: {
+    client_email: env.GOOGLE_CLIENT_EMAIL,
+    private_key: env.GOOGLE_PRIVATE_KEY,
+  },
+};
+
 // Initialize Vertex with your Cloud project and location
 const vertex_ai = new VertexAI({
   project: env.GOOGLE_CLOUD_PROJECT_ID,
   location: env.GOOGLE_CLOUD_LOCATION,
+  googleAuthOptions: authOptions,
 });
 
 // Select a model
