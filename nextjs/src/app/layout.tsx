@@ -6,6 +6,7 @@ import { type Metadata } from "next";
 import { ThemeProvider } from "~/components/theme-provider";
 import { TRPCReactProvider } from "~/trpc/react";
 import { Nav } from "~/components/nav";
+import { PostHogProvider } from "~/app/providers";
 
 export const metadata: Metadata = {
   title: "README Generator",
@@ -30,12 +31,14 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TRPCReactProvider>
-            <div className="relative flex min-h-screen flex-col">
-              <Nav />
-              <main className="mx-auto w-full max-w-7xl flex-1 px-4">
-                {children}
-              </main>
-            </div>
+            <PostHogProvider>
+              <div className="relative flex min-h-screen flex-col">
+                <Nav />
+                <main className="mx-auto w-full max-w-7xl flex-1 px-4">
+                  {children}
+                </main>
+              </div>
+            </PostHogProvider>
           </TRPCReactProvider>
         </ThemeProvider>
       </body>
