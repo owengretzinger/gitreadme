@@ -31,6 +31,7 @@ import {
   CollapsibleTrigger,
 } from "~/components/ui/collapsible";
 import { Separator } from "~/components/ui/separator";
+import posthog from "posthog-js";
 
 const formSchema = z.object({
   repoUrl: z.string().url("Please enter a valid URL"),
@@ -80,6 +81,12 @@ function ReadmeForm() {
     onSuccess: async (data) => {
       if (!data.success) {
         if (data.largestFiles) {
+          posthog.capture("readme_generation", {
+            success: false,
+            repo_url: form.getValues("repoUrl"),
+            template: selectedTemplate,
+            error: "Repository too large",
+          });
           // Show toast with option to exclude largest files
           toast({
             variant: "destructive",
@@ -111,6 +118,12 @@ function ReadmeForm() {
             ),
           });
         } else if ("rateLimitInfo" in data) {
+          posthog.capture("readme_generation", {
+            success: false,
+            repo_url: form.getValues("repoUrl"),
+            template: selectedTemplate,
+            error: "Rate limit exceeded",
+          });
           // Show rate limit error toast
           toast({
             variant: "destructive",
@@ -128,6 +141,13 @@ function ReadmeForm() {
             ),
           });
         } else {
+          posthog.capture("readme_generation", {
+            success: false,
+            repo_url: form.getValues("repoUrl"),
+            template: selectedTemplate,
+            error: "Unknown error",
+            error_message: data.error,
+          });
           toast({
             variant: "destructive",
             title: "Error",
@@ -136,6 +156,11 @@ function ReadmeForm() {
         }
         setGeneratedReadme(null);
       } else {
+        posthog.capture("readme_generation", {
+          success: true,
+          repo_url: form.getValues("repoUrl"),
+          template: selectedTemplate,
+        });
         toast({
           description: "README generated successfully!",
         });
@@ -144,7 +169,14 @@ function ReadmeForm() {
       }
       setIsLoading(false);
     },
-    onError: () => {
+    onError: (e) => {
+      posthog.capture("readme_generation", {
+        success: false,
+        repo_url: form.getValues("repoUrl"),
+        template: selectedTemplate,
+        error: "Unknown error",
+        error_message: e.message,
+      });
       toast({
         variant: "destructive",
         title: "Error",
