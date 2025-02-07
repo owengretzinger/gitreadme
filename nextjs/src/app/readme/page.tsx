@@ -36,7 +36,7 @@ import { type FileData } from "~/utils/vertex-ai";
 
 const formSchema = z.object({
   repoUrl: z.string().url("Please enter a valid URL"),
-  templateId: z.string(),
+  templateContent: z.string(),
   additionalContext: z.string(),
   excludePatterns: z.array(z.string()).default([]),
 });
@@ -113,6 +113,23 @@ function ReadmeForm() {
               </div>
             ),
           });
+        } else if ('rateLimitInfo' in data) {
+          // Show rate limit error toast
+          toast({
+            variant: "destructive",
+            title: "Rate limit exceeded",
+            description: (
+              <div className="mt-2 space-y-2">
+                <p>Too many requests. Please wait before trying again.</p>
+                {data.rateLimitInfo?.limit && (
+                  <p>Limit: {data.rateLimitInfo.limit}</p>
+                )}
+                {data.rateLimitInfo?.reset && (
+                  <p>Try again in {data.rateLimitInfo.reset} seconds</p>
+                )}
+              </div>
+            ),
+          });
         } else {
           toast({
             variant: "destructive",
@@ -148,7 +165,7 @@ function ReadmeForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       repoUrl: "",
-      templateId: templates[0]?.id ?? "",
+      templateContent: templates[0]?.content ?? "",
       additionalContext: "",
       excludePatterns: [],
     },
@@ -159,7 +176,16 @@ function ReadmeForm() {
     setGeneratedReadme(null);
     setrepoPackerOutput(null);
     setShowrepoPackerOutput(false);
-    await generateReadme.mutateAsync(values);
+    await generateReadme.mutateAsync({
+      ...values,
+      templateContent: templateContent,
+      additionalContext: additionalContext,
+      files: uploadedFiles ? Array.from(uploadedFiles).map(file => ({
+        name: file.name,
+        type: file.type,
+        content: "" // Content will be read server-side
+      })) : undefined
+    });
   };
 
   const handleCopyReadme = async () => {

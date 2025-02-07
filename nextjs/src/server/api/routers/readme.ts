@@ -17,7 +17,7 @@ export const readmeRouter = createTRPCRouter({
     .input(
       z.object({
         repoUrl: z.string().url(),
-        templateId: z.string(),
+        templateContent: z.string(),
         additionalContext: z.string(),
         files: z.array(FileDataSchema).optional(),
         excludePatterns: z.array(z.string()).optional(),
@@ -28,14 +28,7 @@ export const readmeRouter = createTRPCRouter({
       const startTime = performance.now();
 
       try {
-        // Find the template content
-        const template = templates.find((t) => t.id === input.templateId);
-        if (!template) {
-          return {
-            success: false,
-            error: `Template with ID "${input.templateId}" not found`,
-          };
-        }
+        console.log("Packing repository...");
 
         // Pack repository using Python server
         const repoPackerResult = await packRepository(
@@ -56,7 +49,7 @@ export const readmeRouter = createTRPCRouter({
         console.log("Generating content with Vertex AI...");
         const result = await generateReadmeWithAI(
           repoPackerResult.content,
-          template.content,
+          input.templateContent,
           input.additionalContext,
           input.files
         );
