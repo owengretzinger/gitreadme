@@ -20,8 +20,7 @@ export const env = createEnv({
     GOOGLE_CLOUD_PROJECT_ID: z.string(),
     GOOGLE_CLOUD_LOCATION: z.string(),
     USE_MOCK_RESPONSES: z.enum(["true", "false"]).default("true"),
-    UPSTASH_REDIS_URL: z.string().url(),
-    UPSTASH_REDIS_TOKEN: z.string().min(1),
+    REPO_PACKER_TOKEN: z.string().min(1),
   },
 
   /**
@@ -46,8 +45,7 @@ export const env = createEnv({
     GOOGLE_CLOUD_PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID,
     GOOGLE_CLOUD_LOCATION: process.env.GOOGLE_CLOUD_LOCATION,
     USE_MOCK_RESPONSES: process.env.USE_MOCK_RESPONSES,
-    UPSTASH_REDIS_URL: process.env.UPSTASH_REDIS_URL,
-    UPSTASH_REDIS_TOKEN: process.env.UPSTASH_REDIS_TOKEN,
+    REPO_PACKER_TOKEN: process.env.REPO_PACKER_TOKEN,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
