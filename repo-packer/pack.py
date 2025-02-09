@@ -160,8 +160,6 @@ def pack_repository():
     if not can_access:
         return jsonify({"error": error_message}), 403
 
-    print(f"Excluding patterns: {exclude_patterns}")
-
     try:
         # Get repository contents
         summary, _, content = ingest(

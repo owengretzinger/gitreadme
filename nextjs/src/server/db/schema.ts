@@ -7,6 +7,7 @@ import {
   text,
   timestamp,
   varchar,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
@@ -106,3 +107,28 @@ export const verificationTokens = createTable(
     compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
   }),
 );
+
+export const generatedReadmes = createTable("generated_readme", {
+  id: varchar("id", { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  repoPath: varchar("repo_path", { length: 255 }).notNull(),
+  version: integer("version").notNull(),
+  content: text("content").notNull(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id),
+  createdAt: timestamp("created_at", {
+    mode: "date",
+    withTimezone: true,
+  }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: timestamp("updated_at", {
+    mode: "date",
+    withTimezone: true,
+  }).default(sql`CURRENT_TIMESTAMP`),
+}, (table) => ({
+  repoPathVersionIdx: uniqueIndex("repo_path_version_idx").on(table.repoPath, table.version),
+}));
+
+export const generatedReadmesRelations = relations(generatedReadmes, ({ one }) => ({
+  user: one(users, { fields: [generatedReadmes.userId], references: [users.id] }),
+}));

@@ -74,4 +74,3 @@ It was originally built as part of [HackMate](https://github.com/owengretzinger/
 - [ ] Cache using Redis ?
 - [ ] Rate limiting logic with auth
 - [ ] Enable diagram generation using DeepSeek R1
-- [ ] Ability to share generated README ?

@@ -1,9 +1,8 @@
 "use client";
 
-import { Suspense, useState, useCallback } from "react";
+import { Suspense, useState, useCallback, useEffect, useRef } from "react";
 import { useReadmeForm } from "~/hooks/use-readme-form";
 import { Toaster } from "~/components/ui/toaster";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { ChevronDown } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { type ViewMode } from "~/components/view-mode-toggle";
@@ -18,8 +17,9 @@ import { AdditionalContext } from "~/components/readme/additional-context";
 import { FileUpload } from "~/components/readme/file-upload";
 import { TemplateSelection } from "~/components/readme/template-selection";
 import { TemplatePreview } from "~/components/readme/template-preview";
-import { GeneratedReadme } from "~/components/readme/generated-readme";
 import { FileExclusion } from "~/components/readme/file-exclusion";
+import { ReadmeLayout } from "~/components/readme/readme-layout";
+import { api } from "~/trpc/react";
 
 function ReadmeForm() {
   const [activeTab, setActiveTab] = useState("settings");
@@ -30,10 +30,7 @@ function ReadmeForm() {
     path: string;
     size_kb: number;
   }> | null>(null);
-
-  const handleSuccess = useCallback(() => {
-    setActiveTab("readme");
-  }, []);
+  const nextVersionRef = useRef<number>(1);
 
   const handleTokenLimitExceeded = useCallback(
     (
@@ -51,9 +48,14 @@ function ReadmeForm() {
     [],
   );
 
-  const handleExcludeFiles = useCallback((paths: string[]) => {
-    form.setValue("excludePatterns", paths);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleSuccess = useCallback((repoPath: string) => {
+    setActiveTab("readme");
+    // Update URL without full page reload, using unencoded path and include version
+    window.history.pushState(
+      {},
+      "",
+      `/readme/${repoPath}?v=${nextVersionRef.current}`,
+    );
   }, []);
 
   const {
@@ -72,115 +74,135 @@ function ReadmeForm() {
     generationState,
   } = useReadmeForm(handleSuccess, handleTokenLimitExceeded);
 
-  return (
-    <div className="p-4 md:p-8">
-      <h1 className="mb-8 text-4xl font-bold">README Generator</h1>
+  const repoPath = form.getValues().repoUrl
+    ? new URL(form.getValues().repoUrl).pathname.replace(/^\//, "")
+    : "";
 
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="space-y-6"
-      >
-        <div className="flex w-full justify-center md:justify-start">
-          <TabsList className="">
-            <TabsTrigger value="settings">
-              <span>Generation Settings</span>
-            </TabsTrigger>
-            <TabsTrigger value="readme">
-              <span>Generated README</span>
-            </TabsTrigger>
-          </TabsList>
-        </div>
+  const { data: nextVersion } = api.readme.getNextVersion.useQuery(
+    { repoPath },
+    {
+      enabled: !!repoPath,
+    },
+  );
 
-        <TabsContent value="settings" className="space-y-4">
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <UrlForm form={form} onSubmit={handleSubmit} />
-              <div className="space-y-2">
-                <Collapsible
-                  open={isAdditionalContextOpen}
-                  onOpenChange={setIsAdditionalContextOpen}
-                >
-                  <CollapsibleTrigger className="flex w-full items-center justify-center gap-2 rounded-lg border p-2 text-sm hover:bg-accent">
-                    <div className="flex items-center gap-2">
-                      <span className="hidden md:block">
-                        Exclude file paths, add custom instructions, and upload
-                        files
-                      </span>
-                      <span className="block md:hidden">More settings</span>
-                      <ChevronDown
-                        className={cn(
-                          "h-4 w-4 shrink-0 transition-transform duration-200",
-                          isAdditionalContextOpen && "rotate-180",
-                        )}
+  // Update the ref when nextVersion changes
+  useEffect(() => {
+    if (nextVersion) {
+      nextVersionRef.current = nextVersion;
+    }
+  }, [nextVersion]);
+
+  const handleExcludeFiles = useCallback((paths: string[]) => {
+    form.setValue("excludePatterns", paths);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Handle back/forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      if (path === "/readme") {
+        setActiveTab("settings");
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const settingsContent = (
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <UrlForm form={form} onSubmit={handleSubmit} />
+        <div className="space-y-2">
+          <Collapsible
+            open={isAdditionalContextOpen}
+            onOpenChange={setIsAdditionalContextOpen}
+          >
+            <CollapsibleTrigger className="flex w-full items-center justify-center gap-2 rounded-lg border p-2 text-sm hover:bg-accent">
+              <div className="flex items-center gap-2">
+                <span className="hidden md:block">
+                  Exclude file paths, add custom instructions, and upload files
+                </span>
+                <span className="block md:hidden">More settings</span>
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 shrink-0 transition-transform duration-200",
+                    isAdditionalContextOpen && "rotate-180",
+                  )}
+                />
+              </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-4">
+              <div className="rounded-lg bg-card">
+                <div className="flex flex-col divide-y">
+                  <div className="pb-6">
+                    <FileExclusion
+                      largeFiles={largeFiles ?? []}
+                      onExclude={handleExcludeFiles}
+                      excludePatterns={form.getValues().excludePatterns}
+                    />
+                  </div>
+                  <div className="flex flex-col divide-y pt-6 md:grid md:grid-cols-2 md:divide-x md:divide-y-0">
+                    <div className="space-y-3 pb-6 md:pb-0 md:pr-6">
+                      <AdditionalContext
+                        value={additionalContext}
+                        onChange={setAdditionalContext}
                       />
                     </div>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="pt-4">
-                    <div className="rounded-lg bg-card">
-                      <div className="flex flex-col divide-y">
-                        <div className="pb-6">
-                          <FileExclusion
-                            largeFiles={largeFiles ?? []}
-                            onExclude={handleExcludeFiles}
-                            excludePatterns={form.getValues().excludePatterns}
-                          />
-                        </div>
-                        <div className="flex flex-col divide-y pt-6 md:grid md:grid-cols-2 md:divide-x md:divide-y-0">
-                          <div className="space-y-3 pb-6 md:pb-0 md:pr-6">
-                            <AdditionalContext
-                              value={additionalContext}
-                              onChange={setAdditionalContext}
-                            />
-                          </div>
-                          <div className="space-y-3 pt-6 md:pl-6 md:pt-0">
-                            <FileUpload
-                              uploadedFiles={uploadedFiles}
-                              onFileChange={handleFileChange}
-                              onFileDelete={handleFileDelete}
-                            />
-                          </div>
-                        </div>
-                      </div>
+                    <div className="space-y-3 pt-6 md:pl-6 md:pt-0">
+                      <FileUpload
+                        uploadedFiles={uploadedFiles}
+                        onFileChange={handleFileChange}
+                        onFileDelete={handleFileDelete}
+                      />
                     </div>
-                  </CollapsibleContent>
-                </Collapsible>
+                  </div>
+                </div>
               </div>
-            </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
+      </div>
 
-            <Separator />
+      <Separator />
 
-            <div className="flex flex-col divide-y md:grid md:grid-cols-2 md:divide-x md:divide-y-0">
-              <div className="pb-6 md:pb-0 md:pr-6">
-                <TemplateSelection
-                  selectedTemplate={selectedTemplate}
-                  onTemplateSelect={setSelectedTemplate}
-                />
-              </div>
-
-              <div className="pt-6 md:pl-6 md:pt-0">
-                <TemplatePreview
-                  templateContent={templateContent}
-                  viewMode={templateViewMode}
-                  setViewMode={setTemplateViewMode}
-                  onTemplateContentChange={setTemplateContent}
-                />
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="readme">
-          <GeneratedReadme
-            content={generatedReadme}
-            viewMode={readmeViewMode}
-            setViewMode={setReadmeViewMode}
-            generationState={generationState}
+      <div className="flex flex-col divide-y md:grid md:grid-cols-2 md:divide-x md:divide-y-0">
+        <div className="pb-6 md:pb-0 md:pr-6">
+          <TemplateSelection
+            selectedTemplate={selectedTemplate}
+            onTemplateSelect={setSelectedTemplate}
           />
-        </TabsContent>
-      </Tabs>
-      <Toaster />
+        </div>
+
+        <div className="pt-6 md:pl-6 md:pt-0">
+          <TemplatePreview
+            templateContent={templateContent}
+            viewMode={templateViewMode}
+            setViewMode={setTemplateViewMode}
+            onTemplateContentChange={setTemplateContent}
+          />
+        </div>
+      </div>
     </div>
+  );
+
+  return (
+    <>
+      <ReadmeLayout
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        readmeViewMode={readmeViewMode}
+        setReadmeViewMode={setReadmeViewMode}
+        repoPath={repoPath}
+        version={nextVersion ?? 1}
+        createdAt={new Date()}
+        currentUrl={window.location.href}
+        generatedReadme={generatedReadme}
+        generationState={generationState}
+        settingsContent={settingsContent}
+      />
+      <Toaster />
+    </>
   );
 }
 

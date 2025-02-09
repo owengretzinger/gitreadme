@@ -17,7 +17,7 @@ interface UrlFormProps {
 
 export function UrlForm({ form, onSubmit }: UrlFormProps) {
   return (
-    <div className="flex flex-col gap-2 pt-2">
+    <div className="flex flex-col gap-2">
       <h3 className="text-lg font-semibold">GitHub Repository URL</h3>
       <Form {...form}>
         <div className="flex flex-col gap-4 md:flex-row">

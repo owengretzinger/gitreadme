@@ -73,9 +73,9 @@ export function MarkdownDisplay({
           </div>
           <div className="flex items-center gap-2">
             {isGenerating && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mr-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mr-4 font-medium">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Generating</span>
+                <span>Streaming response</span>
               </div>
             )}
             {showViewModeToggle && (

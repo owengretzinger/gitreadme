@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS "account" (
 	CONSTRAINT "account_provider_provider_account_id_pk" PRIMARY KEY("provider","provider_account_id")
 );
 --> statement-breakpoint
+DROP TABLE IF EXISTS "generated_readme";
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "session" (
 	"session_token" varchar(255) PRIMARY KEY NOT NULL,
 	"user_id" varchar(255) NOT NULL,

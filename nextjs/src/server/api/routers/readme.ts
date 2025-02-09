@@ -4,6 +4,8 @@ import {
   generateReadmeWithAIStream,
 } from "~/utils/vertex-ai";
 import { packRepository } from "~/utils/api-client";
+import { generatedReadmes } from "~/server/db/schema";
+import { and, eq } from "drizzle-orm";
 
 // Define a schema for file data
 const FileDataSchema = z.object({
@@ -30,9 +32,10 @@ export const readmeRouter = createTRPCRouter({
         excludePatterns: z.array(z.string()).optional(),
       }),
     )
-    .mutation(async function* ({ input }) {
+    .mutation(async function* ({ input, ctx }) {
       console.log("Starting streaming README generation for:", input.repoUrl);
       const startTime = performance.now();
+      let generatedContent = "";
 
       try {
         console.log("Packing repository...");
@@ -77,8 +80,25 @@ export const readmeRouter = createTRPCRouter({
         );
 
         for await (const chunk of stream) {
+          generatedContent += chunk;
           yield "AI:" + chunk;
         }
+
+        // Get the next version number for this repo
+        const repoPath = new URL(input.repoUrl).pathname.replace(/^\//, "");
+        const latestVersion = await ctx.db.query.generatedReadmes.findFirst({
+          where: eq(generatedReadmes.repoPath, repoPath),
+          orderBy: (generatedReadmes, { desc }) => [desc(generatedReadmes.version)],
+        });
+        const nextVersion = latestVersion ? latestVersion.version + 1 : 1;
+
+        // Store the generated README in the database
+        await ctx.db.insert(generatedReadmes).values({
+          repoPath,
+          version: nextVersion,
+          content: generatedContent,
+          userId: ctx.session?.user.id,
+        });
 
         const endTime = performance.now();
         console.log(
@@ -88,5 +108,51 @@ export const readmeRouter = createTRPCRouter({
         console.error("Error in streaming README generation:", error);
         throw error;
       }
+    }),
+
+  getByRepoPath: publicProcedure
+    .input(z.object({ 
+      repoPath: z.string(),
+      version: z.number().optional(),
+    }))
+    .query(async ({ input, ctx }) => {
+      if (input.version) {
+        // Get specific version
+        const readme = await ctx.db.query.generatedReadmes.findFirst({
+          where: and(
+            eq(generatedReadmes.repoPath, input.repoPath),
+            eq(generatedReadmes.version, input.version)
+          ),
+        });
+        if (!readme) {
+          return null;
+        }
+        return readme;
+      } else {
+        // Get latest version
+        return await ctx.db.query.generatedReadmes.findFirst({
+          where: eq(generatedReadmes.repoPath, input.repoPath),
+          orderBy: (generatedReadmes, { desc }) => [desc(generatedReadmes.version)],
+        });
+      }
+    }),
+
+  getMostRecentVersion: publicProcedure
+    .input(z.object({ repoPath: z.string() }))
+    .query(async ({ input, ctx }) => {
+      return await ctx.db.query.generatedReadmes.findFirst({
+        where: eq(generatedReadmes.repoPath, input.repoPath),
+        orderBy: (generatedReadmes, { desc }) => [desc(generatedReadmes.version)],
+      });
+    }),
+
+  getNextVersion: publicProcedure
+    .input(z.object({ repoPath: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const latestVersion = await ctx.db.query.generatedReadmes.findFirst({
+        where: eq(generatedReadmes.repoPath, input.repoPath),
+        orderBy: (generatedReadmes, { desc }) => [desc(generatedReadmes.version)],
+      });
+      return latestVersion ? latestVersion.version + 1 : 1;
     }),
 });

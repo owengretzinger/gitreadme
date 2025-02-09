@@ -36,7 +36,7 @@ function LoadingSteps({ currentState }: { currentState: GenerationState }) {
   const translateY = -currentStepIndex * 24;
 
   return (
-    <div className="flex min-h-[400px] flex-col items-center justify-center">
+    <div className="flex min-h-[250px] flex-col items-center justify-center">
       <div
         className="relative flex flex-col items-start gap-3 transition-all duration-500 ease-in-out"
         style={{

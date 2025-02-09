@@ -61,7 +61,7 @@ const formSchema = z.object({
 export type ReadmeFormData = z.infer<typeof formSchema>;
 
 export const useReadmeForm = (
-  onSuccess?: () => void,
+  onSuccess?: (repoPath: string) => void,
   onTokenLimitExceeded?: (
     files: Array<{ path: string; size_kb: number }> | null,
     shouldExpandDropdown?: boolean,
@@ -110,7 +110,8 @@ export const useReadmeForm = (
     onMutate: () => {
       setGenerationState(GenerationState.CONTACTING_SERVER);
       setGeneratedReadme("");
-      if (onSuccess) onSuccess();
+      const repoPath = new URL(form.getValues().repoUrl).pathname.replace(/^\//, "");
+      if (onSuccess) onSuccess(repoPath);
     },
     onSuccess: async (stream) => {
       try {
