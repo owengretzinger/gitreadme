@@ -70,7 +70,7 @@ It was originally built as part of [HackMate](https://github.com/owengretzinger/
 
 ## Todo
 
-- [ ] Refactor the page into multiple components and hooks
+- [x] Refactor the page into multiple components and hooks
 - [ ] Ability to enter your links like contact, project url, images, etc. to auto-populate the README
 - [ ] If the repo is too large, display top 10 files and ability to check off files to exclude
 - [ ] Cache using Redis ?
@@ -80,3 +80,4 @@ It was originally built as part of [HackMate](https://github.com/owengretzinger/
 - [ ] Loading indicators
 - [ ] Implement ability to edit for all documents
 - [ ] Ability to share generated README ?
+- [ ] Stream in the AI response
