@@ -26,9 +26,7 @@
 
 ## About The Project
 
-README Generator is a tool that allows you to generate READMEs and architecture diagrams using AI that understands your codebase.
-
-It was originally built as part of [HackMate](https://github.com/owengretzinger/hackmate) for the GDG Mac-a-Thon 2025, which won 1st overall.
+This project was originally built as part of [HackMate](https://github.com/owengretzinger/hackmate) for the GDG Mac-a-Thon 2025, which won 1st overall.
 
 <!-- ### Demo
 

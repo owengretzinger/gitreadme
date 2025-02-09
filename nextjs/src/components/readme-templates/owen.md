@@ -1,14 +1,12 @@
 <div align="center">
-  <a href="https://your-project-url.com">
     <img src="https://github.com/user-attachments/assets/0ae1b6d5-1a62-4b41-b2c7-c595a0460497" alt="Logo" width="80" height="80">
-  </a>
 
 <h3 align="center">Project Title</h3>
 
   <p align="center">
     One-liner description of what your project does, keep it under 15 words
     <br />
-     <a href="https://your-project-url.com">your-project-url.com</a>
+     <a href="https://example.com">your-project-url.com</a>
   </p>
 </div>
 
@@ -31,7 +29,6 @@
         <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
-    <li><a href="#license">License</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
 </details>
@@ -43,7 +40,7 @@ Brief description of the project.
 ### Demo
 
 <div align="center">
-  <a href="https://your-project-url.com">
+  <a href="https://example.com">
     <!-- Add your demo video, GIF, or screenshot here -->
     <img src="https://github.com/user-attachments/assets/3b6baea2-cb25-4670-86b8-094d69d2bf83" alt="Project Demo">
   </a>
@@ -59,13 +56,8 @@ Brief description of the project.
 
 ![Architecture Diagram](https://github.com/user-attachments/assets/79d3c0f6-21b6-413b-9f30-5117c6b60e7d)
 
-- **Frontend:**
-  - ...
-- **Backend:**
-  - ...
-- ...
+(Insert the different technologies used in the project here — could split this into frontend, backend, etc)
 
-(Only include the sections that are relevant to your project)
 
 ## Getting Started
 
@@ -91,13 +83,9 @@ Instructions for cloning the repo, installing packages, configuring environment 
    ```
 3. ...
 
-## License
-
-License information here (remove this section if there is no license — if so, remove from the table of contents too)
-
 ## Acknowledgments
 
-- This README was generated with [README Generator](https://github.com/owengretzinger/readme-generator) — an AI tool that understands your entire codebase.
+- This README was created with [README Generator](https://github.com/owengretzinger/readme-generator) — an AI tool that understands your entire codebase.
 - Credit any collaborators or third-party assets
 - Don't include libraries or tools that should be in the architecture section, this is more for special mentions
 - Don't give thanks to the creators of common libraries like React, Next.js, etc.
