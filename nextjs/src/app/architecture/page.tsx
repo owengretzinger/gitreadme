@@ -26,9 +26,8 @@ import { Button } from "~/components/ui/button";
 import { useToast } from "~/hooks/use-toast";
 import { Toaster } from "~/components/ui/toaster";
 import { ChevronDown, ChevronUp, Download, Copy, Check } from "lucide-react";
-import Mermaid from "~/components/mermaid";
-import { ViewModeToggle, type ViewMode } from "~/components/view-mode-toggle";
-import { ActionButton } from "~/components/action-button";
+import { type ViewMode } from "~/components/view-mode-toggle";
+import { MarkdownDisplay } from "~/components/markdown-display";
 
 const formSchema = z.object({
   repoUrl: z.string().url("Please enter a valid URL"),
@@ -123,11 +122,12 @@ function ArchitectureForm() {
     await generateDiagram.mutateAsync(values);
   };
 
-  const handleCopyCode = async () => {
+  const handleCopyCode = () => {
     if (!generatedDiagram) return;
-    await navigator.clipboard.writeText(generatedDiagram);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
+    void navigator.clipboard.writeText(generatedDiagram).then(() => {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    });
   };
 
   const downloadSvgAsPng = () => {
@@ -227,39 +227,25 @@ function ArchitectureForm() {
 
             {generatedDiagram && (
               <div className="mt-8 space-y-8">
-                <div>
-                  <div className="mb-4 flex items-center justify-between">
-                    <h3 className="text-lg font-semibold">
-                      Architecture Diagram
-                    </h3>
-                    <div className="flex items-center gap-2">
-                      <ViewModeToggle
-                        viewMode={diagramViewMode}
-                        setViewMode={setDiagramViewMode}
-                      />
-                      <ActionButton
-                        onClick={
-                          diagramViewMode === "preview"
-                            ? downloadSvgAsPng
-                            : handleCopyCode
-                        }
-                        icon={
-                          diagramViewMode === "preview" ? (
-                            <Download className="h-4 w-4" />
-                          ) : isCopied ? (
-                            <Check className="h-4 w-4" />
-                          ) : (
-                            <Copy className="h-4 w-4" />
-                          )
-                        }
-                      />
-                    </div>
-                  </div>
-                  <Mermaid
-                    chart={generatedDiagram}
-                    viewMode={diagramViewMode}
-                  />
-                </div>
+                <MarkdownDisplay
+                  title="Architecture Diagram"
+                  content={generatedDiagram}
+                  viewMode={diagramViewMode}
+                  setViewMode={setDiagramViewMode}
+                  actions={[
+                    {
+                      icon: Download,
+                      onClick: downloadSvgAsPng,
+                      showInMode: "preview",
+                    },
+                    {
+                      icon: isCopied ? Check : Copy,
+                      onClick: handleCopyCode,
+                      showInMode: "edit",
+                    },
+                  ]}
+                  isMermaid
+                />
 
                 {repoPackerOutput && (
                   <div>
