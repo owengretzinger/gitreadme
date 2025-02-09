@@ -3,6 +3,7 @@ import { Button } from "./ui/button";
 import { auth } from "~/server/auth";
 import Image from "next/image";
 import { NavButtons } from "./nav-buttons";
+import { MobileNav } from "./mobile-nav";
 
 const links = [
   {
@@ -32,7 +33,7 @@ export async function Nav() {
             />
             <span className="font-bold">README Generator</span>
           </Link>
-          <div className="flex items-center text-sm font-medium">
+          <div className="hidden items-center text-sm font-medium md:flex">
             {links.map((link) => (
               <Link href={link.href} key={link.href}>
                 <Button variant="ghost">{link.label}</Button>
@@ -40,7 +41,12 @@ export async function Nav() {
             ))}
           </div>
         </div>
-        <NavButtons session={session} />
+        <div className="flex items-center gap-2">
+          <div className="hidden md:block">
+            <NavButtons session={session} />
+          </div>
+          <MobileNav links={links} session={session} />
+        </div>
       </div>
     </nav>
   );

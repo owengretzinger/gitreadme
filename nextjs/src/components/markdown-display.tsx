@@ -64,7 +64,7 @@ export function MarkdownDisplay({
         description ??
         visibleActions.length > 0 ??
         showViewModeToggle) && (
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 gap-3 md:gap-0 flex flex-col md:flex-row md:items-center justify-between">
           <div>
             {title && <h3 className="text-lg font-semibold">{title}</h3>}
             {description && (

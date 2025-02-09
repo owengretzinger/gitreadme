@@ -17,29 +17,25 @@ interface UrlFormProps {
 
 export function UrlForm({ form, onSubmit }: UrlFormProps) {
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-2 pt-2">
-        <h3 className="text-lg font-semibold">GitHub Repository URL</h3>
-        <Form {...form}>
-          <div className="flex gap-4">
-            <FormField
-              control={form.control}
-              name="repoUrl"
-              render={({ field }) => (
-                <FormItem className="flex-1">
-                  <FormControl>
-                    <Input placeholder="Enter repository URL..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button onClick={() => onSubmit()}>
-              Generate README
-            </Button>
-          </div>
-        </Form>
-      </div>
+    <div className="flex flex-col gap-2 pt-2">
+      <h3 className="text-lg font-semibold">GitHub Repository URL</h3>
+      <Form {...form}>
+        <div className="flex flex-col gap-4 md:flex-row">
+          <FormField
+            control={form.control}
+            name="repoUrl"
+            render={({ field }) => (
+              <FormItem className="flex-1">
+                <FormControl>
+                  <Input placeholder="Enter repository URL..." {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button onClick={() => onSubmit()}>Generate README</Button>
+        </div>
+      </Form>
     </div>
   );
-} 
+}

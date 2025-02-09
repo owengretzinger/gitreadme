@@ -36,7 +36,10 @@ function ReadmeForm() {
   }, []);
 
   const handleTokenLimitExceeded = useCallback(
-    (files: Array<{ path: string; size_kb: number }> | null, shouldExpandDropdown?: boolean) => {
+    (
+      files: Array<{ path: string; size_kb: number }> | null,
+      shouldExpandDropdown?: boolean,
+    ) => {
       setLargeFiles(files);
       if (files) {
         setActiveTab("settings");
@@ -70,87 +73,92 @@ function ReadmeForm() {
   } = useReadmeForm(handleSuccess, handleTokenLimitExceeded);
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <h1 className="mb-8 text-4xl font-bold">README Generator</h1>
 
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
-        className="space-y-4"
+        className="space-y-6"
       >
-        <TabsList>
-          <TabsTrigger value="settings">
-            <span>Generation Settings</span>
-          </TabsTrigger>
-          <TabsTrigger value="readme">
-            <span>Generated README</span>
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex w-full justify-center md:justify-start">
+          <TabsList className="">
+            <TabsTrigger value="settings">
+              <span>Generation Settings</span>
+            </TabsTrigger>
+            <TabsTrigger value="readme">
+              <span>Generated README</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="settings" className="space-y-4">
-          <div className="space-y-4">
-            <UrlForm form={form} onSubmit={handleSubmit} />
-
-            <div className="space-y-2">
-              <Collapsible
-                open={isAdditionalContextOpen}
-                onOpenChange={setIsAdditionalContextOpen}
-              >
-                <CollapsibleTrigger className="flex w-full items-center justify-center gap-2 rounded-lg border p-2 text-sm hover:bg-accent">
-                  <div className="flex items-center gap-2">
-                    <span>
-                      Exclude files, add custom instructions, or upload files
-                    </span>
-                    <ChevronDown
-                      className={cn(
-                        "h-4 w-4 shrink-0 transition-transform duration-200",
-                        isAdditionalContextOpen && "rotate-180",
-                      )}
-                    />
-                  </div>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-4">
-                  <div className="rounded-lg bg-card">
-                    <div className="flex flex-col divide-y">
-                      <div className="pb-6">
-                        <FileExclusion
-                          largeFiles={largeFiles ?? []}
-                          onExclude={handleExcludeFiles}
-                          excludePatterns={form.getValues().excludePatterns}
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 divide-x pt-6">
-                        <div className="space-y-3 pr-6">
-                          <AdditionalContext
-                            value={additionalContext}
-                            onChange={setAdditionalContext}
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <UrlForm form={form} onSubmit={handleSubmit} />
+              <div className="space-y-2">
+                <Collapsible
+                  open={isAdditionalContextOpen}
+                  onOpenChange={setIsAdditionalContextOpen}
+                >
+                  <CollapsibleTrigger className="flex w-full items-center justify-center gap-2 rounded-lg border p-2 text-sm hover:bg-accent">
+                    <div className="flex items-center gap-2">
+                      <span className="hidden md:block">
+                        Exclude file paths, add custom instructions, and upload
+                        files
+                      </span>
+                      <span className="block md:hidden">More settings</span>
+                      <ChevronDown
+                        className={cn(
+                          "h-4 w-4 shrink-0 transition-transform duration-200",
+                          isAdditionalContextOpen && "rotate-180",
+                        )}
+                      />
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="pt-4">
+                    <div className="rounded-lg bg-card">
+                      <div className="flex flex-col divide-y">
+                        <div className="pb-6">
+                          <FileExclusion
+                            largeFiles={largeFiles ?? []}
+                            onExclude={handleExcludeFiles}
+                            excludePatterns={form.getValues().excludePatterns}
                           />
                         </div>
-                        <div className="space-y-3 pl-6">
-                          <FileUpload
-                            uploadedFiles={uploadedFiles}
-                            onFileChange={handleFileChange}
-                            onFileDelete={handleFileDelete}
-                          />
+                        <div className="flex flex-col divide-y pt-6 md:grid md:grid-cols-2 md:divide-x md:divide-y-0">
+                          <div className="space-y-3 pb-6 md:pb-0 md:pr-6">
+                            <AdditionalContext
+                              value={additionalContext}
+                              onChange={setAdditionalContext}
+                            />
+                          </div>
+                          <div className="space-y-3 pt-6 md:pl-6 md:pt-0">
+                            <FileUpload
+                              uploadedFiles={uploadedFiles}
+                              onFileChange={handleFileChange}
+                              onFileDelete={handleFileDelete}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
             </div>
 
             <Separator />
 
-            <div className="grid grid-cols-2 divide-x">
-              <div className="pr-6">
+            <div className="flex flex-col divide-y md:grid md:grid-cols-2 md:divide-x md:divide-y-0">
+              <div className="pb-6 md:pb-0 md:pr-6">
                 <TemplateSelection
                   selectedTemplate={selectedTemplate}
                   onTemplateSelect={setSelectedTemplate}
                 />
               </div>
 
-              <div className="pl-6">
+              <div className="pt-6 md:pl-6 md:pt-0">
                 <TemplatePreview
                   templateContent={templateContent}
                   viewMode={templateViewMode}
