@@ -100,22 +100,38 @@ export async function* generateReadmeWithAIStream(
 
       CRITICAL REQUIREMENTS:
       - Follow the template structure exactly
-      - YOU MUST NOT wrap your entire response in \`\`\`md tags (not markdown or any other variant). FAILURE TO FOLLOW THIS INSTRUCTION WILL RESULT IN FAILURE.
       - Replace logos with this placeholder: https://github.com/user-attachments/assets/0ae1b6d5-1a62-4b41-b2c7-c595a0460497
       - Replace demo videos with this placeholder: https://github.com/user-attachments/assets/3b6baea2-cb25-4670-86b8-094d69d2bf83
       - Replace images with this placeholder: https://github.com/user-attachments/assets/79d3c0f6-21b6-413b-9f30-5117c6b60e7d
       - Keep any HTML tags and attributes from the template
       - Carefully analyze the repository contents to accurately describe the project
+      - Wrap your response in \`\`\`md tags.
 
-      Analyze the repository contents and the file contents uploaded by the user. Then create a README.md file, taking into account any additional instructions provided. Start your response with "#" to indicate the start of the README.md file.
+      Analyze the repository contents and the file contents uploaded by the user. Then create a README.md file, taking into account any additional instructions provided.
       `;
 
     const result = await model.generateContentStream(readmePrompt);
 
+    let isStart = true;
+    let startingSequenceToStrip = "```md\n";
+
     for await (const chunk of result.stream) {
       const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text;
       if (text) {
-        yield text;
+        if (isStart && text.startsWith(startingSequenceToStrip)) {
+          isStart = false;
+          if (text.length > startingSequenceToStrip.length) {
+            yield text.slice(startingSequenceToStrip.length);
+          } else {
+            continue;
+          }
+        }
+        if (isStart && startingSequenceToStrip.startsWith(text)) {
+          startingSequenceToStrip = startingSequenceToStrip.slice(text.length);
+          continue;
+        }
+        // remove ``` at the end using regex
+        yield text.replace(/```$/, "");
       }
     }
   } catch (error) {
