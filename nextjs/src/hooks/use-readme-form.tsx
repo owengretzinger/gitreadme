@@ -55,14 +55,17 @@ const formSchema = z.object({
   repoUrl: z.string().url("Please enter a valid URL"),
   templateContent: z.string(),
   additionalContext: z.string(),
-  excludePatterns: z.array(z.string()).default([]),
+  excludePatterns: z.array(z.string()),
 });
 
 export type ReadmeFormData = z.infer<typeof formSchema>;
 
 export const useReadmeForm = (
   onSuccess?: () => void,
-  onTokenLimitExceeded?: (files: Array<{ path: string; size_kb: number }> | null) => void,
+  onTokenLimitExceeded?: (
+    files: Array<{ path: string; size_kb: number }> | null,
+    shouldExpandDropdown?: boolean,
+  ) => void,
 ) => {
   const [generatedReadme, setGeneratedReadme] = useState<string | null>(null);
   const [generationState, setGenerationState] = useState<GenerationState>(
@@ -87,7 +90,19 @@ export const useReadmeForm = (
       repoUrl: "",
       templateContent: templates[0]?.content ?? "",
       additionalContext: "",
-      excludePatterns: [],
+      excludePatterns: [
+        "node_modules",
+        "dist",
+        "build",
+        "*.log",
+        "*.log.*",
+        "package-lock.json",
+        "yarn.lock",
+        "pnpm-lock.yaml",
+        "bun.lockb",
+        "Gemfile.lock",
+        "Gemfile.lock.*",
+      ],
     },
   });
 
@@ -101,20 +116,23 @@ export const useReadmeForm = (
       try {
         setGenerationState(GenerationState.PACKING_REPOSITORY);
         let hasStartedStreaming = false;
-        
+
         for await (const chunk of stream) {
           if (chunk === "DONE_PACKING") {
             setGenerationState(GenerationState.WAITING_FOR_AI);
           } else if (chunk.startsWith("ERROR:TOKEN_LIMIT_EXCEEDED:")) {
-            const errorData = JSON.parse(chunk.replace("ERROR:TOKEN_LIMIT_EXCEEDED:", "")) as TokenLimitError;
+            const errorData = JSON.parse(
+              chunk.replace("ERROR:TOKEN_LIMIT_EXCEEDED:", ""),
+            ) as TokenLimitError;
             if (onTokenLimitExceeded) {
-              onTokenLimitExceeded(errorData.largest_files);
+              onTokenLimitExceeded(errorData.largest_files, true);
             }
             setGenerationState(GenerationState.IDLE);
             toast({
               variant: "destructive",
               title: "Repository Too Large",
-              description: "The repository content exceeds the token limit. Please exclude some files and try again.",
+              description:
+                "The repository content exceeds the token limit. Please exclude some files and try again.",
             });
             return;
           } else if (chunk.startsWith("AI:")) {
@@ -125,7 +143,7 @@ export const useReadmeForm = (
             setGeneratedReadme((prev) => (prev ?? "") + chunk.slice(3));
           }
         }
-        
+
         setGenerationState(GenerationState.IDLE);
         toast({
           description: "README generated successfully!",
@@ -145,25 +163,29 @@ export const useReadmeForm = (
       console.error("Error in mutation:", error);
       setGenerationState(GenerationState.IDLE);
       setGeneratedReadme(null);
-      
+
       // Try to extract error message
       let errorMessage: string;
       if (error instanceof Error) {
         errorMessage = error.message;
-      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+      } else if (
+        typeof error === "object" &&
+        error !== null &&
+        "message" in error
+      ) {
         errorMessage = String((error as { message: unknown }).message);
       } else {
-        errorMessage = 'An unknown error occurred';
+        errorMessage = "An unknown error occurred";
       }
 
       if (errorMessage.includes("Token limit exceeded")) {
         try {
           const jsonStr = errorMessage.split(": ")[1];
           if (!jsonStr) throw new Error("No JSON data in error message");
-          
+
           const errorData = JSON.parse(jsonStr) as TokenLimitError;
           if (onTokenLimitExceeded) {
-            onTokenLimitExceeded(errorData.largest_files);
+            onTokenLimitExceeded(errorData.largest_files, true);
           }
           return;
         } catch (e) {

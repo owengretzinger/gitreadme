@@ -26,22 +26,31 @@ function ReadmeForm() {
   const [readmeViewMode, setReadmeViewMode] = useState<ViewMode>("preview");
   const [templateViewMode, setTemplateViewMode] = useState<ViewMode>("preview");
   const [isAdditionalContextOpen, setIsAdditionalContextOpen] = useState(false);
-  const [largeFiles, setLargeFiles] = useState<Array<{ path: string; size_kb: number }> | null>(null);
+  const [largeFiles, setLargeFiles] = useState<Array<{
+    path: string;
+    size_kb: number;
+  }> | null>(null);
 
   const handleSuccess = useCallback(() => {
     setActiveTab("readme");
   }, []);
 
-  const handleTokenLimitExceeded = useCallback((files: Array<{ path: string; size_kb: number }> | null) => {
-    setLargeFiles(files);
-    if (files) {
-      setActiveTab("settings");
-    }
-  }, []);
+  const handleTokenLimitExceeded = useCallback(
+    (files: Array<{ path: string; size_kb: number }> | null, shouldExpandDropdown?: boolean) => {
+      setLargeFiles(files);
+      if (files) {
+        setActiveTab("settings");
+        if (shouldExpandDropdown) {
+          setIsAdditionalContextOpen(true);
+        }
+      }
+    },
+    [],
+  );
 
   const handleExcludeFiles = useCallback((paths: string[]) => {
     form.setValue("excludePatterns", paths);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const {
@@ -82,13 +91,6 @@ function ReadmeForm() {
           <div className="space-y-4">
             <UrlForm form={form} onSubmit={handleSubmit} />
 
-            {largeFiles && (
-              <FileExclusion
-                largeFiles={largeFiles}
-                onExclude={handleExcludeFiles}
-              />
-            )}
-
             <div className="space-y-2">
               <Collapsible
                 open={isAdditionalContextOpen}
@@ -96,7 +98,9 @@ function ReadmeForm() {
               >
                 <CollapsibleTrigger className="flex w-full items-center justify-center gap-2 rounded-lg border p-2 text-sm hover:bg-accent">
                   <div className="flex items-center gap-2">
-                    <span>Add custom instructions or upload files</span>
+                    <span>
+                      Exclude files, add custom instructions, or upload files
+                    </span>
                     <ChevronDown
                       className={cn(
                         "h-4 w-4 shrink-0 transition-transform duration-200",
@@ -107,20 +111,28 @@ function ReadmeForm() {
                 </CollapsibleTrigger>
                 <CollapsibleContent className="pt-4">
                   <div className="rounded-lg bg-card">
-                    <div className="grid grid-cols-2 divide-x">
-                      <div className="space-y-3 pr-6">
-                        <AdditionalContext
-                          value={additionalContext}
-                          onChange={setAdditionalContext}
+                    <div className="flex flex-col divide-y">
+                      <div className="pb-6">
+                        <FileExclusion
+                          largeFiles={largeFiles ?? []}
+                          onExclude={handleExcludeFiles}
+                          excludePatterns={form.getValues().excludePatterns}
                         />
                       </div>
-
-                      <div className="space-y-3 pl-6">
-                        <FileUpload
-                          uploadedFiles={uploadedFiles}
-                          onFileChange={handleFileChange}
-                          onFileDelete={handleFileDelete}
-                        />
+                      <div className="grid grid-cols-2 divide-x pt-6">
+                        <div className="space-y-3 pr-6">
+                          <AdditionalContext
+                            value={additionalContext}
+                            onChange={setAdditionalContext}
+                          />
+                        </div>
+                        <div className="space-y-3 pl-6">
+                          <FileUpload
+                            uploadedFiles={uploadedFiles}
+                            onFileChange={handleFileChange}
+                            onFileDelete={handleFileDelete}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>

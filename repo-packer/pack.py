@@ -33,20 +33,6 @@ REPO_PACKER_TOKEN = os.getenv("REPO_PACKER_TOKEN")
 if not REPO_PACKER_TOKEN:
     raise ValueError("REPO_PACKER_TOKEN environment variable is not set")
 
-DEFAULT_EXCLUDE_PATTERNS = [
-    "node_modules",
-    "dist",
-    "build",
-    "*.log",
-    "*.log.*",
-    "package-lock.json",
-    "yarn.lock",
-    "pnpm-lock.yaml",
-    "bun.lockb",
-    "Gemfile.lock",
-    "Gemfile.lock.*",
-]
-
 
 def require_token(f):
     @wraps(f)
@@ -152,7 +138,7 @@ def pack_repository():
     repo_url = data.get("repo_url")
     max_file_size = data.get("max_file_size", 10485760)  # Default 10MB
     max_tokens = data.get("max_tokens", 100000)  # Default 100k tokens
-    additional_exclude_patterns = data.get("exclude_patterns", [])
+    exclude_patterns = data.get("exclude_patterns", [])
 
     if not repo_url:
         return jsonify({"error": "repo_url is required"}), 400
@@ -174,8 +160,7 @@ def pack_repository():
     if not can_access:
         return jsonify({"error": error_message}), 403
 
-    # Combine exclude patterns
-    exclude_patterns = DEFAULT_EXCLUDE_PATTERNS + additional_exclude_patterns
+    print(f"Excluding patterns: {exclude_patterns}")
 
     try:
         # Get repository contents

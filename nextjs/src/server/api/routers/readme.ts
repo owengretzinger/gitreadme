@@ -44,24 +44,21 @@ export const readmeRouter = createTRPCRouter({
           undefined,
           input.excludePatterns,
         );
-        console.log("Repository packing result:", repoPackerResult);
         if (!repoPackerResult.success) {
-          // Check if the error is a JSON string containing token limit exceeded
-          if (repoPackerResult.error.includes("Token limit exceeded")) {
-            try {
-              // Parse the JSON from the error message
-              const jsonRegex = /\{.*\}/;
-              const match = jsonRegex.exec(repoPackerResult.error);
-              if (match) {
-                const parsedError = JSON.parse(match[0]) as TokenLimitErrorResponse;
-                console.log("Token limit exceeded, sending error details to client");
-                yield "ERROR:TOKEN_LIMIT_EXCEEDED:" + JSON.stringify(parsedError);
-                return;
-              }
-            } catch (e) {
-              console.error("Failed to parse token limit error:", e);
+          // Check if the error is a token limit exceeded error
+          try {
+            // Remove "Server error (400): " prefix if it exists
+            const errorString = repoPackerResult.error.replace("Server error (400): ", "");
+            const errorData = JSON.parse(errorString) as TokenLimitErrorResponse;
+            if (errorData.error.includes("Token limit exceeded")) {
+              console.log("Token limit exceeded, sending error details to client");
+              yield "ERROR:TOKEN_LIMIT_EXCEEDED:" + JSON.stringify(errorData);
+              return;
             }
+          } catch (e) {
+            console.error("Failed to parse error response:", e);
           }
+          
           console.error("Repository packing failed:", repoPackerResult.error);
           throw new Error(
             repoPackerResult.error || "Failed to pack repository",
