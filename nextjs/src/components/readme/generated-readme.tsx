@@ -5,6 +5,75 @@ import { MarkdownDisplay } from "~/components/markdown-display";
 import { cn } from "~/lib/utils";
 import { GenerationState } from "~/hooks/use-readme-form";
 
+const GENERATION_STEPS = [
+  {
+    id: "server",
+    state: GenerationState.CONTACTING_SERVER,
+    label: "Contacting server",
+  },
+  {
+    id: "packing",
+    state: GenerationState.PACKING_REPOSITORY,
+    label: "Packing repository",
+  },
+  {
+    id: "ai",
+    state: GenerationState.WAITING_FOR_AI,
+    label: "Sending to AI",
+  },
+  {
+    id: "streaming",
+    state: GenerationState.STREAMING,
+    label: "Streaming response",
+  },
+] as const;
+
+function LoadingSteps({ currentState }: { currentState: GenerationState }) {
+  // Find the index of the current step
+  const currentStepIndex = GENERATION_STEPS.findIndex(
+    (step) => step.state === currentState,
+  );
+  const translateY = -currentStepIndex * 24;
+
+  return (
+    <div className="flex min-h-[400px] flex-col items-center justify-center">
+      <div
+        className="relative flex flex-col items-start gap-3 transition-all duration-500 ease-in-out"
+        style={{
+          transform: `translateY(${translateY}px)`,
+        }}
+      >
+        {GENERATION_STEPS.map((step, index) => {
+          const isComplete = index < currentStepIndex;
+          const isCurrent = index === currentStepIndex;
+          const isPending = index > currentStepIndex;
+
+          return (
+            <div
+              key={step.id}
+              className={cn(
+                "flex items-center gap-3",
+                "text-muted-foreground/60",
+                {
+                  "text-muted-foreground": isCurrent,
+                  "text-muted-foreground/40": isPending,
+                  "text-green-500": isComplete,
+                },
+              )}
+            >
+              <div className="flex h-4 w-4 items-center justify-center">
+                {isCurrent && <Loader2 className="h-4 w-4 animate-spin" />}
+                {isComplete && <Check className="h-4 w-4" />}
+              </div>
+              <span className="text-sm font-medium">{step.label}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 interface GeneratedReadmeProps {
   content: string | null;
   viewMode: ViewMode;
@@ -36,39 +105,12 @@ export function GeneratedReadme({
     );
   }
 
-  const getLoadingContent = () => {
-    switch (generationState) {
-      case GenerationState.CONTACTING_SERVER:
-        return {
-          title: "Contacting server...",
-          description: "Establishing connection to generate your README",
-        };
-      case GenerationState.PACKING_REPOSITORY:
-        return {
-          title: "Analyzing repository...",
-          description: "This may take a moment depending on the repository size",
-        };
-      case GenerationState.WAITING_FOR_AI:
-        return {
-          title: "Preparing response...",
-          description: "The AI is generating your README",
-        };
-      default:
-        return null;
-    }
-  };
-
-  const loadingContent = getLoadingContent();
-  if (loadingContent) {
-    return (
-      <div className="flex min-h-[600px] flex-col items-center justify-center space-y-4 text-muted-foreground">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <div className="flex flex-col items-center gap-1">
-          <p className="font-medium">{loadingContent.title}</p>
-          <p className="text-sm">{loadingContent.description}</p>
-        </div>
-      </div>
-    );
+  if (
+    generationState === GenerationState.CONTACTING_SERVER ||
+    generationState === GenerationState.PACKING_REPOSITORY ||
+    generationState === GenerationState.WAITING_FOR_AI
+  ) {
+    return <LoadingSteps currentState={generationState} />;
   }
 
   return (
@@ -85,7 +127,10 @@ export function GeneratedReadme({
           onClick: handleCopy,
         },
       ]}
-      className={cn("min-h-[600px]", generationState === GenerationState.STREAMING && "border-primary")}
+      className={cn(
+        "min-h-[600px]",
+        generationState === GenerationState.STREAMING && "border-primary",
+      )}
       isGenerating={generationState !== GenerationState.IDLE}
     />
   );
