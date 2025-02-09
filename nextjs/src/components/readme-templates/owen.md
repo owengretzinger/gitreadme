@@ -6,7 +6,7 @@
 <h3 align="center">Project Title</h3>
 
   <p align="center">
-    One-liner description of what your project does
+    One-liner description of what your project does, keep it under 15 words
     <br />
      <a href="https://your-project-url.com">your-project-url.com</a>
   </p>
