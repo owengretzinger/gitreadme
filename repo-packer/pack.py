@@ -188,9 +188,11 @@ def pack_repository():
         # Extract information from summary
         summary_lines = summary.split("\n")
         num_files_analyzed = int(summary_lines[1].split(": ")[1])
-        estimated_tokens = (
-            float(summary_lines[3].split(": ")[1].replace("k", "")) * 1000
-        )
+        token_str = summary_lines[3].split(": ")[1]
+        if token_str.endswith("M"):
+            estimated_tokens = float(token_str.replace("M", "")) * 1_000_000
+        else:
+            estimated_tokens = float(token_str.replace("k", "")) * 1_000
 
         # Check if exceeds token limit
         if estimated_tokens > max_tokens:
