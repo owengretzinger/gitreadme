@@ -121,6 +121,13 @@ export async function generateReadmeWithAI(
       readme = readme.slice(0, -3);
     }
 
+    if (readme.startsWith("```markdown")) {
+      // take ```markdown off the start
+      readme = readme.slice(14);
+      // take ``` off the end
+      readme = readme.slice(0, -3);
+    }
+
     if (readme.startsWith("```html")) {
       // take ```html off the start
       readme = readme.slice(7);
