@@ -65,6 +65,8 @@ Brief description of the project.
   - ...
 - ...
 
+(Only include the sections that are relevant to your project)
+
 ## Getting Started
 
 ### Prerequisites
@@ -91,10 +93,11 @@ Instructions for cloning the repo, installing packages, configuring environment 
 
 ## License
 
-License information here
+License information here (remove this section if there is no license — if so, remove from the table of contents too)
 
 ## Acknowledgments
 
 - This README was generated with [README Generator](https://github.com/owengretzinger/readme-generator) — an AI tool that understands your entire codebase.
 - Credit any collaborators or third-party assets
 - Don't include libraries or tools that should be in the architecture section, this is more for special mentions
+- Don't give thanks to the creators of common libraries like React, Next.js, etc.

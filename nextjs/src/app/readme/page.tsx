@@ -19,15 +19,29 @@ import { FileUpload } from "~/components/readme/file-upload";
 import { TemplateSelection } from "~/components/readme/template-selection";
 import { TemplatePreview } from "~/components/readme/template-preview";
 import { GeneratedReadme } from "~/components/readme/generated-readme";
+import { FileExclusion } from "~/components/readme/file-exclusion";
 
 function ReadmeForm() {
   const [activeTab, setActiveTab] = useState("settings");
   const [readmeViewMode, setReadmeViewMode] = useState<ViewMode>("preview");
   const [templateViewMode, setTemplateViewMode] = useState<ViewMode>("preview");
   const [isAdditionalContextOpen, setIsAdditionalContextOpen] = useState(false);
+  const [largeFiles, setLargeFiles] = useState<Array<{ path: string; size_kb: number }> | null>(null);
 
   const handleSuccess = useCallback(() => {
     setActiveTab("readme");
+  }, []);
+
+  const handleTokenLimitExceeded = useCallback((files: Array<{ path: string; size_kb: number }> | null) => {
+    setLargeFiles(files);
+    if (files) {
+      setActiveTab("settings");
+    }
+  }, []);
+
+  const handleExcludeFiles = useCallback((paths: string[]) => {
+    form.setValue("excludePatterns", paths);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const {
@@ -44,7 +58,7 @@ function ReadmeForm() {
     handleFileChange,
     handleFileDelete,
     generationState,
-  } = useReadmeForm(handleSuccess);
+  } = useReadmeForm(handleSuccess, handleTokenLimitExceeded);
 
   return (
     <div className="p-8">
@@ -67,6 +81,13 @@ function ReadmeForm() {
         <TabsContent value="settings" className="space-y-4">
           <div className="space-y-4">
             <UrlForm form={form} onSubmit={handleSubmit} />
+
+            {largeFiles && (
+              <FileExclusion
+                largeFiles={largeFiles}
+                onExclude={handleExcludeFiles}
+              />
+            )}
 
             <div className="space-y-2">
               <Collapsible

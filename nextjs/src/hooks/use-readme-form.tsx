@@ -5,7 +5,6 @@ import * as z from "zod";
 import { api } from "~/trpc/react";
 import { useToast } from "./use-toast";
 import { templates } from "~/components/readme-templates/readme-templates";
-import { Button } from "~/components/ui/button";
 import posthog from "posthog-js";
 
 export enum GenerationState {
@@ -26,16 +25,18 @@ interface RateLimitInfo {
   reset?: string;
 }
 
+interface TokenLimitError {
+  error: string;
+  largest_files: Array<{ path: string; size_kb: number }>;
+  estimated_tokens: number;
+  files_analyzed: number;
+}
+
 interface BaseError {
   success: false;
   error: string;
   repoPackerOutput?: string;
   readme?: undefined;
-}
-
-interface LargeRepoError extends BaseError {
-  largestFiles: LargeFile[];
-  rateLimitInfo?: undefined;
 }
 
 interface RateLimitError extends BaseError {
@@ -48,7 +49,7 @@ interface GenericError extends BaseError {
   rateLimitInfo?: RateLimitInfo;
 }
 
-type GenerationError = LargeRepoError | RateLimitError | GenericError;
+type GenerationError = RateLimitError | GenericError;
 
 const formSchema = z.object({
   repoUrl: z.string().url("Please enter a valid URL"),
@@ -59,7 +60,10 @@ const formSchema = z.object({
 
 export type ReadmeFormData = z.infer<typeof formSchema>;
 
-export const useReadmeForm = (onSuccess?: () => void) => {
+export const useReadmeForm = (
+  onSuccess?: () => void,
+  onTokenLimitExceeded?: (files: Array<{ path: string; size_kb: number }> | null) => void,
+) => {
   const [generatedReadme, setGeneratedReadme] = useState<string | null>(null);
   const [generationState, setGenerationState] = useState<GenerationState>(
     GenerationState.IDLE,
@@ -91,100 +95,91 @@ export const useReadmeForm = (onSuccess?: () => void) => {
     onMutate: () => {
       setGenerationState(GenerationState.CONTACTING_SERVER);
       setGeneratedReadme("");
-      onSuccess?.();
+      if (onSuccess) onSuccess();
     },
-    onSuccess: async (data) => {
+    onSuccess: async (stream) => {
       try {
         setGenerationState(GenerationState.PACKING_REPOSITORY);
         let hasStartedStreaming = false;
         
-        for await (const chunk of data) {
+        for await (const chunk of stream) {
           if (chunk === "DONE_PACKING") {
             setGenerationState(GenerationState.WAITING_FOR_AI);
+          } else if (chunk.startsWith("ERROR:TOKEN_LIMIT_EXCEEDED:")) {
+            const errorData = JSON.parse(chunk.replace("ERROR:TOKEN_LIMIT_EXCEEDED:", "")) as TokenLimitError;
+            if (onTokenLimitExceeded) {
+              onTokenLimitExceeded(errorData.largest_files);
+            }
+            setGenerationState(GenerationState.IDLE);
+            toast({
+              variant: "destructive",
+              title: "Repository Too Large",
+              description: "The repository content exceeds the token limit. Please exclude some files and try again.",
+            });
+            return;
           } else if (chunk.startsWith("AI:")) {
             if (!hasStartedStreaming) {
               setGenerationState(GenerationState.STREAMING);
               hasStartedStreaming = true;
             }
             setGeneratedReadme((prev) => (prev ?? "") + chunk.slice(3));
-          } else {
-            setGeneratedReadme((prev) => (prev ?? "") + chunk);
           }
         }
+        
+        setGenerationState(GenerationState.IDLE);
         toast({
           description: "README generated successfully!",
         });
       } catch (error) {
         console.error("Error in streaming:", error);
+        setGenerationState(GenerationState.IDLE);
+        setGeneratedReadme(null);
         toast({
           variant: "destructive",
           title: "Error",
           description: "Failed to stream README content",
         });
-      } finally {
-        setGenerationState(GenerationState.IDLE);
       }
     },
-    onError: (e) => {
-      handleGenerationError({
-        success: false,
-        error: e.message,
-      });
+    onError: (error) => {
+      console.error("Error in mutation:", error);
       setGenerationState(GenerationState.IDLE);
       setGeneratedReadme(null);
+      
+      // Try to extract error message
+      let errorMessage: string;
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage = String((error as { message: unknown }).message);
+      } else {
+        errorMessage = 'An unknown error occurred';
+      }
+
+      if (errorMessage.includes("Token limit exceeded")) {
+        try {
+          const jsonStr = errorMessage.split(": ")[1];
+          if (!jsonStr) throw new Error("No JSON data in error message");
+          
+          const errorData = JSON.parse(jsonStr) as TokenLimitError;
+          if (onTokenLimitExceeded) {
+            onTokenLimitExceeded(errorData.largest_files);
+          }
+          return;
+        } catch (e) {
+          console.error("Failed to parse token limit error:", e);
+        }
+      }
+      handleGenerationError(error as unknown as GenerationError);
     },
   });
 
   const handleGenerationError = (error: GenerationError) => {
-    if (
-      "largestFiles" in error &&
-      Array.isArray(error.largestFiles) &&
-      error.largestFiles.length > 0
-    ) {
-      handleLargeRepoError(error as LargeRepoError);
-    } else if ("rateLimitInfo" in error && error.rateLimitInfo) {
+    if ("rateLimitInfo" in error && error.rateLimitInfo) {
       handleRateLimitError(error as RateLimitError);
     } else {
       handleGenericError(error as GenericError);
     }
-  };
-
-  const handleLargeRepoError = (error: LargeRepoError) => {
-    posthog.capture("readme_generation", {
-      success: false,
-      repo_url: form.getValues("repoUrl"),
-      template: selectedTemplate,
-      error: "Repository too large",
-    });
-
-    toast({
-      variant: "destructive",
-      title: "Repository too large",
-      description: (
-        <div className="mt-2 space-y-2">
-          <p>{error.error}</p>
-          <p className="font-semibold">Largest files:</p>
-          <ul className="list-inside list-disc space-y-1">
-            {error.largestFiles.map((file) => (
-              <li key={file.path}>
-                {file.path} ({file.size_kb.toFixed(1)} KB)
-              </li>
-            ))}
-          </ul>
-          <Button
-            variant="outline"
-            className="mt-2"
-            onClick={() => {
-              const patterns = error.largestFiles.map((f) => f.path);
-              form.setValue("excludePatterns", patterns);
-              void handleSubmit();
-            }}
-          >
-            Retry excluding these files
-          </Button>
-        </div>
-      ),
-    });
   };
 
   const handleRateLimitError = (error: RateLimitError) => {
@@ -244,6 +239,9 @@ export const useReadmeForm = (onSuccess?: () => void) => {
         : undefined,
     };
 
+    if (onTokenLimitExceeded) {
+      onTokenLimitExceeded(null);
+    }
     await generateReadmeStream.mutateAsync(mutationInput);
   };
 
