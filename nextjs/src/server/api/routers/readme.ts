@@ -43,6 +43,8 @@ export const readmeRouter = createTRPCRouter({
           );
         }
 
+        yield "DONE_PACKING";
+
         // Generate README using Vertex AI with streaming
         console.log("Generating content with Vertex AI...");
         const stream = generateReadmeWithAIStream(
@@ -53,7 +55,7 @@ export const readmeRouter = createTRPCRouter({
         );
 
         for await (const chunk of stream) {
-          yield chunk;
+          yield "AI:" + chunk;
         }
 
         const endTime = performance.now();

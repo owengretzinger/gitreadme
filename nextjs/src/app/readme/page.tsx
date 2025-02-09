@@ -33,8 +33,6 @@ function ReadmeForm() {
   const {
     form,
     generatedReadme,
-    isLoading,
-    isStreaming,
     selectedTemplate,
     setSelectedTemplate,
     additionalContext,
@@ -45,6 +43,7 @@ function ReadmeForm() {
     handleSubmit,
     handleFileChange,
     handleFileDelete,
+    generationState,
   } = useReadmeForm(handleSuccess);
 
   return (
@@ -67,11 +66,7 @@ function ReadmeForm() {
 
         <TabsContent value="settings" className="space-y-4">
           <div className="space-y-4">
-            <UrlForm
-              form={form}
-              isLoading={isLoading}
-              onSubmit={handleSubmit}
-            />
+            <UrlForm form={form} onSubmit={handleSubmit} />
 
             <div className="space-y-2">
               <Collapsible
@@ -139,7 +134,7 @@ function ReadmeForm() {
             content={generatedReadme}
             viewMode={readmeViewMode}
             setViewMode={setReadmeViewMode}
-            isStreaming={isStreaming}
+            generationState={generationState}
           />
         </TabsContent>
       </Tabs>

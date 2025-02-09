@@ -3,7 +3,7 @@ import { ViewModeToggle, type ViewMode } from "~/components/view-mode-toggle";
 import { ContentView } from "~/components/content-view";
 import { Textarea } from "~/components/ui/textarea";
 import { ActionButton } from "./action-button";
-import { type LucideIcon } from "lucide-react";
+import { Loader2, type LucideIcon } from "lucide-react";
 
 interface MarkdownDisplayProps {
   title?: string;
@@ -21,6 +21,7 @@ interface MarkdownDisplayProps {
   className?: string;
   contentClassName?: string;
   isMermaid?: boolean;
+  isGenerating?: boolean;
 }
 
 export function MarkdownDisplay({
@@ -35,6 +36,7 @@ export function MarkdownDisplay({
   className = "",
   contentClassName = "",
   isMermaid = false,
+  isGenerating = false,
 }: MarkdownDisplayProps) {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -53,12 +55,15 @@ export function MarkdownDisplay({
   }, [content, viewMode]);
 
   const visibleActions = actions.filter(
-    (action) => !action.showInMode || action.showInMode === viewMode
+    (action) => !action.showInMode || action.showInMode === viewMode,
   );
 
   return (
     <div className={className}>
-      {(title ?? description ?? visibleActions.length > 0 ?? showViewModeToggle) && (
+      {(title ??
+        description ??
+        visibleActions.length > 0 ??
+        showViewModeToggle) && (
         <div className="mb-4 flex items-center justify-between">
           <div>
             {title && <h3 className="text-lg font-semibold">{title}</h3>}
@@ -67,7 +72,15 @@ export function MarkdownDisplay({
             )}
           </div>
           <div className="flex items-center gap-2">
-            {showViewModeToggle && <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />}
+            {isGenerating && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mr-4">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Generating</span>
+              </div>
+            )}
+            {showViewModeToggle && (
+              <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
+            )}
             {visibleActions.map((action, index) => (
               <ActionButton
                 key={index}
@@ -98,4 +111,4 @@ export function MarkdownDisplay({
       )}
     </div>
   );
-} 
+}

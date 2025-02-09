@@ -8,6 +8,14 @@ import { templates } from "~/components/readme-templates/readme-templates";
 import { Button } from "~/components/ui/button";
 import posthog from "posthog-js";
 
+export enum GenerationState {
+  IDLE = "IDLE",
+  CONTACTING_SERVER = "CONTACTING_SERVER",
+  PACKING_REPOSITORY = "PACKING_REPOSITORY",
+  WAITING_FOR_AI = "WAITING_FOR_AI",
+  STREAMING = "STREAMING",
+}
+
 interface LargeFile {
   path: string;
   size_kb: number;
@@ -53,8 +61,9 @@ export type ReadmeFormData = z.infer<typeof formSchema>;
 
 export const useReadmeForm = (onSuccess?: () => void) => {
   const [generatedReadme, setGeneratedReadme] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isStreaming, setIsStreaming] = useState(false);
+  const [generationState, setGenerationState] = useState<GenerationState>(
+    GenerationState.IDLE,
+  );
   const [selectedTemplate, setSelectedTemplate] = useState("minimal");
   const [additionalContext, setAdditionalContext] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<FileList | null>(null);
@@ -80,14 +89,27 @@ export const useReadmeForm = (onSuccess?: () => void) => {
 
   const generateReadmeStream = api.readme.generateReadmeStream.useMutation({
     onMutate: () => {
-      setIsStreaming(true);
+      setGenerationState(GenerationState.CONTACTING_SERVER);
       setGeneratedReadme("");
       onSuccess?.();
     },
     onSuccess: async (data) => {
       try {
+        setGenerationState(GenerationState.PACKING_REPOSITORY);
+        let hasStartedStreaming = false;
+        
         for await (const chunk of data) {
-          setGeneratedReadme((prev) => (prev ?? "") + chunk);
+          if (chunk === "DONE_PACKING") {
+            setGenerationState(GenerationState.WAITING_FOR_AI);
+          } else if (chunk.startsWith("AI:")) {
+            if (!hasStartedStreaming) {
+              setGenerationState(GenerationState.STREAMING);
+              hasStartedStreaming = true;
+            }
+            setGeneratedReadme((prev) => (prev ?? "") + chunk.slice(3));
+          } else {
+            setGeneratedReadme((prev) => (prev ?? "") + chunk);
+          }
         }
         toast({
           description: "README generated successfully!",
@@ -100,7 +122,7 @@ export const useReadmeForm = (onSuccess?: () => void) => {
           description: "Failed to stream README content",
         });
       } finally {
-        setIsStreaming(false);
+        setGenerationState(GenerationState.IDLE);
       }
     },
     onError: (e) => {
@@ -108,7 +130,7 @@ export const useReadmeForm = (onSuccess?: () => void) => {
         success: false,
         error: e.message,
       });
-      setIsStreaming(false);
+      setGenerationState(GenerationState.IDLE);
       setGeneratedReadme(null);
     },
   });
@@ -206,14 +228,8 @@ export const useReadmeForm = (onSuccess?: () => void) => {
     });
   };
 
-  const handleSubmit = async (useStreaming = true) => {
+  const handleSubmit = async () => {
     const values = form.getValues();
-    if (useStreaming) {
-      setIsLoading(false);
-    } else {
-      setIsLoading(true);
-      setGeneratedReadme(null);
-    }
 
     const mutationInput = {
       ...values,
@@ -281,8 +297,6 @@ export const useReadmeForm = (onSuccess?: () => void) => {
 
   return {
     form,
-    isLoading: isLoading || isStreaming,
-    isStreaming,
     generatedReadme,
     selectedTemplate,
     setSelectedTemplate,
@@ -294,5 +308,6 @@ export const useReadmeForm = (onSuccess?: () => void) => {
     handleSubmit,
     handleFileChange,
     handleFileDelete,
+    generationState,
   };
 };

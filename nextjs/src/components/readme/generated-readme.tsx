@@ -1,20 +1,22 @@
 import { type ViewMode } from "~/components/view-mode-toggle";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Loader2 } from "lucide-react";
 import { useState, useCallback } from "react";
 import { MarkdownDisplay } from "~/components/markdown-display";
+import { cn } from "~/lib/utils";
+import { GenerationState } from "~/hooks/use-readme-form";
 
 interface GeneratedReadmeProps {
   content: string | null;
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
-  isStreaming?: boolean;
+  generationState: GenerationState;
 }
 
 export function GeneratedReadme({
   content,
   viewMode,
   setViewMode,
-  isStreaming = false,
+  generationState,
 }: GeneratedReadmeProps) {
   const [isCopied, setIsCopied] = useState(false);
 
@@ -26,7 +28,7 @@ export function GeneratedReadme({
     });
   }, [content]);
 
-  if (!content && !isStreaming) {
+  if (!content && generationState === GenerationState.IDLE) {
     return (
       <div className="text-center text-muted-foreground">
         Generate a README first
@@ -34,28 +36,57 @@ export function GeneratedReadme({
     );
   }
 
-  return (
-    <div className="relative">
-      {isStreaming && (
-        <div className="absolute top-0 right-0 m-4 px-3 py-1 bg-primary text-primary-foreground rounded-full text-sm animate-pulse">
-          Generating...
+  const getLoadingContent = () => {
+    switch (generationState) {
+      case GenerationState.CONTACTING_SERVER:
+        return {
+          title: "Contacting server...",
+          description: "Establishing connection to generate your README",
+        };
+      case GenerationState.PACKING_REPOSITORY:
+        return {
+          title: "Analyzing repository...",
+          description: "This may take a moment depending on the repository size",
+        };
+      case GenerationState.WAITING_FOR_AI:
+        return {
+          title: "Preparing response...",
+          description: "The AI is generating your README",
+        };
+      default:
+        return null;
+    }
+  };
+
+  const loadingContent = getLoadingContent();
+  if (loadingContent) {
+    return (
+      <div className="flex min-h-[600px] flex-col items-center justify-center space-y-4 text-muted-foreground">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="flex flex-col items-center gap-1">
+          <p className="font-medium">{loadingContent.title}</p>
+          <p className="text-sm">{loadingContent.description}</p>
         </div>
-      )}
-      <MarkdownDisplay
-        title="Generated README"
-        description="Review and customize your generated README"
-        content={content ?? ""}
-        viewMode={viewMode}
-        setViewMode={setViewMode}
-        showViewModeToggle
-        actions={[
-          {
-            icon: isCopied ? Check : Copy,
-            onClick: handleCopy,
-          },
-        ]}
-        className="min-h-[600px]"
-      />
-    </div>
+      </div>
+    );
+  }
+
+  return (
+    <MarkdownDisplay
+      title="Generated README"
+      description="Review and customize your generated README"
+      content={content ?? ""}
+      viewMode={viewMode}
+      setViewMode={setViewMode}
+      showViewModeToggle
+      actions={[
+        {
+          icon: isCopied ? Check : Copy,
+          onClick: handleCopy,
+        },
+      ]}
+      className={cn("min-h-[600px]", generationState === GenerationState.STREAMING && "border-primary")}
+      isGenerating={generationState !== GenerationState.IDLE}
+    />
   );
-} 
+}

@@ -9,15 +9,13 @@ import {
   FormItem,
   FormMessage,
 } from "~/components/ui/form";
-import { Loader2 } from "lucide-react";
 
 interface UrlFormProps {
   form: UseFormReturn<ReadmeFormData>;
-  isLoading: boolean;
   onSubmit: () => void;
 }
 
-export function UrlForm({ form, isLoading, onSubmit }: UrlFormProps) {
+export function UrlForm({ form, onSubmit }: UrlFormProps) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-2 pt-2">
@@ -36,10 +34,7 @@ export function UrlForm({ form, isLoading, onSubmit }: UrlFormProps) {
                 </FormItem>
               )}
             />
-            <Button onClick={() => onSubmit()} disabled={isLoading}>
-              {isLoading && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
+            <Button onClick={() => onSubmit()}>
               Generate README
             </Button>
           </div>
