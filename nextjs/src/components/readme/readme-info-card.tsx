@@ -45,7 +45,7 @@ export function ReadmeInfoCard({
   return (
     <Card className="mb-4">
       <CardContent className="pt-6">
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="flex flex-col md:grid gap-6 md:grid-cols-2">
           <div className="space-y-4">
             <div>
               <h2 className="text-sm font-medium text-muted-foreground">Repository</h2>
@@ -61,10 +61,10 @@ export function ReadmeInfoCard({
                 </a>
               </div>
             </div>
-            <div>
+            <div className="">
               <h2 className="text-sm font-medium text-muted-foreground">Permalink</h2>
               <div className="flex items-center gap-2">
-                <span className="truncate">{permalink}</span>
+                <span className="truncate max-w-full">{permalink}</span>
                 <Button
                   variant="ghost"
                   size="sm"
