@@ -64,7 +64,7 @@ export const useReadmeForm = (onSuccess?: () => void) => {
   const [generationState, setGenerationState] = useState<GenerationState>(
     GenerationState.IDLE,
   );
-  const [selectedTemplate, setSelectedTemplate] = useState("minimal");
+  const [selectedTemplate, setSelectedTemplate] = useState("owen");
   const [additionalContext, setAdditionalContext] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<FileList | null>(null);
   const [templateContent, setTemplateContent] = useState(templates[0].content);

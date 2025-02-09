@@ -12,27 +12,34 @@ export type ReadmeTemplate = {
 
 export const templates: readonly [ReadmeTemplate, ...ReadmeTemplate[]] = [
   {
+    id: "owen",
+    name: "Owen's README Template",
+    description: "Hero section, table of contents, demo video, etc. (optimized for this tool)",
+    content: owen,
+  },
+  {
     id: "minimal",
     name: "Minimal",
-    description: "A concise template focusing on essential information",
+    description: "Concise, focusing on essential information, no visual elements",
     content: minimal,
   },
   {
     id: "othneildrew",
     name: "Othneil Drew's Best README Template",
-    description: "An awesome README template to jumpstart your projects!",
+    description: "Badges, hero section, table of contents, top contributors, etc.",
     content: othneildrew,
   },
   {
     id: "louis3797",
     name: "Louis3797's Awesome README Template",
-    description: "An awesome README template for your projects!",
+    description: "Badges, emojis",
     content: louis3797,
   },
   {
-    id: "owen",
-    name: "Owen's README Template",
-    description: "A comprehensive template with a hero section",
-    content: owen,
+    id: "none",
+    name: "No Template",
+    description: "No template (let the AI decide the structure)",
+    content:
+      "(No template was selected. Please come up with a structure for the file based on the project contents.)",
   },
 ];
