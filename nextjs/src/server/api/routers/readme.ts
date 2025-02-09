@@ -116,34 +116,28 @@ export const readmeRouter = createTRPCRouter({
       version: z.number().optional(),
     }))
     .query(async ({ input, ctx }) => {
-      if (input.version) {
-        // Get specific version
-        const readme = await ctx.db.query.generatedReadmes.findFirst({
-          where: and(
-            eq(generatedReadmes.repoPath, input.repoPath),
-            eq(generatedReadmes.version, input.version)
-          ),
-        });
-        if (!readme) {
-          return null;
-        }
-        return readme;
-      } else {
-        // Get latest version
-        return await ctx.db.query.generatedReadmes.findFirst({
-          where: eq(generatedReadmes.repoPath, input.repoPath),
-          orderBy: (generatedReadmes, { desc }) => [desc(generatedReadmes.version)],
-        });
-      }
+      const readme = await ctx.db.query.generatedReadmes.findFirst({
+        where: input.version 
+          ? and(
+              eq(generatedReadmes.repoPath, input.repoPath),
+              eq(generatedReadmes.version, input.version)
+            )
+          : eq(generatedReadmes.repoPath, input.repoPath),
+        orderBy: !input.version 
+          ? (generatedReadmes, { desc }) => [desc(generatedReadmes.version)]
+          : undefined,
+      });
+      return readme ?? null;
     }),
 
   getMostRecentVersion: publicProcedure
     .input(z.object({ repoPath: z.string() }))
     .query(async ({ input, ctx }) => {
-      return await ctx.db.query.generatedReadmes.findFirst({
+      const readme = await ctx.db.query.generatedReadmes.findFirst({
         where: eq(generatedReadmes.repoPath, input.repoPath),
         orderBy: (generatedReadmes, { desc }) => [desc(generatedReadmes.version)],
       });
+      return readme ?? null;
     }),
 
   getNextVersion: publicProcedure

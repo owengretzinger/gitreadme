@@ -3,6 +3,7 @@ import { Button } from "~/components/ui/button";
 import { Copy, Check, ExternalLink, History } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
+import { toast } from "~/hooks/use-toast";
 
 interface ReadmeInfoCardProps {
   repoPath: string;
@@ -28,6 +29,10 @@ export function ReadmeInfoCard({
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
+      toast({
+        title: "Failed to copy to clipboard",
+        description: "Please copy the permalink manually",
+      });
     }
   };
 

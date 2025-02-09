@@ -20,6 +20,7 @@ import { TemplatePreview } from "~/components/readme/template-preview";
 import { FileExclusion } from "~/components/readme/file-exclusion";
 import { ReadmeLayout } from "~/components/readme/readme-layout";
 import { api } from "~/trpc/react";
+import { useSearchParams } from "next/navigation";
 
 function ReadmeForm() {
   const [activeTab, setActiveTab] = useState("settings");
@@ -31,6 +32,7 @@ function ReadmeForm() {
     size_kb: number;
   }> | null>(null);
   const nextVersionRef = useRef<number>(1);
+  const searchParams = useSearchParams();
 
   const handleTokenLimitExceeded = useCallback(
     (
@@ -73,6 +75,14 @@ function ReadmeForm() {
     handleFileDelete,
     generationState,
   } = useReadmeForm(handleSuccess, handleTokenLimitExceeded);
+
+  // Set initial URL from search params if provided
+  useEffect(() => {
+    const urlParam = searchParams.get("url");
+    if (urlParam) {
+      form.setValue("repoUrl", urlParam);
+    }
+  }, [form, searchParams]);
 
   const repoPath = form.getValues().repoUrl
     ? new URL(form.getValues().repoUrl).pathname.replace(/^\//, "")
