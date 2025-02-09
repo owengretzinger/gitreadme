@@ -67,9 +67,9 @@ export default function SharedReadmePage() {
       <div className="p-4 md:p-8">
         <h1 className="mb-4 text-4xl font-bold">README</h1>
         <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            <span>Loading README...</span>
+            <span>Loading README</span>
           </div>
         </div>
       </div>
