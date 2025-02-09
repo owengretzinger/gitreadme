@@ -1,8 +1,9 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { generateReadmeWithAI } from "~/utils/vertex-ai";
+import {
+  generateReadmeWithAIStream,
+} from "~/utils/vertex-ai";
 import { packRepository } from "~/utils/api-client";
-import { type GenerateReadmeResponse } from "~/types/api";
 
 // Define a schema for file data
 const FileDataSchema = z.object({
@@ -12,7 +13,7 @@ const FileDataSchema = z.object({
 });
 
 export const readmeRouter = createTRPCRouter({
-  generateReadme: publicProcedure
+  generateReadmeStream: publicProcedure
     .input(
       z.object({
         repoUrl: z.string().url(),
@@ -20,10 +21,10 @@ export const readmeRouter = createTRPCRouter({
         additionalContext: z.string(),
         files: z.array(FileDataSchema).optional(),
         excludePatterns: z.array(z.string()).optional(),
-      })
+      }),
     )
-    .mutation(async ({ input }): Promise<GenerateReadmeResponse> => {
-      console.log("Starting README generation for:", input.repoUrl);
+    .mutation(async function* ({ input }) {
+      console.log("Starting streaming README generation for:", input.repoUrl);
       const startTime = performance.now();
 
       try {
@@ -34,39 +35,34 @@ export const readmeRouter = createTRPCRouter({
           input.repoUrl,
           undefined,
           undefined,
-          input.excludePatterns
+          input.excludePatterns,
         );
         if (!repoPackerResult.success) {
-          return {
-            success: false,
-            error: repoPackerResult.error,
-            largestFiles: repoPackerResult.largest_files,
-          };
+          throw new Error(
+            repoPackerResult.error || "Failed to pack repository",
+          );
         }
 
-        // Generate README using Vertex AI
+        // Generate README using Vertex AI with streaming
         console.log("Generating content with Vertex AI...");
-        const result = await generateReadmeWithAI(
+        const stream = generateReadmeWithAIStream(
           repoPackerResult.content,
           input.templateContent,
           input.additionalContext,
-          input.files
+          input.files,
         );
 
-        const endTime = performance.now();
-        console.log(`Total README generation process took ${(endTime - startTime).toFixed(2)}ms`);
+        for await (const chunk of stream) {
+          yield chunk;
+        }
 
-        return {
-          success: true,
-          readme: result.readme,
-          repoPackerOutput: repoPackerResult.content,
-        };
+        const endTime = performance.now();
+        console.log(
+          `Total README generation process took ${(endTime - startTime).toFixed(2)}ms`,
+        );
       } catch (error) {
-        console.log("Error:", error);
-        return {
-          success: false,
-          error: "An unexpected error occurred. Please try again later.",
-        };
+        console.error("Error in streaming README generation:", error);
+        throw error;
       }
     }),
 });

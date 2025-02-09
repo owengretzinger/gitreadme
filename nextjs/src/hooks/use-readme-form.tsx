@@ -42,13 +42,6 @@ interface GenericError extends BaseError {
 
 type GenerationError = LargeRepoError | RateLimitError | GenericError;
 
-interface GenerationSuccess {
-  success: true;
-  readme: string;
-}
-
-type GenerationResponse = GenerationSuccess | GenerationError;
-
 const formSchema = z.object({
   repoUrl: z.string().url("Please enter a valid URL"),
   templateContent: z.string(),
@@ -61,6 +54,7 @@ export type ReadmeFormData = z.infer<typeof formSchema>;
 export const useReadmeForm = (onSuccess?: () => void) => {
   const [generatedReadme, setGeneratedReadme] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState("minimal");
   const [additionalContext, setAdditionalContext] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<FileList | null>(null);
@@ -69,7 +63,8 @@ export const useReadmeForm = (onSuccess?: () => void) => {
 
   useEffect(() => {
     if (templates.length === 0) return;
-    const template = templates.find((t) => t.id === selectedTemplate) ?? templates[0];
+    const template =
+      templates.find((t) => t.id === selectedTemplate) ?? templates[0];
     setTemplateContent(template.content);
   }, [selectedTemplate]);
 
@@ -83,28 +78,47 @@ export const useReadmeForm = (onSuccess?: () => void) => {
     },
   });
 
-  const generateReadme = api.readme.generateReadme.useMutation({
-    onSuccess: async (data: GenerationResponse) => {
-      if (!data.success) {
-        handleGenerationError(data);
-      } else {
-        handleGenerationSuccess(data.readme);
-        onSuccess?.();
+  const generateReadmeStream = api.readme.generateReadmeStream.useMutation({
+    onMutate: () => {
+      setIsStreaming(true);
+      setGeneratedReadme("");
+      onSuccess?.();
+    },
+    onSuccess: async (data) => {
+      try {
+        for await (const chunk of data) {
+          setGeneratedReadme((prev) => (prev ?? "") + chunk);
+        }
+        toast({
+          description: "README generated successfully!",
+        });
+      } catch (error) {
+        console.error("Error in streaming:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to stream README content",
+        });
+      } finally {
+        setIsStreaming(false);
       }
-      setIsLoading(false);
     },
     onError: (e) => {
       handleGenerationError({
         success: false,
         error: e.message,
       });
-      setIsLoading(false);
+      setIsStreaming(false);
       setGeneratedReadme(null);
     },
   });
 
   const handleGenerationError = (error: GenerationError) => {
-    if ("largestFiles" in error && Array.isArray(error.largestFiles) && error.largestFiles.length > 0) {
+    if (
+      "largestFiles" in error &&
+      Array.isArray(error.largestFiles) &&
+      error.largestFiles.length > 0
+    ) {
       handleLargeRepoError(error as LargeRepoError);
     } else if ("rateLimitInfo" in error && error.rateLimitInfo) {
       handleRateLimitError(error as RateLimitError);
@@ -192,25 +206,16 @@ export const useReadmeForm = (onSuccess?: () => void) => {
     });
   };
 
-  const handleGenerationSuccess = (readme: string) => {
-    posthog.capture("readme_generation", {
-      success: true,
-      repo_url: form.getValues("repoUrl"),
-      template: selectedTemplate,
-    });
-
-    toast({
-      description: "README generated successfully!",
-    });
-
-    setGeneratedReadme(readme);
-  };
-
-  const handleSubmit = async () => {
+  const handleSubmit = async (useStreaming = true) => {
     const values = form.getValues();
-    setIsLoading(true);
-    setGeneratedReadme(null);
-    await generateReadme.mutateAsync({
+    if (useStreaming) {
+      setIsLoading(false);
+    } else {
+      setIsLoading(true);
+      setGeneratedReadme(null);
+    }
+
+    const mutationInput = {
       ...values,
       templateContent,
       additionalContext,
@@ -221,7 +226,9 @@ export const useReadmeForm = (onSuccess?: () => void) => {
             content: "",
           }))
         : undefined,
-    });
+    };
+
+    await generateReadmeStream.mutateAsync(mutationInput);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -274,8 +281,9 @@ export const useReadmeForm = (onSuccess?: () => void) => {
 
   return {
     form,
+    isLoading: isLoading || isStreaming,
+    isStreaming,
     generatedReadme,
-    isLoading,
     selectedTemplate,
     setSelectedTemplate,
     additionalContext,
@@ -287,4 +295,4 @@ export const useReadmeForm = (onSuccess?: () => void) => {
     handleFileChange,
     handleFileDelete,
   };
-}; 
+};

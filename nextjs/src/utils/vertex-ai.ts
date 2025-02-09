@@ -53,18 +53,21 @@ export type FileData = {
   type: string;
 };
 
-export async function generateReadmeWithAI(
+export async function* generateReadmeWithAIStream(
   repoContent: string,
   templateContent: string,
   additionalContext: string,
   files?: FileData[],
-): Promise<GenerateReadmeResponse> {
+) {
   if (env.USE_MOCK_RESPONSES === "true") {
     await new Promise((resolve) => setTimeout(resolve, 300));
-    return {
-      readme: EXAMPLE_README,
-      repoPackerOutput: USE_MOCK.repoPacker ? MOCK_REPO_CONTENT : repoContent,
-    };
+    // Stream mock response in larger chunks to be more efficient
+    const mockResponse = EXAMPLE_README;
+    const chunkSize = 100;
+    for (let i = 0; i < mockResponse.length; i += chunkSize) {
+      yield mockResponse.slice(i, i + chunkSize);
+    }
+    return;
   }
 
   try {
@@ -97,7 +100,7 @@ export async function generateReadmeWithAI(
 
       CRITICAL REQUIREMENTS:
       - Follow the template structure. 
-      - DO NOT wrap your entire response in \`\`\`md formatting tags or \`\`\`html tags. Start your response with the first line of the template and continue from there.
+      - DO NOT wrap your entire response in \`\`\`md formatting tags or \`\`\`markdown formatting tags or \`\`\`html tags or anything else. Start your response with the first line of the template and continue from there.
       - Replace logos with this placeholder: https://github.com/user-attachments/assets/0ae1b6d5-1a62-4b41-b2c7-c595a0460497.
       - Replace demo videos with this placeholder: https://github.com/user-attachments/assets/3b6baea2-cb25-4670-86b8-094d69d2bf83.
       - Replace images with this placeholder: https://github.com/user-attachments/assets/79d3c0f6-21b6-413b-9f30-5117c6b60e7d.
@@ -107,38 +110,15 @@ export async function generateReadmeWithAI(
       Analyze the repository contents and the file contents uploaded by the user. Then create a README.md file, taking into account any additional instructions provided.
       `;
 
-    const result = await model.generateContent(readmePrompt);
-    let readme = result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const result = await model.generateContentStream(readmePrompt);
 
-    if (!readme) {
-      throw new Error("No response from AI model");
+    // Stream chunks directly without character-by-character buffering
+    for await (const chunk of result.stream) {
+      const text = chunk.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (text) {
+        yield text;
+      }
     }
-
-    if (readme.startsWith("```md")) {
-      // take ```md off the start
-      readme = readme.slice(4);
-      // take ``` off the end
-      readme = readme.slice(0, -3);
-    }
-
-    if (readme.startsWith("```markdown")) {
-      // take ```markdown off the start
-      readme = readme.slice(14);
-      // take ``` off the end
-      readme = readme.slice(0, -3);
-    }
-
-    if (readme.startsWith("```html")) {
-      // take ```html off the start
-      readme = readme.slice(7);
-      // take ``` off the end
-      readme = readme.slice(0, -3);
-    }
-
-    return {
-      readme,
-      repoPackerOutput: repoContent,
-    };
   } catch (error) {
     console.error("Error generating README with Vertex AI:", error);
     throw error;

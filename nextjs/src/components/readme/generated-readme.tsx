@@ -7,12 +7,14 @@ interface GeneratedReadmeProps {
   content: string | null;
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
+  isStreaming?: boolean;
 }
 
 export function GeneratedReadme({
   content,
   viewMode,
   setViewMode,
+  isStreaming = false,
 }: GeneratedReadmeProps) {
   const [isCopied, setIsCopied] = useState(false);
 
@@ -24,7 +26,7 @@ export function GeneratedReadme({
     });
   }, [content]);
 
-  if (!content) {
+  if (!content && !isStreaming) {
     return (
       <div className="text-center text-muted-foreground">
         Generate a README first
@@ -33,20 +35,27 @@ export function GeneratedReadme({
   }
 
   return (
-    <MarkdownDisplay
-      title="Generated README"
-      description="Review and customize your generated README"
-      content={content}
-      viewMode={viewMode}
-      setViewMode={setViewMode}
-      showViewModeToggle
-      actions={[
-        {
-          icon: isCopied ? Check : Copy,
-          onClick: handleCopy,
-        },
-      ]}
-      className="min-h-[600px]"
-    />
+    <div className="relative">
+      {isStreaming && (
+        <div className="absolute top-0 right-0 m-4 px-3 py-1 bg-primary text-primary-foreground rounded-full text-sm animate-pulse">
+          Generating...
+        </div>
+      )}
+      <MarkdownDisplay
+        title="Generated README"
+        description="Review and customize your generated README"
+        content={content ?? ""}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        showViewModeToggle
+        actions={[
+          {
+            icon: isCopied ? Check : Copy,
+            onClick: handleCopy,
+          },
+        ]}
+        className="min-h-[600px]"
+      />
+    </div>
   );
 } 

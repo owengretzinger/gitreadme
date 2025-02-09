@@ -34,6 +34,7 @@ function ReadmeForm() {
     form,
     generatedReadme,
     isLoading,
+    isStreaming,
     selectedTemplate,
     setSelectedTemplate,
     additionalContext,
@@ -138,6 +139,7 @@ function ReadmeForm() {
             content={generatedReadme}
             viewMode={readmeViewMode}
             setViewMode={setReadmeViewMode}
+            isStreaming={isStreaming}
           />
         </TabsContent>
       </Tabs>
