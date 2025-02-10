@@ -132,3 +132,28 @@ export const generatedReadmes = createTable("generated_readme", {
 export const generatedReadmesRelations = relations(generatedReadmes, ({ one }) => ({
   user: one(users, { fields: [generatedReadmes.userId], references: [users.id] }),
 }));
+
+export const generationLimits = createTable("generation_limit", {
+  id: varchar("id", { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  ipAddress: varchar("ip_address", { length: 255 }),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id),
+  count: integer("count").notNull().default(1),
+  date: timestamp("date", {
+    mode: "date",
+    withTimezone: true,
+  })
+    .notNull()
+    .default(sql`CURRENT_DATE`),
+}, (table) => ({
+  // Ensure we only have one record per IP per day for unauthenticated users
+  ipDateIdx: uniqueIndex("ip_date_idx").on(table.ipAddress, table.date),
+  // Ensure we only have one record per user per day for authenticated users
+  userDateIdx: uniqueIndex("user_date_idx").on(table.userId, table.date),
+}));
+
+export const generationLimitsRelations = relations(generationLimits, ({ one }) => ({
+  user: one(users, { fields: [generationLimits.userId], references: [users.id] }),
+}));

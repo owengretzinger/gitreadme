@@ -6,6 +6,7 @@ import {
 import { packRepository } from "~/utils/api-client";
 import { generatedReadmes } from "~/server/db/schema";
 import { and, eq } from "drizzle-orm";
+import { checkAndUpdateRateLimit, getCurrentRateLimit } from "../rate-limit";
 
 // Define a schema for file data
 const FileDataSchema = z.object({
@@ -22,6 +23,11 @@ interface TokenLimitErrorResponse {
 }
 
 export const readmeRouter = createTRPCRouter({
+  getRateLimit: publicProcedure.query(async ({ ctx }) => {
+    const ipAddress = ctx.headers.get("x-forwarded-for")?.split(",")[0] ?? ctx.headers.get("x-real-ip");
+    return getCurrentRateLimit(ctx.db, ipAddress, ctx.session);
+  }),
+
   generateReadmeStream: publicProcedure
     .input(
       z.object({
@@ -38,6 +44,20 @@ export const readmeRouter = createTRPCRouter({
       let generatedContent = "";
 
       try {
+        // Check rate limit before proceeding
+        const ipAddress = ctx.headers.get("x-forwarded-for")?.split(",")[0] ?? ctx.headers.get("x-real-ip");
+        const rateLimitResult = await checkAndUpdateRateLimit(ctx.db, ipAddress, ctx.session);
+        
+        if (!rateLimitResult.success) {
+          yield "ERROR:RATE_LIMIT:" + JSON.stringify({
+            message: rateLimitResult.message,
+            info: rateLimitResult.info,
+          });
+          return;
+        }
+        
+        yield "RATE_LIMIT:" + JSON.stringify(rateLimitResult.info);
+
         console.log("Packing repository...");
 
         // Pack repository using Python server

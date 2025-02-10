@@ -22,6 +22,13 @@
       "when": 1739128013754,
       "tag": "0002_curvy_steve_rogers",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1739158933715,
+      "tag": "0003_closed_scalphunter",
+      "breakpoints": true
     }
   ]
 }

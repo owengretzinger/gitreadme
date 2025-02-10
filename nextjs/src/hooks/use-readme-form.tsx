@@ -5,7 +5,12 @@ import * as z from "zod";
 import { api } from "~/trpc/react";
 import { useToast } from "./use-toast";
 import { templates } from "~/components/readme-templates/readme-templates";
-import posthog from "posthog-js";
+
+export interface RateLimitInfo {
+  remaining: number;
+  total: number;
+  used: number;
+}
 
 export enum GenerationState {
   IDLE = "IDLE",
@@ -15,16 +20,6 @@ export enum GenerationState {
   STREAMING = "STREAMING",
 }
 
-interface LargeFile {
-  path: string;
-  size_kb: number;
-}
-
-interface RateLimitInfo {
-  limit: string;
-  reset?: string;
-}
-
 interface TokenLimitError {
   error: string;
   largest_files: Array<{ path: string; size_kb: number }>;
@@ -32,24 +27,10 @@ interface TokenLimitError {
   files_analyzed: number;
 }
 
-interface BaseError {
-  success: false;
-  error: string;
-  repoPackerOutput?: string;
-  readme?: undefined;
+interface RateLimitErrorResponse {
+  message: string;
+  info: RateLimitInfo;
 }
-
-interface RateLimitError extends BaseError {
-  rateLimitInfo: RateLimitInfo;
-  largestFiles?: undefined;
-}
-
-interface GenericError extends BaseError {
-  largestFiles?: LargeFile[];
-  rateLimitInfo?: RateLimitInfo;
-}
-
-type GenerationError = RateLimitError | GenericError;
 
 const formSchema = z.object({
   repoUrl: z.string().url("Please enter a valid URL"),
@@ -75,7 +56,25 @@ export const useReadmeForm = (
   const [additionalContext, setAdditionalContext] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<FileList | null>(null);
   const [templateContent, setTemplateContent] = useState(templates[0].content);
+  const [rateLimitInfo, setRateLimitInfo] = useState<RateLimitInfo | null>(
+    null,
+  );
   const { toast } = useToast();
+
+  // Get initial rate limit info
+  const { data: initialRateLimit } = api.readme.getRateLimit.useQuery(
+    undefined,
+    {
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  // Update rate limit info when it changes
+  useEffect(() => {
+    if (initialRateLimit) {
+      setRateLimitInfo(initialRateLimit);
+    }
+  }, [initialRateLimit]);
 
   useEffect(() => {
     if (templates.length === 0) return;
@@ -110,7 +109,10 @@ export const useReadmeForm = (
     onMutate: () => {
       setGenerationState(GenerationState.CONTACTING_SERVER);
       setGeneratedReadme("");
-      const repoPath = new URL(form.getValues().repoUrl).pathname.replace(/^\//, "");
+      const repoPath = new URL(form.getValues().repoUrl).pathname.replace(
+        /^\//,
+        "",
+      );
       if (onSuccess) onSuccess(repoPath);
     },
     onSuccess: async (stream) => {
@@ -136,12 +138,36 @@ export const useReadmeForm = (
                 "The repository content exceeds the token limit. Please exclude some files and try again.",
             });
             return;
+          } else if (chunk.startsWith("ERROR:RATE_LIMIT:")) {
+            const errorData = JSON.parse(
+              chunk.replace("ERROR:RATE_LIMIT:", ""),
+            ) as RateLimitErrorResponse;
+            setRateLimitInfo(errorData.info);
+            setGenerationState(GenerationState.IDLE);
+
+            toast({
+              variant: "destructive",
+              title: "Rate limit exceeded",
+              description: errorData.message,
+            });
+
+            // Redirect to sign in after a very short delay to ensure toast is shown
+            setTimeout(() => {
+              const encodedMessage = encodeURIComponent(errorData.message);
+              window.location.href = `/signin?error=rate_limit&message=${encodedMessage}`;
+            }, 100);
+            return;
           } else if (chunk.startsWith("AI:")) {
             if (!hasStartedStreaming) {
               setGenerationState(GenerationState.STREAMING);
               hasStartedStreaming = true;
             }
             setGeneratedReadme((prev) => (prev ?? "") + chunk.slice(3));
+          } else if (chunk.startsWith("RATE_LIMIT:")) {
+            const limitInfo = JSON.parse(
+              chunk.replace("RATE_LIMIT:", ""),
+            ) as RateLimitInfo;
+            setRateLimitInfo(limitInfo);
           }
         }
 
@@ -153,98 +179,18 @@ export const useReadmeForm = (
         console.error("Error in streaming:", error);
         setGenerationState(GenerationState.IDLE);
         setGeneratedReadme(null);
+
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to stream README content",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Failed to stream README content",
         });
       }
     },
-    onError: (error) => {
-      console.error("Error in mutation:", error);
-      setGenerationState(GenerationState.IDLE);
-      setGeneratedReadme(null);
-
-      // Try to extract error message
-      let errorMessage: string;
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (
-        typeof error === "object" &&
-        error !== null &&
-        "message" in error
-      ) {
-        errorMessage = String((error as { message: unknown }).message);
-      } else {
-        errorMessage = "An unknown error occurred";
-      }
-
-      if (errorMessage.includes("Token limit exceeded")) {
-        try {
-          const jsonStr = errorMessage.split(": ")[1];
-          if (!jsonStr) throw new Error("No JSON data in error message");
-
-          const errorData = JSON.parse(jsonStr) as TokenLimitError;
-          if (onTokenLimitExceeded) {
-            onTokenLimitExceeded(errorData.largest_files, true);
-          }
-          return;
-        } catch (e) {
-          console.error("Failed to parse token limit error:", e);
-        }
-      }
-      handleGenerationError(error as unknown as GenerationError);
-    },
   });
-
-  const handleGenerationError = (error: GenerationError) => {
-    if ("rateLimitInfo" in error && error.rateLimitInfo) {
-      handleRateLimitError(error as RateLimitError);
-    } else {
-      handleGenericError(error as GenericError);
-    }
-  };
-
-  const handleRateLimitError = (error: RateLimitError) => {
-    posthog.capture("readme_generation", {
-      success: false,
-      repo_url: form.getValues("repoUrl"),
-      template: selectedTemplate,
-      error: "Rate limit exceeded",
-    });
-
-    toast({
-      variant: "destructive",
-      title: "Rate limit exceeded",
-      description: (
-        <div className="mt-2 space-y-2">
-          <p>Too many requests. Please wait before trying again.</p>
-          {error.rateLimitInfo.limit && (
-            <p>Limit: {error.rateLimitInfo.limit}</p>
-          )}
-          {error.rateLimitInfo.reset && (
-            <p>Try again in {error.rateLimitInfo.reset} seconds</p>
-          )}
-        </div>
-      ),
-    });
-  };
-
-  const handleGenericError = (error: GenericError) => {
-    posthog.capture("readme_generation", {
-      success: false,
-      repo_url: form.getValues("repoUrl"),
-      template: selectedTemplate,
-      error: "Unknown error",
-      error_message: error.error,
-    });
-
-    toast({
-      variant: "destructive",
-      title: "Error",
-      description: error.error ?? "An unknown error occurred",
-    });
-  };
 
   const handleSubmit = async () => {
     const values = form.getValues();
@@ -319,6 +265,7 @@ export const useReadmeForm = (
   return {
     form,
     generatedReadme,
+    generationState,
     selectedTemplate,
     setSelectedTemplate,
     additionalContext,
@@ -329,6 +276,6 @@ export const useReadmeForm = (
     handleSubmit,
     handleFileChange,
     handleFileDelete,
-    generationState,
+    rateLimitInfo,
   };
 };

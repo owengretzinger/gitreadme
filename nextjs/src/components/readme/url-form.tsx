@@ -1,5 +1,5 @@
 import { type UseFormReturn } from "react-hook-form";
-import { type ReadmeFormData } from "~/hooks/use-readme-form";
+import { type ReadmeFormData, type RateLimitInfo } from "~/hooks/use-readme-form";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import {
@@ -9,16 +9,24 @@ import {
   FormItem,
   FormMessage,
 } from "~/components/ui/form";
+import { RateLimitInfo as RateLimitInfoComponent } from "./rate-limit-info";
+import { useSession } from "next-auth/react";
 
 interface UrlFormProps {
   form: UseFormReturn<ReadmeFormData>;
   onSubmit: () => void;
+  rateLimitInfo: RateLimitInfo | null;
 }
 
-export function UrlForm({ form, onSubmit }: UrlFormProps) {
+export function UrlForm({ form, onSubmit, rateLimitInfo }: UrlFormProps) {
+  const { data: session } = useSession();
+
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="text-lg font-semibold">GitHub Repository URL</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">GitHub Repository URL</h3>
+        <RateLimitInfoComponent rateLimitInfo={rateLimitInfo} session={session} />
+      </div>
       <Form {...form}>
         <div className="flex flex-col gap-4 md:flex-row">
           <FormField

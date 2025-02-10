@@ -2,7 +2,6 @@
 
 import { Suspense, useState, useCallback, useEffect, useRef } from "react";
 import { useReadmeForm } from "~/hooks/use-readme-form";
-import { Toaster } from "~/components/ui/toaster";
 import { ChevronDown } from "lucide-react";
 import { cn } from "~/lib/utils";
 import { type ViewMode } from "~/components/view-mode-toggle";
@@ -21,6 +20,8 @@ import { FileExclusion } from "~/components/readme/file-exclusion";
 import { ReadmeLayout } from "~/components/readme/readme-layout";
 import { api } from "~/trpc/react";
 import { useSearchParams } from "next/navigation";
+import { SessionProvider } from "next-auth/react";
+import { Toaster } from "~/components/ui/toaster";
 
 function ReadmeForm() {
   const [activeTab, setActiveTab] = useState("settings");
@@ -74,6 +75,7 @@ function ReadmeForm() {
     handleFileChange,
     handleFileDelete,
     generationState,
+    rateLimitInfo,
   } = useReadmeForm(handleSuccess, handleTokenLimitExceeded);
 
   // Set initial URL from search params if provided
@@ -122,7 +124,7 @@ function ReadmeForm() {
   const settingsContent = (
     <div className="space-y-6">
       <div className="space-y-4">
-        <UrlForm form={form} onSubmit={handleSubmit} />
+        <UrlForm form={form} onSubmit={handleSubmit} rateLimitInfo={rateLimitInfo} />
         <div className="space-y-2">
           <Collapsible
             open={isAdditionalContextOpen}
@@ -206,7 +208,7 @@ function ReadmeForm() {
         repoPath={repoPath}
         version={nextVersion ?? 1}
         createdAt={new Date()}
-        currentUrl={window.location.href}
+        currentUrl={typeof window !== "undefined" ? window.location.href : ""}
         generatedReadme={generatedReadme}
         generationState={generationState}
         settingsContent={settingsContent}
@@ -219,7 +221,9 @@ function ReadmeForm() {
 export default function ReadmePage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <ReadmeForm />
+      <SessionProvider>
+        <ReadmeForm />
+      </SessionProvider>
     </Suspense>
   );
 }
