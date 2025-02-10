@@ -6,8 +6,10 @@ import {
 import { packRepository } from "~/utils/api-client";
 import { generatedReadmes } from "~/server/db/schema";
 import { and, eq } from "drizzle-orm";
-import { checkAndUpdateRateLimit, getCurrentRateLimit } from "../rate-limit";
+import { getCurrentRateLimit } from "../rate-limit";
 import { createServerError, createTokenLimitError, isTokenLimitError } from "~/types/errors";
+import { checkRateLimit, incrementRateLimit, decrementRateLimit } from "../rate-limit";
+import { createRateLimitError } from "../rate-limit";
 
 // Define a schema for file data
 const FileDataSchema = z.object({
@@ -32,25 +34,26 @@ export const readmeRouter = createTRPCRouter({
         excludePatterns: z.array(z.string()).optional(),
       }),
     )
-    .mutation(async function* ({ input, ctx }) {
+    .mutation(async function* ({ ctx, input }) {
+      const { session, db } = ctx;
+      const ipAddress = ctx.headers.get("x-forwarded-for")?.split(",")[0] ?? ctx.headers.get("x-real-ip") ?? null;
+
+      // Check rate limit first
+      const rateLimitResult = await checkRateLimit(db, ipAddress, session);
+      if (!rateLimitResult.allowed) {
+        yield "ERROR:" + JSON.stringify(createRateLimitError(rateLimitResult.info, "Rate limit exceeded"));
+        return;
+      }
+
+      // Increment rate limit counter
+      await incrementRateLimit(db, ipAddress, session);
+      yield "RATE_LIMIT:" + JSON.stringify(rateLimitResult.info);
+
       console.log("Starting streaming README generation for:", input.repoUrl);
       const startTime = performance.now();
       let generatedContent = "";
 
       try {
-        // Check rate limit before proceeding
-        const ipAddress = ctx.headers.get("x-forwarded-for")?.split(",")[0] ?? ctx.headers.get("x-real-ip");
-        const rateLimitResult = await checkAndUpdateRateLimit(ctx.db, ipAddress, ctx.session);
-        
-        if (!rateLimitResult.success) {
-          if (rateLimitResult.error) {
-            yield "ERROR:" + JSON.stringify(rateLimitResult.error);
-            return;
-          }
-        }
-        
-        yield "RATE_LIMIT:" + JSON.stringify(rateLimitResult.info);
-
         console.log("Packing repository...");
 
         // Pack repository using Python server
@@ -97,29 +100,36 @@ export const readmeRouter = createTRPCRouter({
 
         // Get the next version number for this repo
         const repoPath = new URL(input.repoUrl).pathname.replace(/^\//, "");
-        const latestVersion = await ctx.db.query.generatedReadmes.findFirst({
+        const latestVersion = await db.query.generatedReadmes.findFirst({
           where: eq(generatedReadmes.repoPath, repoPath),
           orderBy: (generatedReadmes, { desc }) => [desc(generatedReadmes.version)],
         });
         const nextVersion = latestVersion ? latestVersion.version + 1 : 1;
 
         // Store the generated README in the database
-        await ctx.db.insert(generatedReadmes).values({
+        await db.insert(generatedReadmes).values({
           repoPath,
           version: nextVersion,
           content: generatedContent,
-          userId: ctx.session?.user.id,
+          userId: session?.user.id,
         });
 
         const endTime = performance.now();
         console.log(
           `Total README generation process took ${(endTime - startTime).toFixed(2)}ms`,
         );
+
+        return;
       } catch (error) {
-        console.error("Error in streaming README generation:", error);
-        yield "ERROR:" + JSON.stringify(createServerError(
-          error instanceof Error ? error.message : "Failed to stream README content"
-        ));
+        // Decrement rate limit since generation failed
+        await decrementRateLimit(db, ipAddress, session);
+        
+        if (error instanceof Error) {
+          yield "ERROR:" + JSON.stringify(createServerError(error.message));
+        } else {
+          yield "ERROR:" + JSON.stringify(createServerError("Failed to stream README content"));
+        }
+        return;
       }
     }),
 

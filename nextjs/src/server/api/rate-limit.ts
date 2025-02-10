@@ -170,3 +170,89 @@ export async function checkAndUpdateRateLimit(
     };
   }
 }
+
+export async function decrementRateLimit(
+  db: DB,
+  ipAddress: string | null,
+  session: Session | null,
+): Promise<void> {
+  if (session?.user) {
+    // Decrement authenticated user limit
+    await db
+      .update(generationLimits)
+      .set({
+        count: sql`${generationLimits.count} - 1`,
+      })
+      .where(
+        and(
+          eq(generationLimits.userId, session.user.id),
+          eq(generationLimits.date, sql`CURRENT_DATE`),
+        ),
+      );
+  } else if (ipAddress) {
+    // Decrement unauthenticated user limit
+    await db
+      .update(generationLimits)
+      .set({
+        count: sql`${generationLimits.count} - 1`,
+      })
+      .where(
+        and(
+          eq(generationLimits.ipAddress, ipAddress),
+          eq(generationLimits.date, sql`CURRENT_DATE`),
+        ),
+      );
+  }
+}
+
+export async function checkRateLimit(
+  db: DB,
+  ipAddress: string | null,
+  session: Session | null,
+): Promise<{ allowed: boolean; info: RateLimitInfo }> {
+  const info = await getCurrentRateLimit(db, ipAddress, session);
+  return {
+    allowed: info.remaining > 0,
+    info,
+  };
+}
+
+export async function incrementRateLimit(
+  db: DB,
+  ipAddress: string | null,
+  session: Session | null,
+): Promise<void> {
+  if (session?.user) {
+    // Increment authenticated user limit
+    await db
+      .insert(generationLimits)
+      .values({
+        userId: session.user.id,
+        date: sql`CURRENT_DATE`,
+        count: 1,
+      })
+      .onConflictDoUpdate({
+        target: [generationLimits.userId, generationLimits.date],
+        set: {
+          count: sql`${generationLimits.count} + 1`,
+        },
+      });
+  } else if (ipAddress) {
+    // Increment unauthenticated user limit
+    await db
+      .insert(generationLimits)
+      .values({
+        ipAddress,
+        date: sql`CURRENT_DATE`,
+        count: 1,
+      })
+      .onConflictDoUpdate({
+        target: [generationLimits.ipAddress, generationLimits.date],
+        set: {
+          count: sql`${generationLimits.count} + 1`,
+        },
+      });
+  }
+}
+
+export { createRateLimitError };

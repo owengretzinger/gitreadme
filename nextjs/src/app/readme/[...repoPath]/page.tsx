@@ -54,7 +54,7 @@ export default function SharedReadmePage() {
       searchParams.set("url", repoUrl);
       toast({
         title: "Redirecting to generation page",
-        description: "The README was not found, so we're redirecting you to the generation page with the repo automatically filled in.",
+        description: "The README was not found, so you're being redirected to the generation page with the repo automatically filled in.",
       });
       router.push(`/readme?${searchParams.toString()}`);
     }
