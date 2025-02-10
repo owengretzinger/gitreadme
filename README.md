@@ -68,7 +68,6 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] User dashboard with usage metrics and list of readmes generated
 - [ ] Robust Post Hog capturing
 - [ ] Get a domain name
 - [ ] Enable diagram generation using DeepSeek R1

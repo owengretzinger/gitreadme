@@ -2,6 +2,7 @@ import { createTRPCRouter } from "~/server/api/trpc";
 import { readmeRouter } from "./routers/readme";
 import { createCallerFactory } from "~/server/api/trpc";
 import { architectureRouter } from "~/server/api/routers/architecture";
+import { dashboardRouter } from "./routers/dashboard";
 
 /**
  * This is the primary router for your server.
@@ -11,6 +12,7 @@ import { architectureRouter } from "~/server/api/routers/architecture";
 export const appRouter = createTRPCRouter({
   readme: readmeRouter,
   architecture: architectureRouter,
+  dashboard: dashboardRouter,
 });
 
 // export type definition of API

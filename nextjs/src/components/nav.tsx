@@ -5,7 +5,7 @@ import Image from "next/image";
 import { NavButtons } from "./nav-buttons";
 import { MobileNav } from "./mobile-nav";
 
-const links = [
+const publicLinks = [
   {
     href: "/readme",
     label: "README Generator",
@@ -16,8 +16,16 @@ const links = [
   },
 ];
 
+const authenticatedLinks = [
+  {
+    href: "/dashboard",
+    label: "Dashboard",
+  },
+];
+
 export async function Nav() {
   const session = await auth();
+  const links = [...publicLinks, ...(session?.user ? authenticatedLinks : [])];
 
   return (
     <nav className="w-full border-b">
