@@ -73,3 +73,5 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 - [ ] Robust Post Hog capturing
 - [ ] Get a domain name
 - [ ] Enable diagram generation using DeepSeek R1
+- [ ] Login with GitHub
+- [ ] Ability to access private repositories

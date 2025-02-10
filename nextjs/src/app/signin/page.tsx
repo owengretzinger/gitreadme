@@ -41,10 +41,10 @@ export default function SignInPage() {
         <Card className="pointer-events-auto mx-auto w-full max-w-[400px]">
           <CardHeader>
             <CardTitle className="text-center text-2xl font-semibold tracking-tight">
-              Welcome to HackMate
+              README Generator
             </CardTitle>
             <CardDescription className="text-center">
-              Your AI-powered hackathon companion
+              Your AI-powered README generator
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -54,17 +54,19 @@ export default function SignInPage() {
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-                    Save your projects and access them anywhere
+                    Generate 20 free readmes per day
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-                    Auto-fill project details for documentation generator and
-                    pitch assistant
+                    Save your generated readmes to your account and access them anytime, anywhere
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-                    Automatically create a pull request to GitHub with generated
-                    documentation (coming soon!)
+                    Automatically receive updates when new features are added
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
+                    Login with GitHub to access your private repositories (coming soon!)
                   </li>
                 </ul>
               </div>
