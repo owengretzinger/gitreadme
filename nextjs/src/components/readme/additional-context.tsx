@@ -20,7 +20,7 @@ export function AdditionalContext({
       </div>
       <Textarea
         id="context"
-        placeholder="Add any additional context..."
+        placeholder={`Use this as the project link: https://example.com\nUse this as the logo: https://example.com/logo.png`}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="h-[150px] resize-none"

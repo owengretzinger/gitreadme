@@ -68,7 +68,6 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] Ability to enter your links like contact, project url, images, etc. to auto-populate the README
 - [ ] Cache using Redis ?
 - [ ] Rate limiting logic with auth
 - [ ] Enable diagram generation using DeepSeek R1
