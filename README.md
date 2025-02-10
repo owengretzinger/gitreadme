@@ -68,6 +68,8 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] Cache using Redis ?
 - [ ] Rate limiting logic with auth
+- [ ] User dashboard with usage metrics and list of readmes generated
+- [ ] Robust Post Hog capturing
+- [ ] Get a domain name
 - [ ] Enable diagram generation using DeepSeek R1
