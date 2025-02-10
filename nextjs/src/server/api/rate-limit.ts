@@ -137,7 +137,7 @@ export async function checkAndUpdateRateLimit(
         info,
         error: createRateLimitError(
           info,
-          `You have reached your daily limit of ${UNAUTHENTICATED_LIMIT} generations. Please sign in to get ${AUTHENTICATED_LIMIT} generations per day, or try again tomorrow.`
+          `You have reached your daily limit of ${UNAUTHENTICATED_LIMIT} generations. Please sign in to get ${AUTHENTICATED_LIMIT} free generations per day, or try again tomorrow.`
         ),
       };
     }

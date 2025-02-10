@@ -40,6 +40,7 @@ export const useReadmeForm = (
     files: Array<{ path: string; size_kb: number }> | null,
     shouldExpandDropdown?: boolean,
   ) => void,
+  setActiveTab?: (tab: string) => void,
 ) => {
   const [generatedReadme, setGeneratedReadme] = useState<string | null>(null);
   const [generationState, setGenerationState] = useState<GenerationState>(
@@ -123,7 +124,6 @@ export const useReadmeForm = (
 
             if (isTokenLimitError(error)) {
               if (onTokenLimitExceeded) {
-                console.log("isTokenLimitError");
                 onTokenLimitExceeded(error.largest_files, true);
               }
               setGenerationState(GenerationState.IDLE);
@@ -155,6 +155,10 @@ export const useReadmeForm = (
               title: "Error",
               description: error.message,
             });
+            // Go back to settings page for all other errors
+            if (setActiveTab) {
+              setActiveTab("settings");
+            }
             return;
           } else if (chunk.startsWith("AI:")) {
             if (!hasStartedStreaming) {
@@ -187,6 +191,10 @@ export const useReadmeForm = (
               ? error.message
               : "Failed to stream README content",
         });
+        // Go back to settings page for errors
+        if (setActiveTab) {
+          setActiveTab("settings");
+        }
       }
     },
   });

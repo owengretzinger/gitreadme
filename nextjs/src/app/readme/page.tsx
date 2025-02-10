@@ -76,7 +76,7 @@ function ReadmeForm() {
     handleFileDelete,
     generationState,
     rateLimitInfo,
-  } = useReadmeForm(handleSuccess, handleTokenLimitExceeded);
+  } = useReadmeForm(handleSuccess, handleTokenLimitExceeded, setActiveTab);
 
   // Set initial URL from search params if provided
   useEffect(() => {
