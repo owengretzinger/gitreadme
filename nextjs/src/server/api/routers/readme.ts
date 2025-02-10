@@ -7,6 +7,7 @@ import { packRepository } from "~/utils/api-client";
 import { generatedReadmes } from "~/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { checkAndUpdateRateLimit, getCurrentRateLimit } from "../rate-limit";
+import { createServerError, createTokenLimitError, isTokenLimitError } from "~/types/errors";
 
 // Define a schema for file data
 const FileDataSchema = z.object({
@@ -14,13 +15,6 @@ const FileDataSchema = z.object({
   content: z.string(),
   type: z.string(),
 });
-
-interface TokenLimitErrorResponse {
-  error: string;
-  estimated_tokens: number;
-  files_analyzed: number;
-  largest_files: Array<{ path: string; size_kb: number }>;
-}
 
 export const readmeRouter = createTRPCRouter({
   getRateLimit: publicProcedure.query(async ({ ctx }) => {
@@ -49,11 +43,10 @@ export const readmeRouter = createTRPCRouter({
         const rateLimitResult = await checkAndUpdateRateLimit(ctx.db, ipAddress, ctx.session);
         
         if (!rateLimitResult.success) {
-          yield "ERROR:RATE_LIMIT:" + JSON.stringify({
-            message: rateLimitResult.message,
-            info: rateLimitResult.info,
-          });
-          return;
+          if (rateLimitResult.error) {
+            yield "ERROR:" + JSON.stringify(rateLimitResult.error);
+            return;
+          }
         }
         
         yield "RATE_LIMIT:" + JSON.stringify(rateLimitResult.info);
@@ -67,25 +60,23 @@ export const readmeRouter = createTRPCRouter({
           undefined,
           input.excludePatterns,
         );
+
         if (!repoPackerResult.success) {
+          console.log("repoPackerResult.error", repoPackerResult.error);
           // Check if the error is a token limit exceeded error
-          try {
-            // Remove "Server error (400): " prefix if it exists
-            const errorString = repoPackerResult.error.replace("Server error (400): ", "");
-            const errorData = JSON.parse(errorString) as TokenLimitErrorResponse;
-            if (errorData.error.includes("Token limit exceeded")) {
-              console.log("Token limit exceeded, sending error details to client");
-              yield "ERROR:TOKEN_LIMIT_EXCEEDED:" + JSON.stringify(errorData);
-              return;
-            }
-          } catch (e) {
-            console.error("Failed to parse error response:", e);
+          if (isTokenLimitError(repoPackerResult.error)) {
+            const { files_analyzed, estimated_tokens, largest_files } = repoPackerResult.error;
+            const tokenLimitError = createTokenLimitError(
+              files_analyzed,
+              estimated_tokens,
+              largest_files
+            );
+            yield "ERROR:" + JSON.stringify(tokenLimitError);
+            return;
           }
-          
-          console.error("Repository packing failed:", repoPackerResult.error);
-          throw new Error(
-            repoPackerResult.error || "Failed to pack repository",
-          );
+
+          yield "ERROR:" + JSON.stringify(repoPackerResult.error);
+          return;
         }
 
         yield "DONE_PACKING";
@@ -126,7 +117,9 @@ export const readmeRouter = createTRPCRouter({
         );
       } catch (error) {
         console.error("Error in streaming README generation:", error);
-        throw error;
+        yield "ERROR:" + JSON.stringify(createServerError(
+          error instanceof Error ? error.message : "Failed to stream README content"
+        ));
       }
     }),
 

@@ -97,15 +97,23 @@ def check_repo_access(repo_url):
         try:
             response = requests.get(api_url)
             if response.status_code == 404:
-                return False, "Repository not found"
+                return False, "Repository not found", 404
             elif response.status_code == 403:
-                return False, "Repository is not accessible. Make sure it is public"
+                return (
+                    False,
+                    "Repository is not accessible. Make sure it is public",
+                    403,
+                )
             elif not response.ok:
-                return False, f"GitHub API error: {response.status_code}"
-            return True, None
+                return (
+                    False,
+                    f"GitHub API error: {response.status_code}",
+                    response.status_code,
+                )
+            return True, None, 200
         except requests.RequestException as e:
-            return False, f"Error checking repository: {str(e)}"
-    return True, None
+            return False, f"Error checking repository: {str(e)}", 500
+    return True, None, 200
 
 
 def normalize_github_url(url):
@@ -156,9 +164,9 @@ def pack_repository():
         )
 
     # Check repository access
-    can_access, error_message = check_repo_access(normalized_url)
+    can_access, error_message, status_code = check_repo_access(normalized_url)
     if not can_access:
-        return jsonify({"error": error_message}), 403
+        return jsonify({"error": error_message}), status_code
 
     try:
         # Get repository contents

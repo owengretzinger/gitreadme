@@ -5,6 +5,11 @@ import * as z from "zod";
 import { api } from "~/trpc/react";
 import { useToast } from "./use-toast";
 import { templates } from "~/components/readme-templates/readme-templates";
+import {
+  type ApiErrorResponse,
+  isRateLimitError,
+  isTokenLimitError,
+} from "~/types/errors";
 
 export interface RateLimitInfo {
   remaining: number;
@@ -18,18 +23,6 @@ export enum GenerationState {
   PACKING_REPOSITORY = "PACKING_REPOSITORY",
   WAITING_FOR_AI = "WAITING_FOR_AI",
   STREAMING = "STREAMING",
-}
-
-interface TokenLimitError {
-  error: string;
-  largest_files: Array<{ path: string; size_kb: number }>;
-  estimated_tokens: number;
-  files_analyzed: number;
-}
-
-interface RateLimitErrorResponse {
-  message: string;
-  info: RateLimitInfo;
 }
 
 const formSchema = z.object({
@@ -123,39 +116,45 @@ export const useReadmeForm = (
         for await (const chunk of stream) {
           if (chunk === "DONE_PACKING") {
             setGenerationState(GenerationState.WAITING_FOR_AI);
-          } else if (chunk.startsWith("ERROR:TOKEN_LIMIT_EXCEEDED:")) {
-            const errorData = JSON.parse(
-              chunk.replace("ERROR:TOKEN_LIMIT_EXCEEDED:", ""),
-            ) as TokenLimitError;
-            if (onTokenLimitExceeded) {
-              onTokenLimitExceeded(errorData.largest_files, true);
+          } else if (chunk.startsWith("ERROR:")) {
+            const error = JSON.parse(
+              chunk.replace("ERROR:", ""),
+            ) as ApiErrorResponse;
+
+            if (isTokenLimitError(error)) {
+              if (onTokenLimitExceeded) {
+                console.log("isTokenLimitError");
+                onTokenLimitExceeded(error.largest_files, true);
+              }
+              setGenerationState(GenerationState.IDLE);
+              toast({
+                variant: "destructive",
+                title: "Repository Too Large",
+                description: error.message,
+              });
+              return;
             }
-            setGenerationState(GenerationState.IDLE);
-            toast({
-              variant: "destructive",
-              title: "Repository Too Large",
-              description:
-                "The repository content exceeds the token limit. Please exclude some files and try again.",
-            });
-            return;
-          } else if (chunk.startsWith("ERROR:RATE_LIMIT:")) {
-            const errorData = JSON.parse(
-              chunk.replace("ERROR:RATE_LIMIT:", ""),
-            ) as RateLimitErrorResponse;
-            setRateLimitInfo(errorData.info);
-            setGenerationState(GenerationState.IDLE);
 
-            toast({
-              variant: "destructive",
-              title: "Rate limit exceeded",
-              description: errorData.message,
-            });
-
-            // Redirect to sign in after a very short delay to ensure toast is shown
-            setTimeout(() => {
-              const encodedMessage = encodeURIComponent(errorData.message);
+            if (isRateLimitError(error)) {
+              setRateLimitInfo(error.info);
+              setGenerationState(GenerationState.IDLE);
+              toast({
+                variant: "destructive",
+                title: "Rate limit exceeded",
+                description: error.message,
+              });
+              const encodedMessage = encodeURIComponent(error.message);
               window.location.href = `/signin?error=rate_limit&message=${encodedMessage}`;
-            }, 100);
+              return;
+            }
+
+            // Handle other error types
+            setGenerationState(GenerationState.IDLE);
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: error.message,
+            });
             return;
           } else if (chunk.startsWith("AI:")) {
             if (!hasStartedStreaming) {

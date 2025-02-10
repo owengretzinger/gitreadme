@@ -1,36 +1,90 @@
-import { type PackRepositoryResponse } from "~/types/api";
 import { env } from "~/env";
+import {
+  type ApiErrorResponse,
+  createServerError,
+  createTokenLimitError,
+  createUnauthorizedError,
+  createRepositoryAccessError,
+  createRepositoryNotFoundError,
+} from "~/types/errors";
 
 interface ApiResponse {
   error?: string;
   files_analyzed?: number;
   estimated_tokens?: number;
-  largest_files?: Array<{ path: string; size_kb: number }>;
   content?: string;
+  largest_files?: Array<{
+    path: string;
+    size_kb: number;
+  }>;
 }
 
-function isApiResponse(obj: unknown): obj is ApiResponse {
-  if (!obj || typeof obj !== "object") return false;
-  
-  const response = obj as Record<string, unknown>;
-  
-  // Check each property has the correct type if it exists
-  if (response.error !== undefined && typeof response.error !== "string") return false;
-  if (response.files_analyzed !== undefined && typeof response.files_analyzed !== "number") return false;
-  if (response.estimated_tokens !== undefined && typeof response.estimated_tokens !== "number") return false;
-  if (response.content !== undefined && typeof response.content !== "string") return false;
-  
-  // Check largest_files array if it exists
-  if (response.largest_files !== undefined) {
-    if (!Array.isArray(response.largest_files)) return false;
-    for (const file of response.largest_files) {
-      if (!file || typeof file !== "object") return false;
-      const f = file as Record<string, unknown>;
-      if (typeof f.path !== "string" || typeof f.size_kb !== "number") return false;
-    }
-  }
-  
-  return true;
+interface TokenLimitServerResponse {
+  error: "Token limit exceeded";
+  files_analyzed: number;
+  estimated_tokens: number;
+  largest_files: Array<{
+    path: string;
+    size_kb: number;
+  }>;
+}
+
+interface FileSize {
+  path: string;
+  size_kb: number;
+}
+
+function isFileSize(value: unknown): value is FileSize {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as { path: string }).path === "string" &&
+    typeof (value as { size_kb: number }).size_kb === "number"
+  );
+}
+
+function isTokenLimitServerResponse(
+  value: unknown,
+): value is TokenLimitServerResponse {
+  if (typeof value !== "object" || value === null) return false;
+  const v = value as Partial<TokenLimitServerResponse>;
+  return (
+    v.error === "Token limit exceeded" &&
+    typeof v.files_analyzed === "number" &&
+    typeof v.estimated_tokens === "number" &&
+    Array.isArray(v.largest_files) &&
+    v.largest_files?.every(isFileSize)
+  );
+}
+
+type PackRepositorySuccessResponse = {
+  success: true;
+  files_analyzed: number;
+  estimated_tokens: number;
+  content: string;
+};
+
+type PackRepositoryErrorResponse = {
+  success: false;
+  error: ApiErrorResponse;
+};
+
+type PackRepositoryResponse =
+  | PackRepositorySuccessResponse
+  | PackRepositoryErrorResponse;
+
+function isApiResponse(response: unknown): response is ApiResponse {
+  if (typeof response !== "object" || response === null) return false;
+  const r = response as Record<string, unknown>;
+  return (
+    (typeof r.error === "string" || typeof r.error === "undefined") &&
+    (typeof r.files_analyzed === "number" ||
+      typeof r.files_analyzed === "undefined") &&
+    (typeof r.estimated_tokens === "number" ||
+      typeof r.estimated_tokens === "undefined") &&
+    (typeof r.content === "string" || typeof r.content === "undefined") &&
+    (Array.isArray(r.largest_files) || typeof r.largest_files === "undefined")
+  );
 }
 
 export async function packRepository(
@@ -62,106 +116,137 @@ export async function packRepository(
       const match = regex.exec(text);
       const limit = match ? match[0] : undefined;
 
-      return {
+      const errorResponse: PackRepositoryErrorResponse = {
         success: false,
-        error: "Rate limit exceeded",
-        rateLimitInfo: {
+        error: createServerError("Rate limit exceeded", response.status, {
           limit: limit ?? "Unknown limit",
-          reset: retryAfter ?? undefined,
-        },
+          retryAfter: retryAfter ?? undefined,
+        }),
       };
+      return errorResponse;
     }
 
     // Handle unauthorized
     if (response.status === 401) {
-      return {
+      const errorResponse: PackRepositoryErrorResponse = {
         success: false,
-        error: "Unauthorized - check your API token",
+        error: createUnauthorizedError(),
       };
+      return errorResponse;
     }
 
     // Handle forbidden (likely GitHub access issue)
     if (response.status === 403) {
-      return {
+      const errorResponse: PackRepositoryErrorResponse = {
         success: false,
-        error:
-          "Cannot access repository. Make sure the repository exists and is public.",
+        error: createRepositoryAccessError(),
       };
+      return errorResponse;
     }
 
     // Handle not found
     if (response.status === 404) {
-      return {
+      const errorResponse: PackRepositoryErrorResponse = {
         success: false,
-        error: "Repository not found. Please check the URL and try again.",
+        error: createRepositoryNotFoundError(),
       };
+      return errorResponse;
     }
 
     // Handle non-200 responses
     if (!response.ok) {
       try {
         const errorText = await response.text();
-        return {
+        try {
+          // Try to parse the error text as JSON
+          const jsonError: unknown = JSON.parse(errorText);
+          if (isTokenLimitServerResponse(jsonError)) {
+            const errorResponse: PackRepositoryErrorResponse = {
+              success: false,
+              error: createTokenLimitError(
+                jsonError.files_analyzed,
+                jsonError.estimated_tokens,
+                jsonError.largest_files,
+              ),
+            };
+            return errorResponse;
+          }
+        } catch {
+          // If JSON parsing fails, treat as regular server error
+        }
+        const errorResponse: PackRepositoryErrorResponse = {
           success: false,
-          error: `Server error (${response.status}): ${errorText}`,
+          error: createServerError(
+            `Server error (${response.status}): ${errorText}`,
+            response.status,
+          ),
         };
+        return errorResponse;
       } catch {
-        return {
+        const errorResponse: PackRepositoryErrorResponse = {
           success: false,
-          error: `Server error (${response.status})`,
+          error: createServerError(
+            `Server error (${response.status})`,
+            response.status,
+          ),
         };
+        return errorResponse;
       }
     }
 
     let data: ApiResponse;
     try {
       const jsonResponse: unknown = await response.json();
-      
+
       if (!isApiResponse(jsonResponse)) {
         throw new Error("Invalid response shape");
       }
       data = jsonResponse;
     } catch (error) {
       console.error("Failed to parse JSON response:", error);
-      return {
+      const errorResponse: PackRepositoryErrorResponse = {
         success: false,
-        error: "Invalid response from server",
+        error: createServerError("Invalid response from server"),
       };
+      return errorResponse;
     }
 
     if (data.error) {
       // Handle token limit exceeded error
       if (data.error === "Token limit exceeded" && data.largest_files) {
-        return {
+        const errorResponse: PackRepositoryErrorResponse = {
           success: false,
-          error: data.error,
-          files_analyzed: data.files_analyzed,
-          estimated_tokens: data.estimated_tokens,
-          largest_files: data.largest_files,
+          error: createTokenLimitError(
+            data.files_analyzed!,
+            data.estimated_tokens!,
+            data.largest_files,
+          ),
         };
+        return errorResponse;
       }
 
       // Handle other errors
-      return {
+      const errorResponse: PackRepositoryErrorResponse = {
         success: false,
-        error: data.error,
-        files_analyzed: data.files_analyzed,
-        estimated_tokens: data.estimated_tokens,
+        error: createServerError(data.error),
       };
+      return errorResponse;
     }
 
     // Handle successful response
-    return {
+    const successResponse: PackRepositorySuccessResponse = {
       success: true,
-      files_analyzed: data.files_analyzed,
-      estimated_tokens: data.estimated_tokens,
-      content: data.content ?? "",
-    } as PackRepositoryResponse;
+      files_analyzed: data.files_analyzed!,
+      estimated_tokens: data.estimated_tokens!,
+      content: data.content!,
+    };
+    return successResponse;
   } catch (error) {
     console.error("Failed to connect to server:", error);
-    return {
+    const errorResponse: PackRepositoryErrorResponse = {
       success: false,
-      error: "Failed to connect to server",
+      error: createServerError("Failed to connect to server"),
     };
+    return errorResponse;
   }
 }

@@ -2,20 +2,16 @@ import { and, eq, sql } from "drizzle-orm";
 import { type Session } from "next-auth";
 import { type DB } from "~/server/db";
 import { generationLimits } from "../db/schema";
+import { type RateLimitInfo } from "~/hooks/use-readme-form";
+import { createRateLimitError, type ApiErrorResponse } from "~/types/errors";
 
 const UNAUTHENTICATED_LIMIT = 3;
 const AUTHENTICATED_LIMIT = 20;
 
-interface RateLimitInfo {
-  remaining: number;
-  total: number;
-  used: number;
-}
-
 interface RateLimitResult {
   success: boolean;
   info: RateLimitInfo;
-  message?: string;
+  error?: ApiErrorResponse;
 }
 
 export async function getCurrentRateLimit(
@@ -87,14 +83,18 @@ export async function checkAndUpdateRateLimit(
 
     // If no row was returned, it means we hit the limit
     if (result.length === 0) {
+      const info = {
+        remaining: 0,
+        total: AUTHENTICATED_LIMIT,
+        used: AUTHENTICATED_LIMIT,
+      };
       return {
         success: false,
-        info: {
-          remaining: 0,
-          total: AUTHENTICATED_LIMIT,
-          used: AUTHENTICATED_LIMIT,
-        },
-        message: `You have reached your daily limit of ${AUTHENTICATED_LIMIT} generations. Please try again tomorrow.`,
+        info,
+        error: createRateLimitError(
+          info,
+          `You have reached your daily limit of ${AUTHENTICATED_LIMIT} generations. Please try again tomorrow.`
+        ),
       };
     }
 
@@ -127,14 +127,18 @@ export async function checkAndUpdateRateLimit(
 
     // If no row was returned, it means we hit the limit
     if (result.length === 0) {
+      const info = {
+        remaining: 0,
+        total: UNAUTHENTICATED_LIMIT,
+        used: UNAUTHENTICATED_LIMIT,
+      };
       return {
         success: false,
-        info: {
-          remaining: 0,
-          total: UNAUTHENTICATED_LIMIT,
-          used: UNAUTHENTICATED_LIMIT,
-        },
-        message: `You have reached your daily limit of ${UNAUTHENTICATED_LIMIT} generations. Please sign in to get ${AUTHENTICATED_LIMIT} generations per day, or try again tomorrow.`,
+        info,
+        error: createRateLimitError(
+          info,
+          `You have reached your daily limit of ${UNAUTHENTICATED_LIMIT} generations. Please sign in to get ${AUTHENTICATED_LIMIT} generations per day, or try again tomorrow.`
+        ),
       };
     }
 
@@ -155,7 +159,14 @@ export async function checkAndUpdateRateLimit(
         total: UNAUTHENTICATED_LIMIT,
         used: 0,
       },
-      message: "Could not determine user identity for rate limiting.",
+      error: createRateLimitError(
+        {
+          remaining: 0,
+          total: UNAUTHENTICATED_LIMIT,
+          used: 0,
+        },
+        "Could not determine user identity for rate limiting."
+      ),
     };
   }
 }
