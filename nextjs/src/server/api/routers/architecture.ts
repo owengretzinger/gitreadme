@@ -29,8 +29,8 @@ export const architectureRouter = createTRPCRouter({
         if (!repoPackerResult.success) {
           return {
             success: false,
-            error: repoPackerResult.error,
-            largestFiles: repoPackerResult.largest_files,
+            error: repoPackerResult.error.message,
+            largestFiles: 'largest_files' in repoPackerResult.error ? repoPackerResult.error.largest_files : undefined,
           };
         }
 

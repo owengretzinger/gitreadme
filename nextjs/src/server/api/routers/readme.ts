@@ -8,7 +8,7 @@ import { generatedReadmes } from "~/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { getCurrentRateLimit } from "../rate-limit";
 import { createServerError, createTokenLimitError, isTokenLimitError } from "~/types/errors";
-import { checkRateLimit, incrementRateLimit, decrementRateLimit } from "../rate-limit";
+import { checkRateLimit, incrementRateLimit } from "../rate-limit";
 import { createRateLimitError } from "../rate-limit";
 
 // Define a schema for file data
@@ -45,8 +45,6 @@ export const readmeRouter = createTRPCRouter({
         return;
       }
 
-      // Increment rate limit counter
-      await incrementRateLimit(db, ipAddress, session);
       yield "RATE_LIMIT:" + JSON.stringify(rateLimitResult.info);
 
       console.log("Starting streaming README generation for:", input.repoUrl);
@@ -65,7 +63,6 @@ export const readmeRouter = createTRPCRouter({
         );
 
         if (!repoPackerResult.success) {
-          console.log("repoPackerResult.error", repoPackerResult.error);
           // Check if the error is a token limit exceeded error
           if (isTokenLimitError(repoPackerResult.error)) {
             const { files_analyzed, estimated_tokens, largest_files } = repoPackerResult.error;
@@ -98,6 +95,9 @@ export const readmeRouter = createTRPCRouter({
           yield "AI:" + chunk;
         }
 
+        // Increment rate limit counter
+        await incrementRateLimit(db, ipAddress, session);
+
         // Get the next version number for this repo
         const repoPath = new URL(input.repoUrl).pathname.replace(/^\//, "");
         const latestVersion = await db.query.generatedReadmes.findFirst({
@@ -120,10 +120,7 @@ export const readmeRouter = createTRPCRouter({
         );
 
         return;
-      } catch (error) {
-        // Decrement rate limit since generation failed
-        await decrementRateLimit(db, ipAddress, session);
-        
+      } catch (error) {        
         if (error instanceof Error) {
           yield "ERROR:" + JSON.stringify(createServerError(error.message));
         } else {

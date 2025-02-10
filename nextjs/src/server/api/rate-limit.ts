@@ -33,6 +33,7 @@ export async function getCurrentRateLimit(
       remaining: AUTHENTICATED_LIMIT - count,
       total: AUTHENTICATED_LIMIT,
       used: count,
+      isAuthenticated: true,
     };
   } else if (ipAddress) {
     // Get unauthenticated user limit
@@ -48,12 +49,14 @@ export async function getCurrentRateLimit(
       remaining: UNAUTHENTICATED_LIMIT - count,
       total: UNAUTHENTICATED_LIMIT,
       used: count,
+      isAuthenticated: false,
     };
   } else {
     return {
       remaining: UNAUTHENTICATED_LIMIT,
       total: UNAUTHENTICATED_LIMIT,
       used: 0,
+      isAuthenticated: false,
     };
   }
 }
@@ -87,13 +90,14 @@ export async function checkAndUpdateRateLimit(
         remaining: 0,
         total: AUTHENTICATED_LIMIT,
         used: AUTHENTICATED_LIMIT,
+        isAuthenticated: true,
       };
       return {
         success: false,
         info,
         error: createRateLimitError(
           info,
-          `You have reached your daily limit of ${AUTHENTICATED_LIMIT} generations. Please try again tomorrow.`
+          `You have reached your daily limit of ${AUTHENTICATED_LIMIT} generations. Please try again tomorrow.`,
         ),
       };
     }
@@ -105,6 +109,7 @@ export async function checkAndUpdateRateLimit(
         remaining: AUTHENTICATED_LIMIT - count,
         total: AUTHENTICATED_LIMIT,
         used: count,
+        isAuthenticated: true,
       },
     };
   } else if (ipAddress) {
@@ -131,13 +136,14 @@ export async function checkAndUpdateRateLimit(
         remaining: 0,
         total: UNAUTHENTICATED_LIMIT,
         used: UNAUTHENTICATED_LIMIT,
+        isAuthenticated: false,
       };
       return {
         success: false,
         info,
         error: createRateLimitError(
           info,
-          `You have reached your daily limit of ${UNAUTHENTICATED_LIMIT} generations. Please sign in to get ${AUTHENTICATED_LIMIT} free generations per day, or try again tomorrow.`
+          `You have reached your daily limit of ${UNAUTHENTICATED_LIMIT} generations. Please sign in to get ${AUTHENTICATED_LIMIT} free generations per day, or try again tomorrow.`,
         ),
       };
     }
@@ -149,6 +155,7 @@ export async function checkAndUpdateRateLimit(
         remaining: UNAUTHENTICATED_LIMIT - count,
         total: UNAUTHENTICATED_LIMIT,
         used: count,
+        isAuthenticated: false,
       },
     };
   } else {
@@ -158,50 +165,18 @@ export async function checkAndUpdateRateLimit(
         remaining: 0,
         total: UNAUTHENTICATED_LIMIT,
         used: 0,
+        isAuthenticated: false,
       },
       error: createRateLimitError(
         {
           remaining: 0,
           total: UNAUTHENTICATED_LIMIT,
           used: 0,
+          isAuthenticated: false,
         },
-        "Could not determine user identity for rate limiting."
+        "Could not determine user identity for rate limiting.",
       ),
     };
-  }
-}
-
-export async function decrementRateLimit(
-  db: DB,
-  ipAddress: string | null,
-  session: Session | null,
-): Promise<void> {
-  if (session?.user) {
-    // Decrement authenticated user limit
-    await db
-      .update(generationLimits)
-      .set({
-        count: sql`${generationLimits.count} - 1`,
-      })
-      .where(
-        and(
-          eq(generationLimits.userId, session.user.id),
-          eq(generationLimits.date, sql`CURRENT_DATE`),
-        ),
-      );
-  } else if (ipAddress) {
-    // Decrement unauthenticated user limit
-    await db
-      .update(generationLimits)
-      .set({
-        count: sql`${generationLimits.count} - 1`,
-      })
-      .where(
-        and(
-          eq(generationLimits.ipAddress, ipAddress),
-          eq(generationLimits.date, sql`CURRENT_DATE`),
-        ),
-      );
   }
 }
 

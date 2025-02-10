@@ -10,11 +10,18 @@ import {
   isRateLimitError,
   isTokenLimitError,
 } from "~/types/errors";
+import {
+  trackReadmeGeneration,
+  trackGenerationError,
+  trackTemplateSelect,
+  trackRateLimit,
+} from "~/lib/posthog";
 
 export interface RateLimitInfo {
   remaining: number;
   total: number;
   used: number;
+  isAuthenticated: boolean;
 }
 
 export enum GenerationState {
@@ -50,32 +57,9 @@ export const useReadmeForm = (
   const [additionalContext, setAdditionalContext] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<FileList | null>(null);
   const [templateContent, setTemplateContent] = useState(templates[0].content);
-  const [rateLimitInfo, setRateLimitInfo] = useState<RateLimitInfo | null>(
-    null,
-  );
+  const [rateLimitInfo, setRateLimitInfo] = useState<RateLimitInfo | null>(null);
+  const [nextVersion, setNextVersion] = useState(1);
   const { toast } = useToast();
-
-  // Get initial rate limit info
-  const { data: initialRateLimit } = api.readme.getRateLimit.useQuery(
-    undefined,
-    {
-      refetchOnWindowFocus: false,
-    },
-  );
-
-  // Update rate limit info when it changes
-  useEffect(() => {
-    if (initialRateLimit) {
-      setRateLimitInfo(initialRateLimit);
-    }
-  }, [initialRateLimit]);
-
-  useEffect(() => {
-    if (templates.length === 0) return;
-    const template =
-      templates.find((t) => t.id === selectedTemplate) ?? templates[0];
-    setTemplateContent(template.content);
-  }, [selectedTemplate]);
 
   const form = useForm<ReadmeFormData>({
     resolver: zodResolver(formSchema),
@@ -99,6 +83,49 @@ export const useReadmeForm = (
     },
   });
 
+  // Get next version number
+  const { data: versionData } = api.readme.getNextVersion.useQuery(
+    { repoPath: form.getValues().repoUrl ? new URL(form.getValues().repoUrl).pathname.replace(/^\//, "") : "" },
+    { enabled: !!form.getValues().repoUrl }
+  );
+
+  useEffect(() => {
+    if (versionData) {
+      setNextVersion(versionData);
+    }
+  }, [versionData]);
+
+  // Get initial rate limit info
+  const { data: initialRateLimit } = api.readme.getRateLimit.useQuery(
+    undefined,
+    {
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  // Update rate limit info when it changes
+  useEffect(() => {
+    if (initialRateLimit) {
+      setRateLimitInfo(initialRateLimit);
+    }
+  }, [initialRateLimit]);
+
+  useEffect(() => {
+    if (templates.length === 0) return;
+    const template =
+      templates.find((t) => t.id === selectedTemplate) ?? templates[0];
+    setTemplateContent(template.content);
+  }, [selectedTemplate]);
+
+  // Track template changes
+  useEffect(() => {
+    if (selectedTemplate) {
+      trackTemplateSelect({
+        template_id: selectedTemplate,
+      });
+    }
+  }, [selectedTemplate]);
+
   const generateReadmeStream = api.readme.generateReadmeStream.useMutation({
     onMutate: () => {
       setGenerationState(GenerationState.CONTACTING_SERVER);
@@ -108,11 +135,23 @@ export const useReadmeForm = (
         "",
       );
       if (onSuccess) onSuccess(repoPath);
+
+      // Track generation start
+      trackReadmeGeneration({
+        repo_path: repoPath,
+        template_id: selectedTemplate,
+        has_additional_context: additionalContext.length > 0,
+        has_uploaded_files: uploadedFiles !== null,
+        exclude_patterns: form.getValues().excludePatterns,
+        generation_state: GenerationState.CONTACTING_SERVER,
+        version: nextVersion,
+      });
     },
     onSuccess: async (stream) => {
       try {
         setGenerationState(GenerationState.PACKING_REPOSITORY);
         let hasStartedStreaming = false;
+        const startTime = performance.now();
 
         for await (const chunk of stream) {
           if (chunk === "DONE_PACKING") {
@@ -127,6 +166,14 @@ export const useReadmeForm = (
                 onTokenLimitExceeded(error.largest_files, true);
               }
               setGenerationState(GenerationState.IDLE);
+              trackGenerationError({
+                type: "token_limit",
+                message: error.message,
+                repo_path: new URL(form.getValues().repoUrl).pathname.replace(/^\//, ""),
+                details: {
+                  largest_files: error.largest_files,
+                },
+              });
               toast({
                 variant: "destructive",
                 title: "Repository Too Large",
@@ -138,6 +185,11 @@ export const useReadmeForm = (
             if (isRateLimitError(error)) {
               setRateLimitInfo(error.info);
               setGenerationState(GenerationState.IDLE);
+              trackRateLimit({
+                limit_type: error.info.isAuthenticated ? "authenticated" : "unauthenticated",
+                current_count: error.info.used,
+                limit: error.info.total,
+              });
               toast({
                 variant: "destructive",
                 title: "Rate limit exceeded",
@@ -150,12 +202,16 @@ export const useReadmeForm = (
 
             // Handle other error types
             setGenerationState(GenerationState.IDLE);
+            trackGenerationError({
+              type: "server_error",
+              message: error.message,
+              repo_path: new URL(form.getValues().repoUrl).pathname.replace(/^\//, ""),
+            });
             toast({
               variant: "destructive",
               title: "Error",
               description: error.message,
             });
-            // Go back to settings page for all other errors
             if (setActiveTab) {
               setActiveTab("settings");
             }
@@ -174,6 +230,21 @@ export const useReadmeForm = (
           }
         }
 
+        const endTime = performance.now();
+        const timeTaken = endTime - startTime;
+
+        // Track successful generation
+        trackReadmeGeneration({
+          repo_path: new URL(form.getValues().repoUrl).pathname.replace(/^\//, ""),
+          template_id: selectedTemplate,
+          has_additional_context: additionalContext.length > 0,
+          has_uploaded_files: uploadedFiles !== null,
+          exclude_patterns: form.getValues().excludePatterns,
+          generation_state: GenerationState.IDLE,
+          version: nextVersion,
+          time_taken: timeTaken,
+        });
+
         setGenerationState(GenerationState.IDLE);
         toast({
           description: "README generated successfully!",
@@ -183,6 +254,12 @@ export const useReadmeForm = (
         setGenerationState(GenerationState.IDLE);
         setGeneratedReadme(null);
 
+        trackGenerationError({
+          type: "server_error",
+          message: error instanceof Error ? error.message : "Failed to stream README content",
+          repo_path: new URL(form.getValues().repoUrl).pathname.replace(/^\//, ""),
+        });
+
         toast({
           variant: "destructive",
           title: "Error",
@@ -191,7 +268,6 @@ export const useReadmeForm = (
               ? error.message
               : "Failed to stream README content",
         });
-        // Go back to settings page for errors
         if (setActiveTab) {
           setActiveTab("settings");
         }
