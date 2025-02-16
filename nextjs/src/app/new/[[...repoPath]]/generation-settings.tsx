@@ -11,6 +11,7 @@ import { cn } from "~/lib/utils";
 import { RateLimitInfo } from "~/components/readme/rate-limit-info";
 import { useSession } from "next-auth/react";
 import { ErrorType } from "~/types/errors";
+import { GenerationState } from "./use-readme-stream";
 
 export default function GenerationSettings({
   formState,
@@ -29,6 +30,7 @@ export default function GenerationSettings({
   errorModalOpen,
   setErrorModalOpen,
   rateLimitInfo,
+  setGenerationState,
 }: ReturnType<typeof useReadme>) {
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
   const [fileExclusionModalOpen, setFileExclusionModalOpen] = useState(false);
@@ -54,6 +56,7 @@ export default function GenerationSettings({
         <form
           onSubmit={async (e) => {
             e.preventDefault();
+            setGenerationState(GenerationState.CONTACTING_SERVER);
             await generateReadme();
           }}
         >
