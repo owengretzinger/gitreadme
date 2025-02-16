@@ -42,7 +42,7 @@ Brief description of the project.
 <div align="center">
   <a href="https://example.com">
     <!-- Add your demo video, GIF, or screenshot here -->
-    <img src="https://github.com/user-attachments/assets/3b6baea2-cb25-4670-86b8-094d69d2bf83" alt="Project Demo">
+    <img src="https://github.com/user-attachments/assets/f45c9ee9-ad2f-40f4-bb60-e9bbd1472c45" alt="Project Demo">
   </a>
 </div>
 
@@ -54,7 +54,7 @@ Brief description of the project.
 
 ## Architecture
 
-![Architecture Diagram](https://github.com/user-attachments/assets/79d3c0f6-21b6-413b-9f30-5117c6b60e7d)
+![Architecture Diagram](https://github.com/user-attachments/assets/75adc7aa-7719-4c4f-a9bb-3ba847e12e9f)
 
 (Insert the different technologies used in the project here — could split this into frontend, backend, etc)
 
