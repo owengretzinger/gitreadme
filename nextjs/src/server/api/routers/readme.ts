@@ -41,6 +41,30 @@ export const readmeRouter = createTRPCRouter({
     );
   }),
 
+  // getNextVersion: publicProcedure
+  //   .input(z.object({ repoUrl: z.string().url() }))
+  //   .mutation(async ({ ctx, input }) => {
+  //     const repoPath = new URL(input.repoUrl).pathname.replace(/^\//, "");
+  //     const latestVersion = await ctx.db.query.generatedReadmes.findFirst({
+  //       where: eq(generatedReadmes.repoPath, repoPath),
+  //       orderBy: (generatedReadmes, { desc }) => [desc(generatedReadmes.version)],
+  //     });
+  //     return latestVersion ? latestVersion.version + 1 : 1;
+  //   }),
+
+    getNextVersion: publicProcedure
+    .input(z.object({ repoPath: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const latestVersion = await ctx.db.query.generatedReadmes.findFirst({
+        where: eq(generatedReadmes.repoPath, input.repoPath),
+        orderBy: (generatedReadmes, { desc }) => [
+          desc(generatedReadmes.version),
+        ],
+      });
+      console.log("Latest version:", latestVersion?.version);
+      return latestVersion ? latestVersion.version + 1 : 1;
+    }),
+
   generateReadmeStream: publicProcedure
     .input(
       z.object({
@@ -49,6 +73,7 @@ export const readmeRouter = createTRPCRouter({
         additionalContext: z.string(),
         files: z.array(FileDataSchema).optional(),
         excludePatterns: z.array(z.string()).optional(),
+        version: z.number(),
       }),
     )
     .mutation(async function* ({ ctx, input }) {
@@ -123,20 +148,10 @@ export const readmeRouter = createTRPCRouter({
         // Increment rate limit counter
         await incrementRateLimit(db, ipAddress, session);
 
-        // Get the next version number for this repo
-        const repoPath = new URL(input.repoUrl).pathname.replace(/^\//, "");
-        const latestVersion = await db.query.generatedReadmes.findFirst({
-          where: eq(generatedReadmes.repoPath, repoPath),
-          orderBy: (generatedReadmes, { desc }) => [
-            desc(generatedReadmes.version),
-          ],
-        });
-        const nextVersion = latestVersion ? latestVersion.version + 1 : 1;
-
         // Store the generated README in the database
         await db.insert(generatedReadmes).values({
-          repoPath,
-          version: nextVersion,
+          repoPath: new URL(input.repoUrl).pathname.replace(/^\//, ""),
+          version: input.version,
           content: generatedContent,
           userId: session?.user.id,
         });
@@ -195,19 +210,5 @@ export const readmeRouter = createTRPCRouter({
         ],
       });
       return readme ?? null;
-    }),
-
-  getNextVersion: publicProcedure
-    .input(z.object({ repoPath: z.string() }))
-    .query(async ({ input, ctx }) => {
-      console.log("Getting next version for:", input.repoPath);
-      const latestVersion = await ctx.db.query.generatedReadmes.findFirst({
-        where: eq(generatedReadmes.repoPath, input.repoPath),
-        orderBy: (generatedReadmes, { desc }) => [
-          desc(generatedReadmes.version),
-        ],
-      });
-      console.log("Latest version:", latestVersion?.version);
-      return latestVersion ? latestVersion.version + 1 : 1;
     }),
 });

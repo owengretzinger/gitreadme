@@ -110,9 +110,15 @@ const useFormActions = (form: ReturnType<typeof usePersistedForm>) => {
   };
 };
 
-const useReadmeGeneration = (form: ReturnType<typeof usePersistedForm>) => {
+const useReadmeGeneration = (
+  form: ReturnType<typeof usePersistedForm>,
+  getRepoPath: () => string | undefined,
+) => {
   const router = useRouter();
   const utils = api.useUtils();
+  const queryClient = useQueryClient();
+  const versionKey = ["readmeVersion"] as const;
+
   const {
     generationState,
     readmeContent,
@@ -122,6 +128,15 @@ const useReadmeGeneration = (form: ReturnType<typeof usePersistedForm>) => {
     setErrorModalOpen,
     setReadmeGenerationError,
   } = useReadmeStream();
+
+  const { data: version = null } = useQuery({
+    queryKey: versionKey,
+    queryFn: () => null as number | null,
+    enabled: false,
+  });
+
+  const setVersion = (version: number | null) =>
+    queryClient.setQueryData(versionKey, version);
 
   // Add rate limit query
   const { data: rateLimitInfo } = api.readme.getRateLimit.useQuery(undefined, {
@@ -135,6 +150,9 @@ const useReadmeGeneration = (form: ReturnType<typeof usePersistedForm>) => {
       utils.readme.getRateLimit.setData(undefined, () => newRateLimit);
     },
   });
+
+  // Add mutation to get next version
+  const getNextVersion = api.readme.getNextVersion.useMutation();
 
   const generateReadme = async () => {
     const result = await form.trigger();
@@ -158,19 +176,31 @@ const useReadmeGeneration = (form: ReturnType<typeof usePersistedForm>) => {
       return;
     }
 
-    const mutationInput = {
-      repoUrl: values.repoUrl,
-      templateContent: values.templateContent,
-      additionalContext: values.additionalContext,
-      excludePatterns: values.excludePatterns,
-    };
-
     try {
+      // Reset version at start of generation
+      setVersion(null);
+
       // First start the generation to update rate limit
       void startGeneration.mutateAsync();
 
+      // Get the next version number
+      const nextVersion = await getNextVersion.mutateAsync({
+        repoPath: getRepoPath()!,
+      });
+      setVersion(nextVersion);
+
+      const mutationInput = {
+        repoUrl: values.repoUrl,
+        templateContent: values.templateContent,
+        additionalContext: values.additionalContext,
+        excludePatterns: values.excludePatterns,
+        version: nextVersion,
+      };
+
       // Then start streaming
-      const promise = generateReadmeStream.mutateAsync(mutationInput);
+      const promise = generateReadmeStream.mutateAsync({
+        ...mutationInput,
+      });
       router.push(`/new/${values.repoUrl.split("github.com/")[1]}`);
       await promise;
     } catch (error) {
@@ -188,13 +218,14 @@ const useReadmeGeneration = (form: ReturnType<typeof usePersistedForm>) => {
     errorModalOpen,
     setErrorModalOpen,
     rateLimitInfo,
+    version,
   };
 };
 
 export const useReadme = () => {
   const form = usePersistedForm();
   const formActions = useFormActions(form);
-  const generation = useReadmeGeneration(form);
+  const generation = useReadmeGeneration(form, formActions.getRepoPath);
 
   return {
     // Form state and actions
@@ -208,6 +239,7 @@ export const useReadme = () => {
     readmeGenerationError: generation.readmeGenerationError,
     errorModalOpen: generation.errorModalOpen,
     setErrorModalOpen: generation.setErrorModalOpen,
+    version: generation.version,
 
     // Rate limit info
     rateLimitInfo: generation.rateLimitInfo,

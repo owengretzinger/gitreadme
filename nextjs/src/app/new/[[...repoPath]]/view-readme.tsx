@@ -11,6 +11,7 @@ export default function ViewReadme({
   readmeGenerationState,
   readmeContent,
   readmeGenerationError,
+  version,
 }: ReturnType<typeof useReadme>) {
   const router = useRouter();
 
@@ -35,12 +36,14 @@ export default function ViewReadme({
         <div className="text-red-500">{readmeGenerationError.message}</div>
       ) : (
         <>
-          <ReadmeInfoCard
-            repoPath={getRepoPath() ?? "No repo path"}
-            version={1}
-            createdAt={new Date()}
-            currentUrl={repoUrl}
-          />
+          {version !== null && (
+            <ReadmeInfoCard
+              repoPath={getRepoPath() ?? "No repo path"}
+              version={version}
+              createdAt={new Date()}
+              currentUrl={repoUrl}
+            />
+          )}
           {/* <div>readmeContent: {readmeContent}</div>
           <div>readmeGenerationState: {readmeGenerationState}</div> */}
           <GeneratedReadme
