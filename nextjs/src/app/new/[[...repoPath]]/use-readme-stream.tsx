@@ -6,11 +6,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
 export enum GenerationState {
-  IDLE = "IDLE",
+  NOT_STARTED = "NOT_STARTED",
   CONTACTING_SERVER = "CONTACTING_SERVER",
   PACKING_REPOSITORY = "PACKING_REPOSITORY",
   WAITING_FOR_AI = "WAITING_FOR_AI",
   STREAMING = "STREAMING",
+  COMPLETED = "COMPLETED",
 }
 
 interface GenerationError {
@@ -79,9 +80,9 @@ const useGenerationState = () => {
   const errorKey = ["readmeError"] as const;
   const errorModalKey = ["readmeErrorModal"] as const;
 
-  const { data: generationState = GenerationState.IDLE } = useQuery({
+  const { data: generationState = GenerationState.NOT_STARTED } = useQuery({
     queryKey: stateKey,
-    queryFn: () => GenerationState.IDLE,
+    queryFn: () => GenerationState.NOT_STARTED,
     enabled: false,
   });
 
@@ -131,7 +132,7 @@ const useStreamHandlers = (state: ReturnType<typeof useGenerationState>) => {
 
   const handleError = (error: ApiErrorResponse) => {
     console.log("Error handling:", error);
-    state.setState(GenerationState.IDLE);
+    state.setState(GenerationState.COMPLETED);
     state.setError(error);
     state.setErrorModalOpen(true);
     router.push("/new");
@@ -223,8 +224,8 @@ export const useReadmeStream = () => {
         console.log("Stream complete, error:", state.error);
 
         if (!hasError) {
-          console.log("Stream complete, setting state to IDLE");
-          state.setState(GenerationState.IDLE);
+          console.log("Stream complete, setting state to COMPLETED");
+          state.setState(GenerationState.COMPLETED);
           toast({
             description: "README generated successfully!",
           });
@@ -254,6 +255,8 @@ export const useReadmeStream = () => {
     readmeContent: state.readmeContent,
     generateReadmeStream,
     generationError: state.error,
+    setGenerationState: state.setState,
+    setReadmeContent: state.setContent,
     setReadmeGenerationError: state.setError,
     errorModalOpen: state.errorModalOpen,
     setErrorModalOpen: state.setErrorModalOpen,

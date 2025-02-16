@@ -4,6 +4,28 @@ import { ReadmeInfoCard } from "~/components/readme/readme-info-card";
 import { GeneratedReadme } from "~/components/readme/generated-readme";
 import { useRouter } from "next/navigation";
 import type { useReadme } from "./use-readme";
+import { api } from "~/trpc/react";
+import { LoadingSteps } from "~/components/readme/loading-steps";
+import { GenerationState } from "./use-readme-stream";
+
+const GENERATION_STEPS = [
+  {
+    state: GenerationState.CONTACTING_SERVER,
+    label: "Contacting server",
+  },
+  {
+    state: GenerationState.PACKING_REPOSITORY,
+    label: "Packing repository",
+  },
+  {
+    state: GenerationState.WAITING_FOR_AI,
+    label: "Sending to AI",
+  },
+  {
+    state: GenerationState.STREAMING,
+    label: "Streaming response",
+  },
+] as const;
 
 export default function ViewReadme({
   repoUrl,
@@ -12,8 +34,22 @@ export default function ViewReadme({
   readmeContent,
   readmeGenerationError,
   version,
+  isLoadingExistingReadme,
+  setVersion,
+  setReadmeContent,
+  setReadmeGenerationState,
 }: ReturnType<typeof useReadme>) {
   const router = useRouter();
+
+  const { data: readmeInfo } = api.readme.getByRepoPath.useQuery(
+    {
+      repoPath: getRepoPath() ?? "",
+      version: version ?? undefined,
+    },
+    {
+      enabled: !!getRepoPath() && version !== null,
+    },
+  );
 
   return (
     <div className="p-4 md:p-8">
@@ -23,6 +59,9 @@ export default function ViewReadme({
         <Button
           variant="ghost"
           onClick={async () => {
+            setVersion(null);
+            setReadmeContent("");
+            setReadmeGenerationState(GenerationState.NOT_STARTED);
             router.push("/new");
           }}
           className="gap-2"
@@ -34,18 +73,31 @@ export default function ViewReadme({
 
       {readmeGenerationError ? (
         <div className="text-red-500">{readmeGenerationError.message}</div>
+      ) : isLoadingExistingReadme &&
+        readmeGenerationState === GenerationState.NOT_STARTED ? (
+        <LoadingSteps
+          steps={["Loading Existing README"]}
+          currentStep={"Loading Existing README"}
+        />
+      ) : readmeGenerationState === GenerationState.CONTACTING_SERVER ||
+        readmeGenerationState === GenerationState.PACKING_REPOSITORY ||
+        readmeGenerationState === GenerationState.WAITING_FOR_AI ? (
+        <LoadingSteps
+          steps={GENERATION_STEPS.map((step) => step.label)}
+          currentStep={
+            GENERATION_STEPS.find(
+              (step) => step.state === readmeGenerationState,
+            )?.label ?? ""
+          }
+        />
       ) : (
         <>
-          {version !== null && (
-            <ReadmeInfoCard
-              repoPath={getRepoPath() ?? "No repo path"}
-              version={version}
-              createdAt={new Date()}
-              currentUrl={repoUrl}
-            />
-          )}
-          {/* <div>readmeContent: {readmeContent}</div>
-          <div>readmeGenerationState: {readmeGenerationState}</div> */}
+          <ReadmeInfoCard
+            repoPath={getRepoPath() ?? "No repo path"}
+            version={version ?? 0}
+            createdAt={readmeInfo?.createdAt ?? new Date()}
+            currentUrl={repoUrl}
+          />
           <GeneratedReadme
             content={readmeContent}
             generationState={readmeGenerationState}

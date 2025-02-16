@@ -4,7 +4,7 @@ import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { templates } from "~/components/readme-templates/readme-templates";
-import { useReadmeStream } from "./use-readme-stream";
+import { useReadmeStream, GenerationState } from "./use-readme-stream";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "~/trpc/react";
 import { ErrorType } from "~/types/errors";
@@ -118,6 +118,7 @@ const useReadmeGeneration = (
   const utils = api.useUtils();
   const queryClient = useQueryClient();
   const versionKey = ["readmeVersion"] as const;
+  const contentKey = ["readmeContent"] as const;
 
   const {
     generationState,
@@ -126,6 +127,7 @@ const useReadmeGeneration = (
     generationError,
     errorModalOpen,
     setErrorModalOpen,
+    setGenerationState,
     setReadmeGenerationError,
   } = useReadmeStream();
 
@@ -137,6 +139,9 @@ const useReadmeGeneration = (
 
   const setVersion = (version: number | null) =>
     queryClient.setQueryData(versionKey, version);
+
+  const setReadmeContent = (content: string) =>
+    queryClient.setQueryData(contentKey, content);
 
   // Add rate limit query
   const { data: rateLimitInfo } = api.readme.getRateLimit.useQuery(undefined, {
@@ -177,32 +182,29 @@ const useReadmeGeneration = (
     }
 
     try {
-      // Reset version at start of generation
-      setVersion(null);
+      
 
-      // First start the generation to update rate limit
+      // Navigate immediately
+      const repoPath = values.repoUrl.split("github.com/")[1];
+      router.push(`/new/${repoPath}`);
+
+      // Start these operations in parallel but don't block on them
       void startGeneration.mutateAsync();
-
-      // Get the next version number
-      const nextVersion = await getNextVersion.mutateAsync({
-        repoPath: getRepoPath()!,
-      });
-      setVersion(nextVersion);
-
-      const mutationInput = {
-        repoUrl: values.repoUrl,
-        templateContent: values.templateContent,
-        additionalContext: values.additionalContext,
-        excludePatterns: values.excludePatterns,
-        version: nextVersion,
-      };
-
-      // Then start streaming
-      const promise = generateReadmeStream.mutateAsync({
-        ...mutationInput,
-      });
-      router.push(`/new/${values.repoUrl.split("github.com/")[1]}`);
-      await promise;
+      void getNextVersion
+        .mutateAsync({
+          repoPath: getRepoPath()!,
+        })
+        .then((nextVersion) => {
+          setVersion(nextVersion);
+          // Start streaming with the version
+          return generateReadmeStream.mutateAsync({
+            repoUrl: values.repoUrl,
+            templateContent: values.templateContent,
+            additionalContext: values.additionalContext,
+            excludePatterns: values.excludePatterns,
+            version: nextVersion,
+          });
+        });
     } catch (error) {
       console.error(error);
       // Rate limit will be refunded by the server if needed
@@ -219,6 +221,9 @@ const useReadmeGeneration = (
     setErrorModalOpen,
     rateLimitInfo,
     version,
+    setVersion,
+    setReadmeContent,
+    setGenerationState,
   };
 };
 
@@ -226,6 +231,43 @@ export const useReadme = () => {
   const form = usePersistedForm();
   const formActions = useFormActions(form);
   const generation = useReadmeGeneration(form, formActions.getRepoPath);
+
+  // Add query to get latest version if none provided
+  const { data: latestVersion } = api.readme.getMostRecentVersion.useQuery(
+    { repoPath: formActions.getRepoPath() ?? "" },
+    {
+      enabled: !!formActions.getRepoPath() && generation.version === null,
+    },
+  );
+
+  // Set the version to latest if none provided
+  useEffect(() => {
+    if (latestVersion && generation.version === null) {
+      generation.setVersion(latestVersion.version);
+    }
+  }, [latestVersion, generation]);
+
+  // Add query to load existing README
+  const { data: existingReadme, isLoading: isLoadingExistingReadme } =
+    api.readme.getByRepoPath.useQuery(
+      {
+        repoPath: formActions.getRepoPath() ?? "",
+        version: generation.version ?? undefined,
+      },
+      {
+        enabled:
+          !!formActions.getRepoPath() &&
+          !generation.readmeContent &&
+          generation.generationState === GenerationState.NOT_STARTED,
+      },
+    );
+
+  // Set the content from the database if it exists
+  useEffect(() => {
+    if (existingReadme && !generation.readmeContent) {
+      generation.setReadmeContent(existingReadme.content);
+    }
+  }, [existingReadme, generation]);
 
   return {
     // Form state and actions
@@ -237,6 +279,7 @@ export const useReadme = () => {
     ...generation,
     readmeGenerationState: generation.generationState,
     readmeGenerationError: generation.readmeGenerationError,
+    setReadmeGenerationState: generation.setGenerationState,
     errorModalOpen: generation.errorModalOpen,
     setErrorModalOpen: generation.setErrorModalOpen,
     version: generation.version,
@@ -244,5 +287,8 @@ export const useReadme = () => {
     // Rate limit info
     rateLimitInfo: generation.rateLimitInfo,
     largeFiles: null,
+
+    // Loading state
+    isLoadingExistingReadme,
   };
 };
