@@ -3,7 +3,7 @@ import { Copy, Check, Loader2 } from "lucide-react";
 import { useState, useCallback } from "react";
 import { MarkdownDisplay } from "~/components/markdown-display";
 import { cn } from "~/lib/utils";
-import { GenerationState } from "~/hooks/use-readme-form";
+import { GenerationState } from "~/app/new/[[...repoPath]]/use-readme-stream";
 
 const GENERATION_STEPS = [
   {
@@ -76,18 +76,15 @@ function LoadingSteps({ currentState }: { currentState: GenerationState }) {
 
 interface GeneratedReadmeProps {
   content: string | null;
-  viewMode: ViewMode;
-  setViewMode: (mode: ViewMode) => void;
   generationState: GenerationState;
 }
 
 export function GeneratedReadme({
   content,
-  viewMode,
-  setViewMode,
   generationState,
 }: GeneratedReadmeProps) {
   const [isCopied, setIsCopied] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("preview");
 
   const handleCopy = useCallback(() => {
     if (!content) return;

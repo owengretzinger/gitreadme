@@ -196,10 +196,10 @@ export async function incrementRateLimit(
   db: DB,
   ipAddress: string | null,
   session: Session | null,
-): Promise<void> {
+): Promise<RateLimitInfo> {
   if (session?.user) {
     // Increment authenticated user limit
-    await db
+    const result = await db
       .insert(generationLimits)
       .values({
         userId: session.user.id,
@@ -211,10 +211,19 @@ export async function incrementRateLimit(
         set: {
           count: sql`${generationLimits.count} + 1`,
         },
-      });
+      })
+      .returning();
+
+    const count = result[0]?.count ?? 1;
+    return {
+      remaining: AUTHENTICATED_LIMIT - count,
+      total: AUTHENTICATED_LIMIT,
+      used: count,
+      isAuthenticated: true,
+    };
   } else if (ipAddress) {
     // Increment unauthenticated user limit
-    await db
+    const result = await db
       .insert(generationLimits)
       .values({
         ipAddress,
@@ -226,8 +235,83 @@ export async function incrementRateLimit(
         set: {
           count: sql`${generationLimits.count} + 1`,
         },
-      });
+      })
+      .returning();
+
+    const count = result[0]?.count ?? 1;
+    return {
+      remaining: UNAUTHENTICATED_LIMIT - count,
+      total: UNAUTHENTICATED_LIMIT,
+      used: count,
+      isAuthenticated: false,
+    };
   }
+
+  return {
+    remaining: UNAUTHENTICATED_LIMIT - 1,
+    total: UNAUTHENTICATED_LIMIT,
+    used: 1,
+    isAuthenticated: false,
+  };
+}
+
+export async function refundRateLimit(
+  db: DB,
+  ipAddress: string | null,
+  session: Session | null,
+): Promise<RateLimitInfo> {
+  if (session?.user) {
+    // Decrement authenticated user limit
+    const result = await db
+      .update(generationLimits)
+      .set({
+        count: sql`${generationLimits.count} - 1`,
+      })
+      .where(
+        and(
+          eq(generationLimits.userId, session.user.id),
+          eq(generationLimits.date, sql`CURRENT_DATE`),
+        ),
+      )
+      .returning();
+
+    const count = result[0]?.count ?? 0;
+    return {
+      remaining: AUTHENTICATED_LIMIT - count,
+      total: AUTHENTICATED_LIMIT,
+      used: count,
+      isAuthenticated: true,
+    };
+  } else if (ipAddress) {
+    // Decrement unauthenticated user limit
+    const result = await db
+      .update(generationLimits)
+      .set({
+        count: sql`${generationLimits.count} - 1`,
+      })
+      .where(
+        and(
+          eq(generationLimits.ipAddress, ipAddress),
+          eq(generationLimits.date, sql`CURRENT_DATE`),
+        ),
+      )
+      .returning();
+
+    const count = result[0]?.count ?? 0;
+    return {
+      remaining: UNAUTHENTICATED_LIMIT - count,
+      total: UNAUTHENTICATED_LIMIT,
+      used: count,
+      isAuthenticated: false,
+    };
+  }
+
+  return {
+    remaining: UNAUTHENTICATED_LIMIT,
+    total: UNAUTHENTICATED_LIMIT,
+    used: 0,
+    isAuthenticated: false,
+  };
 }
 
 export { createRateLimitError };

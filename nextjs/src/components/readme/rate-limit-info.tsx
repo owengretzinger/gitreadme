@@ -1,22 +1,41 @@
 import { type RateLimitInfo as RateLimitInfoType } from "~/hooks/use-readme-form";
-import { type Session } from "next-auth";
+import { Progress } from "~/components/ui/progress";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 interface RateLimitInfoProps {
-  rateLimitInfo: RateLimitInfoType | null;
-  session: Session | null;
+  rateLimitInfo: RateLimitInfoType | undefined;
+  status: "authenticated" | "loading" | "unauthenticated";
 }
 
-export function RateLimitInfo({ rateLimitInfo, session }: RateLimitInfoProps) {
-  if (!rateLimitInfo) return null;
+export function RateLimitInfo({ rateLimitInfo, status }: RateLimitInfoProps) {
+  const remaining = rateLimitInfo?.remaining ?? 0;
+  const total = rateLimitInfo?.total ?? 0;
+  const percentage = (remaining / total) * 100;
 
   return (
-    <div className="text-sm text-muted-foreground">
-      <p>
-        {rateLimitInfo.remaining}/{rateLimitInfo.total} remaining today
-        {!session && (
-          <span className="">{" "}(sign in for 20 free generations per day)</span>
-        )}
-      </p>
+    <div className="flex flex-col gap-0.5">
+      <div className="w-[200px] items-center flex flex-col gap-2 rounded-lg border px-4 py-3">
+        <div className="flex items-center justify-between gap-4">
+          <div className="text-sm">
+            <span className="font-medium">{remaining}</span>
+            <span className="text-muted-foreground"> generations remaining</span>
+          </div>
+        </div>
+        <Progress
+          value={percentage}
+          className="h-1.5 bg-muted [&>div]:bg-primary"
+        />
+      </div>
+      
+        <Link
+          href="/signin"
+          className={`text-center text-xs text-primary hover:underline ${status === "unauthenticated" ? "opacity-100" : "opacity-0"}`}
+        >
+          <span className="flex items-center justify-center gap-1">
+            Sign in to get 20/day free <ArrowRight className="h-3 w-3" />
+          </span>
+        </Link>
     </div>
   );
 }

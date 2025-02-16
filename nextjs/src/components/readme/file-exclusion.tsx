@@ -92,7 +92,7 @@ export function FileExclusion({ largeFiles, onExclude, excludePatterns }: FileEx
         <Textarea
           value={manualPaths}
           onChange={(e) => handleManualPathsChange(e.target.value)}
-          className="font-mono text-sm"
+          className="font-mono text-sm min-h-[300px]"
         />
       </div>
     </div>

@@ -68,8 +68,8 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] Robust Post Hog capturing
+- [ ] Fix invalid file path bug
+- [ ] Make default exclude patterns work for non-exact paths
 - [ ] Get a domain name
-- [ ] Enable diagram generation using DeepSeek R1
-- [ ] Login with GitHub
-- [ ] Ability to access private repositories
+- [ ] Add FAQ
+- [ ] Remove old stuff

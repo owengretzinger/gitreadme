@@ -38,8 +38,9 @@ const formSchema = z.object({
   additionalContext: z.string(),
   excludePatterns: z.array(z.string()),
 });
-
 export type ReadmeFormData = z.infer<typeof formSchema>;
+
+type ActiveTab = "settings" | "readme";
 
 export const useReadmeForm = (
   onSuccess?: (repoPath: string) => void,
@@ -47,7 +48,7 @@ export const useReadmeForm = (
     files: Array<{ path: string; size_kb: number }> | null,
     shouldExpandDropdown?: boolean,
   ) => void,
-  setActiveTab?: (tab: string) => void,
+  setActiveTab?: (tab: ActiveTab) => void,
 ) => {
   const [generatedReadme, setGeneratedReadme] = useState<string | null>(null);
   const [generationState, setGenerationState] = useState<GenerationState>(

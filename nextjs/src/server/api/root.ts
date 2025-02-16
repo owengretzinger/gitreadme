@@ -1,7 +1,7 @@
 import { createTRPCRouter } from "~/server/api/trpc";
 import { readmeRouter } from "./routers/readme";
 import { createCallerFactory } from "~/server/api/trpc";
-import { architectureRouter } from "~/server/api/routers/architecture";
+// import { architectureRouter } from "~/server/api/routers/architecture";
 import { dashboardRouter } from "./routers/dashboard";
 
 /**
@@ -11,7 +11,7 @@ import { dashboardRouter } from "./routers/dashboard";
  */
 export const appRouter = createTRPCRouter({
   readme: readmeRouter,
-  architecture: architectureRouter,
+  // architecture: architectureRouter,
   dashboard: dashboardRouter,
 });
 

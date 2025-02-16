@@ -7,6 +7,7 @@ import { ThemeProvider } from "~/components/theme-provider";
 import { TRPCReactProvider } from "~/trpc/react";
 import { Nav } from "~/components/nav";
 import { PostHogProvider } from "~/app/providers";
+import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
   title: "README Generator",
@@ -32,12 +33,14 @@ export default function RootLayout({
         >
           <TRPCReactProvider>
             <PostHogProvider>
-              <div className="relative flex min-h-screen flex-col">
-                <Nav />
-                <main className="mx-auto w-full max-w-7xl flex-1">
-                  {children}
-                </main>
-              </div>
+              <SessionProvider>
+                <div className="relative flex min-h-screen flex-col">
+                  <Nav />
+                  <main className="mx-auto w-full max-w-7xl flex-1">
+                    {children}
+                  </main>
+                </div>
+              </SessionProvider>
             </PostHogProvider>
           </TRPCReactProvider>
         </ThemeProvider>

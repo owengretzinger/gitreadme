@@ -6,7 +6,7 @@ export enum ErrorType {
   UNAUTHORIZED = "UNAUTHORIZED",
   REPOSITORY_ACCESS = "REPOSITORY_ACCESS",
   REPOSITORY_NOT_FOUND = "REPOSITORY_NOT_FOUND",
-  SERVER_ERROR = "SERVER_ERROR",
+  INTERNAL = "INTERNAL",
   UNKNOWN = "UNKNOWN",
 }
 
@@ -28,7 +28,7 @@ export interface TokenLimitErrorResponse extends BaseErrorResponse {
 }
 
 export interface ServerErrorResponse extends BaseErrorResponse {
-  type: ErrorType.SERVER_ERROR;
+  type: ErrorType.INTERNAL;
   status?: number;
   details?: unknown;
 }
@@ -79,7 +79,8 @@ export const createUnauthorizedError = (): BaseErrorResponse => ({
 
 export const createRepositoryAccessError = (): BaseErrorResponse => ({
   type: ErrorType.REPOSITORY_ACCESS,
-  message: "Cannot access repository. Make sure the repository exists and is public.",
+  message:
+    "Cannot access repository. Make sure the repository exists and is public.",
 });
 
 export const createRepositoryNotFoundError = (): BaseErrorResponse => ({
@@ -92,7 +93,7 @@ export const createServerError = (
   status?: number,
   details?: unknown,
 ): ServerErrorResponse => ({
-  type: ErrorType.SERVER_ERROR,
+  type: ErrorType.INTERNAL,
   message,
   status,
   details,

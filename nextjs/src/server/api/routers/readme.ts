@@ -1,14 +1,20 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import {
-  generateReadmeWithAIStream,
-} from "~/utils/vertex-ai";
+import { generateReadmeWithAIStream } from "~/utils/vertex-ai";
 import { packRepository } from "~/utils/api-client";
 import { generatedReadmes } from "~/server/db/schema";
 import { and, eq } from "drizzle-orm";
-import { getCurrentRateLimit } from "../rate-limit";
-import { createServerError, createTokenLimitError, isTokenLimitError } from "~/types/errors";
-import { checkRateLimit, incrementRateLimit } from "../rate-limit";
+import {
+  getCurrentRateLimit,
+  incrementRateLimit,
+  refundRateLimit,
+} from "../rate-limit";
+import {
+  createServerError,
+  createTokenLimitError,
+  isTokenLimitError,
+} from "~/types/errors";
+import { checkRateLimit } from "../rate-limit";
 import { createRateLimitError } from "../rate-limit";
 
 // Define a schema for file data
@@ -20,8 +26,19 @@ const FileDataSchema = z.object({
 
 export const readmeRouter = createTRPCRouter({
   getRateLimit: publicProcedure.query(async ({ ctx }) => {
-    const ipAddress = ctx.headers.get("x-forwarded-for")?.split(",")[0] ?? ctx.headers.get("x-real-ip");
-    return getCurrentRateLimit(ctx.db, ipAddress, ctx.session);
+    return getCurrentRateLimit(
+      ctx.db,
+      ctx.headers.get("x-real-ip"),
+      ctx.session,
+    );
+  }),
+
+  startGeneration: publicProcedure.mutation(async ({ ctx }) => {
+    return incrementRateLimit(
+      ctx.db,
+      ctx.headers.get("x-real-ip"),
+      ctx.session,
+    );
   }),
 
   generateReadmeStream: publicProcedure
@@ -36,12 +53,18 @@ export const readmeRouter = createTRPCRouter({
     )
     .mutation(async function* ({ ctx, input }) {
       const { session, db } = ctx;
-      const ipAddress = ctx.headers.get("x-forwarded-for")?.split(",")[0] ?? ctx.headers.get("x-real-ip") ?? null;
+      const ipAddress =
+        ctx.headers.get("x-forwarded-for")?.split(",")[0] ??
+        ctx.headers.get("x-real-ip") ??
+        null;
 
       // Check rate limit first
       const rateLimitResult = await checkRateLimit(db, ipAddress, session);
       if (!rateLimitResult.allowed) {
-        yield "ERROR:" + JSON.stringify(createRateLimitError(rateLimitResult.info, "Rate limit exceeded"));
+        yield "ERROR:" +
+          JSON.stringify(
+            createRateLimitError(rateLimitResult.info, "Rate limit exceeded"),
+          );
         return;
       }
 
@@ -65,11 +88,12 @@ export const readmeRouter = createTRPCRouter({
         if (!repoPackerResult.success) {
           // Check if the error is a token limit exceeded error
           if (isTokenLimitError(repoPackerResult.error)) {
-            const { files_analyzed, estimated_tokens, largest_files } = repoPackerResult.error;
+            const { files_analyzed, estimated_tokens, largest_files } =
+              repoPackerResult.error;
             const tokenLimitError = createTokenLimitError(
               files_analyzed,
               estimated_tokens,
-              largest_files
+              largest_files,
             );
             yield "ERROR:" + JSON.stringify(tokenLimitError);
             return;
@@ -92,6 +116,7 @@ export const readmeRouter = createTRPCRouter({
 
         for await (const chunk of stream) {
           generatedContent += chunk;
+          console.log("yielding ai chunk");
           yield "AI:" + chunk;
         }
 
@@ -102,7 +127,9 @@ export const readmeRouter = createTRPCRouter({
         const repoPath = new URL(input.repoUrl).pathname.replace(/^\//, "");
         const latestVersion = await db.query.generatedReadmes.findFirst({
           where: eq(generatedReadmes.repoPath, repoPath),
-          orderBy: (generatedReadmes, { desc }) => [desc(generatedReadmes.version)],
+          orderBy: (generatedReadmes, { desc }) => [
+            desc(generatedReadmes.version),
+          ],
         });
         const nextVersion = latestVersion ? latestVersion.version + 1 : 1;
 
@@ -119,31 +146,39 @@ export const readmeRouter = createTRPCRouter({
           `Total README generation process took ${(endTime - startTime).toFixed(2)}ms`,
         );
 
+        yield "DONE";
         return;
-      } catch (error) {        
+      } catch (error) {
         if (error instanceof Error) {
           yield "ERROR:" + JSON.stringify(createServerError(error.message));
         } else {
-          yield "ERROR:" + JSON.stringify(createServerError("Failed to stream README content"));
+          yield "ERROR:" +
+            JSON.stringify(
+              createServerError("Failed to stream README content"),
+            );
         }
+        // If there's an error, refund the rate limit
+        await refundRateLimit(db, ipAddress, session);
         return;
       }
     }),
 
   getByRepoPath: publicProcedure
-    .input(z.object({ 
-      repoPath: z.string(),
-      version: z.number().optional(),
-    }))
+    .input(
+      z.object({
+        repoPath: z.string(),
+        version: z.number().optional(),
+      }),
+    )
     .query(async ({ input, ctx }) => {
       const readme = await ctx.db.query.generatedReadmes.findFirst({
-        where: input.version 
+        where: input.version
           ? and(
               eq(generatedReadmes.repoPath, input.repoPath),
-              eq(generatedReadmes.version, input.version)
+              eq(generatedReadmes.version, input.version),
             )
           : eq(generatedReadmes.repoPath, input.repoPath),
-        orderBy: !input.version 
+        orderBy: !input.version
           ? (generatedReadmes, { desc }) => [desc(generatedReadmes.version)]
           : undefined,
       });
@@ -155,7 +190,9 @@ export const readmeRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       const readme = await ctx.db.query.generatedReadmes.findFirst({
         where: eq(generatedReadmes.repoPath, input.repoPath),
-        orderBy: (generatedReadmes, { desc }) => [desc(generatedReadmes.version)],
+        orderBy: (generatedReadmes, { desc }) => [
+          desc(generatedReadmes.version),
+        ],
       });
       return readme ?? null;
     }),
@@ -163,10 +200,14 @@ export const readmeRouter = createTRPCRouter({
   getNextVersion: publicProcedure
     .input(z.object({ repoPath: z.string() }))
     .query(async ({ input, ctx }) => {
+      console.log("Getting next version for:", input.repoPath);
       const latestVersion = await ctx.db.query.generatedReadmes.findFirst({
         where: eq(generatedReadmes.repoPath, input.repoPath),
-        orderBy: (generatedReadmes, { desc }) => [desc(generatedReadmes.version)],
+        orderBy: (generatedReadmes, { desc }) => [
+          desc(generatedReadmes.version),
+        ],
       });
+      console.log("Latest version:", latestVersion?.version);
       return latestVersion ? latestVersion.version + 1 : 1;
     }),
 });
