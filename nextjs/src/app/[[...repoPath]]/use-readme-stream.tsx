@@ -135,7 +135,7 @@ const useStreamHandlers = (state: ReturnType<typeof useGenerationState>) => {
     state.setState(GenerationState.COMPLETED);
     state.setError(error);
     state.setErrorModalOpen(true);
-    router.push("/new");
+    router.push("/");
   };
 
   const handleStreamChunk = async (

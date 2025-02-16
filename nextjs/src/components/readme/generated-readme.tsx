@@ -3,7 +3,7 @@ import { Copy, Check } from "lucide-react";
 import { useState, useCallback } from "react";
 import { MarkdownDisplay } from "~/components/markdown-display";
 import { cn } from "~/lib/utils";
-import { GenerationState } from "~/app/new/[[...repoPath]]/use-readme-stream";
+import { GenerationState } from "~/app/[[...repoPath]]/use-readme-stream";
 
 interface GeneratedReadmeProps {
   content: string | null;

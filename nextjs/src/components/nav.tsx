@@ -7,12 +7,8 @@ import { MobileNav } from "./mobile-nav";
 
 const publicLinks = [
   {
-    href: "/readme",
-    label: "README Generator",
-  },
-  {
-    href: "/architecture",
-    label: "Architecture Diagram",
+    href: "/faq",
+    label: "FAQ",
   },
 ];
 

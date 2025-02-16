@@ -36,9 +36,6 @@ export default function Readme() {
   return (
     <div>
       {!repoPathFromUrl && <GenerationSettings {...readmeGenerator} />}
-      {repoPathFromUrl && !readmeGenerator.repoUrl && !readmeGenerator.isLoadingExistingReadme && (
-        <div>Loading...</div>
-      )}
       {repoPathFromUrl && readmeGenerator.repoUrl && (
         <ViewReadme {...readmeGenerator} />
       )}

@@ -28,7 +28,6 @@ const GENERATION_STEPS = [
 ] as const;
 
 export default function ViewReadme({
-  repoUrl,
   getRepoPath,
   readmeGenerationState,
   readmeContent,
@@ -62,7 +61,7 @@ export default function ViewReadme({
             setVersion(null);
             setReadmeContent("");
             setReadmeGenerationState(GenerationState.NOT_STARTED);
-            router.push("/new");
+            router.push("/");
           }}
           className="gap-2"
         >
@@ -96,7 +95,7 @@ export default function ViewReadme({
             repoPath={getRepoPath() ?? "No repo path"}
             version={version ?? 0}
             createdAt={readmeInfo?.createdAt ?? new Date()}
-            currentUrl={repoUrl}
+            permalink={`${typeof window !== "undefined" ? window.location.origin : ""}/${getRepoPath()}?v=${version}`}
           />
           <GeneratedReadme
             content={readmeContent}

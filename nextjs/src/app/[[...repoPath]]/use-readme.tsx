@@ -186,7 +186,7 @@ const useReadmeGeneration = (
 
       // Navigate immediately
       const repoPath = values.repoUrl.split("github.com/")[1];
-      router.push(`/new/${repoPath}`);
+      router.push(`/${repoPath}`);
 
       // Start these operations in parallel but don't block on them
       void startGeneration.mutateAsync();

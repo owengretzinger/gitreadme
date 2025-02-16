@@ -9,19 +9,19 @@ interface ReadmeInfoCardProps {
   repoPath: string;
   version: number;
   createdAt: Date | null;
-  currentUrl: string;
+  permalink: string;
 }
 
 export function ReadmeInfoCard({
   repoPath,
   version,
   createdAt,
-  currentUrl,
+  permalink,
 }: ReadmeInfoCardProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopyPermalink = async () => {
-    const url = new URL(currentUrl);
+    const url = new URL(permalink);
     url.searchParams.set("v", version.toString());
     try {
       await navigator.clipboard.writeText(url.toString());
@@ -36,19 +36,15 @@ export function ReadmeInfoCard({
     }
   };
 
-  const permalink = (() => {
-    const url = new URL(currentUrl);
-    url.searchParams.set("v", version.toString());
-    return url.toString();
-  })();
-
   return (
     <Card className="mb-4">
       <CardContent className="pt-6">
-        <div className="flex flex-col md:grid gap-6 md:grid-cols-2">
+        <div className="flex flex-col gap-6 md:grid md:grid-cols-2">
           <div className="space-y-4">
             <div>
-              <h2 className="text-sm font-medium text-muted-foreground">Repository</h2>
+              <h2 className="text-sm font-medium text-muted-foreground">
+                Repository
+              </h2>
               <div className="flex items-center gap-2">
                 <span>{repoPath}</span>
                 <a
@@ -62,9 +58,11 @@ export function ReadmeInfoCard({
               </div>
             </div>
             <div className="">
-              <h2 className="text-sm font-medium text-muted-foreground">Permalink</h2>
+              <h2 className="text-sm font-medium text-muted-foreground">
+                Permalink
+              </h2>
               <div className="flex items-center gap-2">
-                <span className="truncate max-w-full">{permalink}</span>
+                <span className="max-w-full truncate">{permalink}</span>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -82,19 +80,27 @@ export function ReadmeInfoCard({
           </div>
           <div className="space-y-4">
             <div>
-              <h2 className="text-sm font-medium text-muted-foreground">Version</h2>
+              <h2 className="text-sm font-medium text-muted-foreground">
+                Version
+              </h2>
               <div className="flex items-center gap-2">
                 <History className="h-4 w-4 text-muted-foreground" />
                 <span>Version {version}</span>
               </div>
             </div>
             <div>
-              <h2 className="text-sm font-medium text-muted-foreground">Created</h2>
-              <p>{createdAt ? format(new Date(createdAt), "MMMM d, yyyy 'at' h:mm a") : "Unknown"}</p>
+              <h2 className="text-sm font-medium text-muted-foreground">
+                Created
+              </h2>
+              <p>
+                {createdAt
+                  ? format(new Date(createdAt), "MMMM d, yyyy 'at' h:mm a")
+                  : "Unknown"}
+              </p>
             </div>
           </div>
         </div>
       </CardContent>
     </Card>
   );
-} 
+}
