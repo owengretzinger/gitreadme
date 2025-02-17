@@ -68,9 +68,9 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] Reimplement automatically showing largest files to exclude on token limit error
+- [ ] Fix bug where error shows for a split second on the view readme page before redirecting
+- [ ] Make repo path case insensitive
 - [ ] New font
-- [ ] New logo
 - [ ] Improve generated README page UI
 - [ ] Add FAQ
 - [ ] Get a domain name
