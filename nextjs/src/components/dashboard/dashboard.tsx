@@ -3,11 +3,13 @@
 import { api, type RouterOutputs } from "~/trpc/react";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
-import { FileText, GitBranch, Clock, ExternalLink } from "lucide-react";
+import { Trash2, Search } from "lucide-react";
 import { Skeleton } from "~/components/ui/skeleton";
-import { Badge } from "~/components/ui/badge";
+import { useToast } from "~/hooks/use-toast";
+import { Input } from "~/components/ui/input";
+import { useState } from "react";
 
 type GeneratedReadme =
   RouterOutputs["dashboard"]["getUserData"]["readmes"][number];
@@ -15,44 +17,38 @@ type GeneratedReadme =
 function DashboardSkeleton() {
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-6 w-48" />
+      <div className="space-y-4">
         {[1, 2, 3].map((i) => (
-          <Card key={i}>
-            <CardHeader className="space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                <Skeleton className="h-4 w-32" />
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-8 w-24" />
-            </CardContent>
-          </Card>
+          <Skeleton key={i} className="h-[72px] w-full" />
         ))}
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Generated READMEs</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex flex-col gap-4 border-b pb-6 last:border-0 sm:flex-row sm:items-center sm:justify-between sm:pb-4">
-                <div className="space-y-1">
-                  <Skeleton className="h-5 w-48" />
-                  <Skeleton className="h-4 w-32" />
-                </div>
-                <Skeleton className="h-9 w-full sm:w-24" />
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
 
 export function Dashboard() {
+  const utils = api.useUtils();
+  const { toast } = useToast();
   const { data, isLoading } = api.dashboard.getUserData.useQuery();
+  const [searchQuery, setSearchQuery] = useState("");
+  const deleteReadme = api.dashboard.deleteReadme.useMutation({
+    onSuccess: (_, variables) => {
+      void utils.dashboard.getUserData.invalidate();
+      toast({
+        title: "README deleted",
+        description: `${variables.repoPath} version ${variables.version} was deleted successfully`,
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete README",
+      });
+    },
+  });
 
   if (isLoading) {
     return <DashboardSkeleton />;
@@ -61,82 +57,64 @@ export function Dashboard() {
   if (!data) {
     return (
       <Card className="bg-red-50">
-        <CardContent className="pt-6 text-red-800">
-          Failed to load dashboard data
-        </CardContent>
+        <div className="p-6 text-red-800">Failed to load dashboard data</div>
       </Card>
     );
   }
 
+  const handleDelete = (
+    id: string,
+    repoPath: string,
+    version: number,
+    e: React.MouseEvent,
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    deleteReadme.mutate({ id, repoPath, version });
+  };
+
+  const filteredReadmes = data.readmes.filter(
+    (readme) =>
+      readme.repoPath.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      readme.version.toString().includes(searchQuery),
+  );
+
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="space-y-0 pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <FileText className="h-4 w-4" />
-              {"Today's Usage"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {data.usageData.generationsToday} generations
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="space-y-0 pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <Clock className="h-4 w-4" />
-              Last Generated
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {data.usageData.lastGenerated
-                ? formatDistanceToNow(new Date(data.usageData.lastGenerated), {
-                    addSuffix: true,
-                  })
-                : "Never"}
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="sm:col-span-2 lg:col-span-1">
-          <CardHeader className="space-y-0 pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium">
-              <GitBranch className="h-4 w-4" />
-              Total READMEs
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.readmes.length}</div>
-          </CardContent>
-        </Card>
+    <div className="mx-auto max-w-2xl space-y-4">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search your chats..."
+          className="pl-9"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Generated READMEs</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {data.readmes.length === 0 ? (
-            <div className="text-muted-foreground">
-              {"You haven't generated any READMEs yet."}
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {data.readmes.map((readme: GeneratedReadme) => (
-                <div
-                  key={readme.id}
-                  className="flex flex-col gap-4 border-b pb-6 last:border-0 sm:flex-row sm:items-center sm:justify-between sm:pb-4"
-                >
-                  <div className="space-y-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-medium break-all">{readme.repoPath}</span>
-                      <Badge variant="secondary">v{readme.version}</Badge>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Generated{" "}
+      <div className="text-sm text-muted-foreground">
+        You have {data.readmes.length} previous READMEs
+      </div>
+
+      <div className="flex flex-col gap-3">
+        {filteredReadmes.length === 0 ? (
+          <div className="text-center text-sm text-muted-foreground">
+            No READMEs found
+          </div>
+        ) : (
+          filteredReadmes.map((readme: GeneratedReadme) => (
+            <Link
+              key={readme.id}
+              href={`/${readme.repoPath}?v=${readme.version}`}
+              className="group"
+            >
+              <Card className="transition-colors hover:bg-accent/50">
+                <div className="flex items-center justify-between p-4">
+                  <div className="flex flex-col gap-1">
+                    <span className="line-clamp-1 text-sm font-medium">
+                      {readme.repoPath}
+                    </span>
+                    <div className="text-xs text-muted-foreground">
+                      v{readme.version} ·{" "}
                       {readme.createdAt
                         ? formatDistanceToNow(new Date(readme.createdAt), {
                             addSuffix: true,
@@ -144,23 +122,27 @@ export function Dashboard() {
                         : "unknown time"}
                     </div>
                   </div>
-                  <Button 
-                    asChild 
-                    variant="secondary" 
-                    className="w-full sm:w-auto"
-                    // onClick={() => handleViewReadme(readme)}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="opacity-0 group-hover:opacity-100"
+                    onClick={(e) =>
+                      handleDelete(
+                        readme.id,
+                        readme.repoPath,
+                        readme.version,
+                        e,
+                      )
+                    }
                   >
-                    <Link href={`/${readme.repoPath}?v=${readme.version}`}>
-                      <ExternalLink className="mr-2 h-4 w-4" />
-                      View
-                    </Link>
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </Card>
+            </Link>
+          ))
+        )}
+      </div>
     </div>
   );
 }

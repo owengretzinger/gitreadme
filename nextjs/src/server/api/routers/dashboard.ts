@@ -1,6 +1,7 @@
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, and } from "drizzle-orm";
 import { generatedReadmes, generationLimits } from "~/server/db/schema";
+import { z } from "zod";
 
 export const dashboardRouter = createTRPCRouter({
   getUserData: protectedProcedure.query(async ({ ctx }) => {
@@ -24,4 +25,22 @@ export const dashboardRouter = createTRPCRouter({
       },
     };
   }),
+
+  deleteReadme: protectedProcedure
+    .input(z.object({
+      id: z.string(),
+      repoPath: z.string(),
+      version: z.number(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .delete(generatedReadmes)
+        .where(
+          and(
+            eq(generatedReadmes.id, input.id),
+            eq(generatedReadmes.userId, ctx.session.user.id)
+          )
+        );
+      return { success: true };
+    }),
 });
