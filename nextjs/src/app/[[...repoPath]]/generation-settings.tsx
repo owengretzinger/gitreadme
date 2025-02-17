@@ -1,9 +1,16 @@
-import { ArrowUp, LayoutTemplate, MinusCircle, Settings } from "lucide-react";
+import {
+  ArrowUp,
+  LayoutTemplate,
+  MinusCircle,
+  Settings,
+  Youtube,
+} from "lucide-react";
 import { useState } from "react";
 import { CustomInstructionsModal } from "~/components/readme/modals/custom-instructions-modal";
 import { FileExclusionModal } from "~/components/readme/modals/file-exclusion-modal";
 import { TemplateModal } from "~/components/readme/modals/template-modal";
 import { ErrorModal } from "~/components/readme/modals/error-modal";
+import { VideoTutorialModal } from "~/components/readme/modals/video-tutorial-modal";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { type useReadme } from "./use-readme";
@@ -13,6 +20,7 @@ import { useSession } from "next-auth/react";
 import { ErrorType } from "~/types/errors";
 import { GenerationState } from "./use-readme-stream";
 import { RecentReadmes } from "~/components/readme/recent-readmes";
+import Image from "next/image";
 
 export default function GenerationSettings({
   formState,
@@ -38,20 +46,31 @@ export default function GenerationSettings({
   const [fileExclusionModalOpen, setFileExclusionModalOpen] = useState(false);
   const [customInstructionsModalOpen, setCustomInstructionsModalOpen] =
     useState(false);
+  const [videoTutorialModalOpen, setVideoTutorialModalOpen] = useState(false);
   const { data: session, status } = useSession();
 
   return (
-    <div className="mx-auto mt-10 w-full max-w-4xl space-y-8">
-      <div className="space-y-10">
-        <div className="flex justify-center">
-          {/* <RateLimitInfo rateLimitInfo={rateLimitInfo} status={status} /> */}
-        </div>
-        <div className="flex flex-col items-center gap-2">
-          <h1 className="text-center text-4xl font-bold">README Generator</h1>
-          <p className="text-center text-lg text-muted-foreground">
-            Generate a README for your GitHub repository using AI that
-            understands your entire codebase.
-          </p>
+    <div className="mx-auto w-full max-w-4xl">
+      <div className="mt-10 flex flex-col gap-10">
+        <div className="flex flex-col items-center gap-4">
+          <div className="flex justify-center">
+            <div
+              className="group flex cursor-pointer items-center gap-1.5 rounded-md bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-500 transition-all hover:scale-[1.06]"
+              onClick={() => setVideoTutorialModalOpen(true)}
+            >
+              <Youtube className="h-4 w-4" />
+              <span className="">Watch Tutorial</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <Image
+              src="/logo.png"
+              alt="README Generator"
+              width={48}
+              height={48}
+            />
+            <h1 className="text-center text-4xl font-bold">README Generator</h1>
+          </div>
         </div>
         <form
           onSubmit={async (e) => {
@@ -65,7 +84,7 @@ export default function GenerationSettings({
               <Input
                 placeholder="https://github.com/username/repo"
                 className={cn(
-                  "rounded-2xl pb-20 pl-4 pt-6",
+                  "rounded-2xl pb-28 pl-4 pt-6",
                   formState.errors.repoUrl && "border-red-500",
                 )}
                 {...repoRegister}
@@ -155,6 +174,10 @@ export default function GenerationSettings({
               }
             : undefined
         }
+      />
+      <VideoTutorialModal
+        open={videoTutorialModalOpen}
+        onOpenChange={setVideoTutorialModalOpen}
       />
     </div>
   );

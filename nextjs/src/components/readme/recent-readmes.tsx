@@ -11,7 +11,7 @@ export function RecentReadmes() {
   if (!recentReadmes || recentReadmes.length === 0) return <></>;
 
   return (
-    <div className="mt-16">
+    <div className="">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-muted-foreground">
           <span className="flex items-center gap-1">
