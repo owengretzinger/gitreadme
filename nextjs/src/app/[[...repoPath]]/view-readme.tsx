@@ -51,7 +51,7 @@ export default function ViewReadme({
   );
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="">
       <h1 className="mb-4 text-4xl font-bold">README Generator</h1>
 
       <div className="mb-4">

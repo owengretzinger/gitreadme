@@ -50,7 +50,7 @@ export default function Readme() {
   }, [repoPathFromUrl, readmeGenerator.repoUrl]);
 
   return (
-    <div>
+    <div className="p-4 lg:p-8">
       {!repoPathFromUrl && <GenerationSettings {...readmeGenerator} />}
       {repoPathFromUrl && readmeGenerator.repoUrl && (
         <ViewReadme {...readmeGenerator} />

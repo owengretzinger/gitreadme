@@ -37,7 +37,7 @@ export async function Nav() {
             />
             <span className="font-bold">README Generator</span>
           </Link>
-          <div className="hidden items-center text-sm font-medium md:flex">
+          <div className="hidden items-center text-sm font-medium sm:flex">
             {links.map((link) => (
               <Link href={link.href} key={link.href}>
                 <Button variant="ghost">{link.label}</Button>
@@ -46,7 +46,7 @@ export async function Nav() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="hidden md:block">
+          <div className="hidden sm:block">
             <NavButtons session={session} />
           </div>
           <MobileNav links={links} session={session} />

@@ -51,8 +51,8 @@ export default function GenerationSettings({
 
   return (
     <div className="mx-auto w-full max-w-4xl">
-      <div className="mt-10 flex flex-col gap-10">
-        <div className="flex flex-col items-center gap-4">
+      <div className="mt-4 sm:mt-10 flex flex-col gap-10">
+        <div className="flex flex-col-reverse sm:flex-col items-center gap-4">
           <div className="flex justify-center">
             <div
               className="group flex cursor-pointer items-center gap-1.5 rounded-md bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-500 transition-all hover:scale-[1.06]"
@@ -62,7 +62,7 @@ export default function GenerationSettings({
               <span className="">Watch Tutorial</span>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
             <Image
               src="/logo.png"
               alt="README Generator"
@@ -106,7 +106,7 @@ export default function GenerationSettings({
                   className="flex items-center gap-2 rounded-xl text-muted-foreground"
                 >
                   <LayoutTemplate className="h-4 w-4" />
-                  Choose Template
+                  <span className="hidden md:inline">Choose Template</span>
                 </Button>
                 <Button
                   type="button"
@@ -115,7 +115,7 @@ export default function GenerationSettings({
                   className="flex items-center gap-2 rounded-xl text-muted-foreground"
                 >
                   <MinusCircle className="h-4 w-4" />
-                  Exclude Files
+                  <span className="hidden md:inline">Exclude Files</span>
                 </Button>
                 <Button
                   type="button"
@@ -124,10 +124,10 @@ export default function GenerationSettings({
                   className="flex items-center gap-2 rounded-xl text-muted-foreground"
                 >
                   <Settings className="h-4 w-4" />
-                  Custom Instructions
+                  <span className="hidden md:inline">Custom Instructions</span>
                 </Button>
               </div>
-              <div className="absolute bottom-3 right-3">
+              <div className="absolute bottom-3 right-3 hidden lg:block">
                 <RateLimitInfo rateLimitInfo={rateLimitInfo} status={status} />
               </div>
             </div>
@@ -136,6 +136,9 @@ export default function GenerationSettings({
                 {formState.errors.repoUrl.message}
               </p>
             )}
+            <div className="mt-1 mx-auto lg:hidden">
+              <RateLimitInfo rateLimitInfo={rateLimitInfo} status={status} />
+            </div>
           </div>
         </form>
         <RecentReadmes />
