@@ -16,10 +16,10 @@ type GeneratedReadme =
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-8">
-      <Skeleton className="h-10 w-full" />
-      <Skeleton className="h-6 w-48" />
-      <div className="space-y-4">
+    <div className="mx-auto max-w-2xl space-y-4">
+      <Skeleton className="h-9 w-full" />
+      <Skeleton className="h-5 w-48" />
+      <div className="flex flex-col gap-3">
         {[1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-[72px] w-full" />
         ))}
