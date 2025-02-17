@@ -1,11 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
-import { useEffect, Suspense } from "react";
-import { useToast } from "~/hooks/use-toast";
+import { Suspense } from "react";
 import { Button } from "~/components/ui/button";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import {
   Card,
   CardContent,
@@ -16,25 +14,10 @@ import {
 } from "~/components/ui/card";
 import { CheckCircle2 } from "lucide-react";
 import { Toaster } from "~/components/ui/toaster";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 function SignInContent() {
-  const searchParams = useSearchParams();
-  const { toast } = useToast();
-
-  useEffect(() => {
-    const error = searchParams.get("error");
-    const message = searchParams.get("message");
-    
-    if (error === "rate_limit" && message) {
-      toast({
-        variant: "destructive",
-        title: "Rate limit exceeded",
-        description: decodeURIComponent(message),
-        duration: 4000,
-      });
-    }
-  }, [searchParams, toast]);
-
   return (
     <Card className="pointer-events-auto mx-auto w-full max-w-[400px]">
       <CardHeader>
@@ -56,7 +39,8 @@ function SignInContent() {
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-                Save your generated READMEs to your account and access them anytime, anywhere
+                Save your generated READMEs to your account and access them
+                anytime, anywhere
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
@@ -80,6 +64,15 @@ function SignInContent() {
 }
 
 export default function SignInPage() {
+  const { status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/");
+    }
+  }, [status, router]);
+
   return (
     <>
       <div className="pointer-events-none -mt-14 flex min-h-screen flex-col items-center justify-center p-4">

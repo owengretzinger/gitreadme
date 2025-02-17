@@ -8,6 +8,7 @@ import { useReadmeStream, GenerationState } from "./use-readme-stream";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "~/trpc/react";
 import { ErrorType } from "~/types/errors";
+import { useSession } from "next-auth/react";
 
 const formSchema = z.object({
   repoUrl: z.string(),
@@ -249,6 +250,50 @@ const useReadmeGeneration = (
     setVersion,
     setReadmeContent,
     setGenerationState,
+    setReadmeGenerationError,
+  };
+};
+
+interface ResetStateProps {
+  form: ReturnType<typeof usePersistedForm>;
+  setGenerationState: (state: GenerationState) => void;
+  setReadmeContent: (content: string) => void;
+  setReadmeGenerationError: (error: null) => void;
+  setErrorModalOpen: (open: boolean) => void;
+}
+const useResetState = ({
+  form,
+  setGenerationState,
+  setReadmeContent,
+  setReadmeGenerationError,
+  setErrorModalOpen,
+}: ResetStateProps) => {
+  const queryClient = useQueryClient();
+  const { status } = useSession();
+
+  const resetStates = async () => {
+    // Reset form to default values
+    form.reset(defaultFormValues);
+
+    // Reset generation state
+    setGenerationState(GenerationState.NOT_STARTED);
+    setReadmeContent("");
+    setReadmeGenerationError(null);
+    setErrorModalOpen(false);
+
+    // Clear all query caches
+    await queryClient.invalidateQueries();
+    await queryClient.resetQueries();
+  };
+
+  // Only reset when auth status changes (not on every session change)
+  useEffect(() => {
+    void resetStates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+
+  return {
+    resetStates,
   };
 };
 
@@ -256,6 +301,24 @@ export const useReadme = () => {
   const form = usePersistedForm();
   const formActions = useFormActions(form);
   const generation = useReadmeGeneration(form, formActions.getRepoPath);
+  const {
+    generationState,
+    readmeContent,
+    generationError,
+    setGenerationState,
+    setReadmeContent,
+    setReadmeGenerationError,
+    errorModalOpen,
+    setErrorModalOpen,
+  } = useReadmeStream();
+
+  useResetState({
+    form,
+    setGenerationState,
+    setReadmeContent,
+    setReadmeGenerationError,
+    setErrorModalOpen,
+  });
 
   // Add query to get latest version if none provided
   const { data: latestVersion } = api.readme.getMostRecentVersion.useQuery(
@@ -282,17 +345,19 @@ export const useReadme = () => {
       {
         enabled:
           !!formActions.getRepoPath() &&
-          !generation.readmeContent &&
-          generation.generationState === GenerationState.NOT_STARTED,
+          !readmeContent &&
+          generationState === GenerationState.NOT_STARTED,
       },
     );
 
   // Set the content from the database if it exists
   useEffect(() => {
-    if (existingReadme && !generation.readmeContent) {
-      generation.setReadmeContent(existingReadme.content);
+    if (existingReadme && !readmeContent) {
+      setReadmeContent(existingReadme.content);
     }
-  }, [existingReadme, generation]);
+  }, [existingReadme, readmeContent, setReadmeContent]);
+
+  const currentVersion = generation.version;
 
   return {
     // Form state and actions
@@ -301,13 +366,18 @@ export const useReadme = () => {
     ...formActions,
 
     // Generation
-    ...generation,
-    readmeGenerationState: generation.generationState,
-    readmeGenerationError: generation.readmeGenerationError,
-    setReadmeGenerationState: generation.setGenerationState,
-    errorModalOpen: generation.errorModalOpen,
-    setErrorModalOpen: generation.setErrorModalOpen,
-    version: generation.version,
+    generateReadme: generation.generateReadme,
+    readmeGenerationState: generationState,
+    readmeContent,
+    readmeGenerationError: generationError,
+    setReadmeGenerationState: setGenerationState,
+    errorModalOpen,
+    setErrorModalOpen,
+    version: currentVersion,
+    setVersion: generation.setVersion,
+    setGenerationState,
+    setReadmeContent,
+    setReadmeGenerationError,
 
     // Rate limit info
     rateLimitInfo: generation.rateLimitInfo,

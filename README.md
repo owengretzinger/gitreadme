@@ -68,8 +68,10 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
+- [ ] New font
+- [ ] Move rate limit info to input box
+- [ ] Add demo video badge to top of page
 - [ ] Fix invalid file path bug
 - [ ] Make default exclude patterns work for non-exact paths
-- [ ] Reset all caches and state when auth state changes
 - [ ] Get a domain name
 - [ ] Add FAQ

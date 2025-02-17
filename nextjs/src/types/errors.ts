@@ -1,4 +1,5 @@
-import { type RateLimitInfo } from "~/hooks/use-readme-form";
+import type { RateLimitInfo } from "~/server/api/rate-limit";
+
 
 export enum ErrorType {
   RATE_LIMIT = "RATE_LIMIT",
@@ -56,8 +57,8 @@ export const createRateLimitError = (
   message: string,
 ): RateLimitErrorResponse => ({
   type: ErrorType.RATE_LIMIT,
-  message,
   info,
+  message,
 });
 
 export const createTokenLimitError = (
