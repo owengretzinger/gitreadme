@@ -52,19 +52,15 @@ function SignInContent() {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-                Generate 20 free readmes per day
+                Generate 20 free READMEs per day
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-                Save your generated readmes to your account and access them anytime, anywhere
+                Save your generated READMEs to your account and access them anytime, anywhere
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-                Automatically receive updates when new features are added
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-                Login with GitHub to access your private repositories (coming soon!)
+                Get notified when new features are added
               </li>
             </ul>
           </div>
