@@ -2,6 +2,7 @@ import { type RouterOutputs } from "~/trpc/react";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { ArrowRight, FileText } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 type GeneratedReadme =
   RouterOutputs["dashboard"]["getUserData"]["readmes"][number];
@@ -11,6 +12,7 @@ interface RecentReadmesProps {
 }
 
 export function RecentReadmes({ readmes }: RecentReadmesProps) {
+  const { status } = useSession();
   if (readmes.length === 0) return null;
 
   return (
@@ -23,7 +25,7 @@ export function RecentReadmes({ readmes }: RecentReadmesProps) {
           </span>
         </h2>
         <Link
-          href="/signin"
+          href={status === "authenticated" ? "/dashboard" : "/signin"}
           className="text-center text-sm text-primary hover:underline"
         >
           <span className="flex items-center justify-center gap-1">

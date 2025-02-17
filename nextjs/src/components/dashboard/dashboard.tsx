@@ -8,8 +8,6 @@ import { Button } from "~/components/ui/button";
 import { FileText, GitBranch, Clock, ExternalLink } from "lucide-react";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Badge } from "~/components/ui/badge";
-import { usePostHog } from "posthog-js/react";
-import { useEffect } from "react";
 
 type GeneratedReadme =
   RouterOutputs["dashboard"]["getUserData"]["readmes"][number];
@@ -55,26 +53,6 @@ function DashboardSkeleton() {
 
 export function Dashboard() {
   const { data, isLoading } = api.dashboard.getUserData.useQuery();
-  const posthog = usePostHog();
-
-  useEffect(() => {
-    if (data) {
-      posthog.capture('dashboard_viewed', {
-        total_readmes: data.readmes.length,
-        generations_today: data.usageData.generationsToday,
-      });
-    }
-  }, [data, posthog]);
-
-  const handleViewReadme = (readme: GeneratedReadme) => {
-    posthog.capture('readme_viewed_from_dashboard', {
-      repo_path: readme.repoPath,
-      version: readme.version,
-      time_since_generation: readme.createdAt 
-        ? formatDistanceToNow(new Date(readme.createdAt))
-        : 'unknown',
-    });
-  };
 
   if (isLoading) {
     return <DashboardSkeleton />;
@@ -170,9 +148,9 @@ export function Dashboard() {
                     asChild 
                     variant="secondary" 
                     className="w-full sm:w-auto"
-                    onClick={() => handleViewReadme(readme)}
+                    // onClick={() => handleViewReadme(readme)}
                   >
-                    <Link href={`/readme/${readme.repoPath}?v=${readme.version}`}>
+                    <Link href={`/${readme.repoPath}?v=${readme.version}`}>
                       <ExternalLink className="mr-2 h-4 w-4" />
                       View
                     </Link>
