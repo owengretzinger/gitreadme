@@ -6,9 +6,9 @@ import {
 } from "~/components/ui/dialog";
 import { Textarea } from "~/components/ui/textarea";
 import { ScrollArea } from "~/components/ui/scroll-area";
-import { Label } from "~/components/ui/label";
 import { Checkbox } from "~/components/ui/checkbox";
 import { useEffect, useState } from "react";
+import type { ApiErrorResponse } from "~/types/errors";
 
 interface FileExclusionModalProps {
   open: boolean;
@@ -16,6 +16,7 @@ interface FileExclusionModalProps {
   largeFiles: Array<{ path: string; size_kb: number }>;
   onExclude: (paths: string[]) => void;
   excludePatterns: string[];
+  generationError: ApiErrorResponse | null;
 }
 
 export function FileExclusionModal({
@@ -24,6 +25,7 @@ export function FileExclusionModal({
   largeFiles,
   onExclude,
   excludePatterns,
+  generationError,
 }: FileExclusionModalProps) {
   const [text, setText] = useState<string>(excludePatterns.join("\n"));
   const [error, setError] = useState<string | null>(null);
@@ -88,19 +90,17 @@ export function FileExclusionModal({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Exclude Files</DialogTitle>
-          <p className="text-sm text-muted-foreground">
-            Enter file paths to exclude (one per line).<br/>Examples: node_modules, *.csv, dist/*, /exact/path/from/root.txt
-          </p>
         </DialogHeader>
 
         {largeFiles.length > 0 && (
           <div className="space-y-3">
             <div>
-              <Label className="font-medium">Select Files to Exclude</Label>
+              <div className="text-sm text-red-500">
+                <p>{generationError?.message}</p>
+              </div>
               <p className="text-sm text-muted-foreground">
-                README generation failed because the repository is too large.
-                Select files to exclude from the repository analysis, then click
-                Generate README again.
+                Easily exclude the largest files by clicking on them below, or
+                add file paths manually.
               </p>
             </div>
 
@@ -130,6 +130,12 @@ export function FileExclusionModal({
             </ScrollArea>
           </div>
         )}
+
+        <p className="text-sm text-muted-foreground">
+          Enter file paths to exclude (one per line).
+          <br />
+          Examples: node_modules, *.csv, dist/*, /exact/path/from/root.txt
+        </p>
 
         <Textarea
           value={text}

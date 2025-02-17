@@ -5,6 +5,7 @@ import { useResetStateOnAuth } from "./use-readme-helpers/use-reset-state-on-aut
 import { useReadmeStream } from "./use-readme-helpers/use-readme-stream";
 import { useLatestVersion } from "./use-readme-helpers/use-latest-version";
 import { useExistingReadme } from "./use-readme-helpers/use-existing-readme";
+import { ErrorType, type TokenLimitErrorResponse } from "~/types/errors";
 
 export const useReadme = () => {
   const form = usePersistedForm();
@@ -69,7 +70,10 @@ export const useReadme = () => {
 
     // Rate limit info
     rateLimitInfo: generation.rateLimitInfo,
-    largeFiles: null,
+    largeFiles:
+      generationError?.type === ErrorType.TOKEN_LIMIT
+        ? (generationError as TokenLimitErrorResponse).largest_files
+        : null,
 
     // Loading state
     isLoadingExistingReadme,

@@ -5,7 +5,7 @@ import {
   Settings,
   Youtube,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CustomInstructionsModal } from "~/components/readme/modals/custom-instructions-modal";
 import { FileExclusionModal } from "~/components/readme/modals/file-exclusion-modal";
 import { TemplateModal } from "~/components/readme/modals/template-modal";
@@ -41,6 +41,7 @@ export default function GenerationSettings({
   setErrorModalOpen,
   rateLimitInfo,
   setGenerationState,
+  setReadmeGenerationError,
 }: ReturnType<typeof useReadme>) {
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
   const [fileExclusionModalOpen, setFileExclusionModalOpen] = useState(false);
@@ -49,10 +50,17 @@ export default function GenerationSettings({
   const [videoTutorialModalOpen, setVideoTutorialModalOpen] = useState(false);
   const { data: session, status } = useSession();
 
+  // Auto-open file exclusion modal when we get a token limit error
+  useEffect(() => {
+    if (readmeGenerationError?.type === ErrorType.TOKEN_LIMIT) {
+      setFileExclusionModalOpen(true);
+    }
+  }, [readmeGenerationError, setErrorModalOpen]);
+
   return (
     <div className="mx-auto w-full max-w-4xl">
-      <div className="mt-4 sm:mt-10 flex flex-col gap-10">
-        <div className="flex flex-col-reverse sm:flex-col items-center gap-4">
+      <div className="mt-4 flex flex-col gap-10 sm:mt-10">
+        <div className="flex flex-col-reverse items-center gap-4 sm:flex-col">
           <div className="flex justify-center">
             <div
               className="group flex cursor-pointer items-center gap-1.5 rounded-md bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-500 transition-all hover:scale-[1.06]"
@@ -62,12 +70,20 @@ export default function GenerationSettings({
               <span className="">Watch Tutorial</span>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+          <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-4">
             <Image
-              src="/logo.png"
+              src={"/light_logo.png"}
               alt="README Generator"
-              width={48}
-              height={48}
+              width={50}
+              height={50}
+              className="dark:hidden"
+            />
+            <Image
+              src={"/dark_logo.png"}
+              alt="README Generator"
+              width={50}
+              height={50}
+              className="hidden dark:block"
             />
             <h1 className="text-center text-4xl font-bold">README Generator</h1>
           </div>
@@ -136,7 +152,7 @@ export default function GenerationSettings({
                 {formState.errors.repoUrl.message}
               </p>
             )}
-            <div className="mt-1 mx-auto lg:hidden">
+            <div className="mx-auto mt-1 lg:hidden">
               <RateLimitInfo rateLimitInfo={rateLimitInfo} status={status} />
             </div>
           </div>
@@ -154,10 +170,14 @@ export default function GenerationSettings({
       />
       <FileExclusionModal
         open={fileExclusionModalOpen}
-        onOpenChange={setFileExclusionModalOpen}
+        onOpenChange={(open) => {
+          setFileExclusionModalOpen(open);
+          if (!open) setReadmeGenerationError(null);
+        }}
         largeFiles={largeFiles ?? []}
         onExclude={setExcludePatterns}
         excludePatterns={excludePatterns}
+        generationError={readmeGenerationError}
       />
       <CustomInstructionsModal
         open={customInstructionsModalOpen}
@@ -167,7 +187,10 @@ export default function GenerationSettings({
       />
       <ErrorModal
         error={readmeGenerationError}
-        open={errorModalOpen}
+        open={
+          errorModalOpen &&
+          readmeGenerationError?.type !== ErrorType.TOKEN_LIMIT
+        }
         onOpenChange={setErrorModalOpen}
         actionButton={
           readmeGenerationError?.type === ErrorType.RATE_LIMIT && !session

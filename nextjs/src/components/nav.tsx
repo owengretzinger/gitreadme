@@ -29,11 +29,18 @@ export async function Nav() {
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
             <Image
-              src="/favicon.ico"
+              src="/light_logo.png"
               alt="HackMate Logo"
               width={24}
               height={24}
-              className=""
+              className="dark:hidden"
+            />
+            <Image
+              src="/dark_logo.png"
+              alt="HackMate Logo"
+              width={24}
+              height={24}
+              className="hidden dark:block"
             />
             <span className="font-bold">README Generator</span>
           </Link>
