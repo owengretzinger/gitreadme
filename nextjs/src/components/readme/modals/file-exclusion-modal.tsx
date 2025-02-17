@@ -89,8 +89,7 @@ export function FileExclusionModal({
         <DialogHeader>
           <DialogTitle>Exclude Files</DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Enter file paths to exclude (one per line). Supports glob patterns
-            like *.md and /**/*.csv.
+            Enter file paths to exclude (one per line).<br/>Examples: node_modules, *.csv, dist/*, /exact/path/from/root.txt
           </p>
         </DialogHeader>
 

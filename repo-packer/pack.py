@@ -137,10 +137,26 @@ def normalize_github_url(url):
 
 
 def sanitize_exclude_patterns(patterns):
-    """Sanitize exclude patterns by escaping spaces with backslashes."""
+    """
+    Sanitize exclude patterns by:
+    1. Escaping spaces with backslashes
+    2. Adding **/ prefix to patterns that don't start with / or **/ to make them match at any level
+    """
     if not patterns:
         return []
-    return [pattern.replace(" ", "\\ ") for pattern in patterns]
+
+    sanitized = []
+    for pattern in patterns:
+        # Escape spaces
+        pattern = pattern.replace(" ", "\\ ")
+
+        # Add **/ prefix if pattern doesn't start with / or **/
+        if not pattern.startswith("/") and not pattern.startswith("**/"):
+            pattern = "**/" + pattern
+
+        sanitized.append(pattern)
+
+    return sanitized
 
 
 @app.route("/api/pack", methods=["POST"])

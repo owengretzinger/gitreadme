@@ -68,7 +68,6 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] Make default exclude patterns work for non-exact paths
 - [ ] Reimplement automatically showing largest files to exclude on token limit error
 - [ ] New font
 - [ ] New logo
