@@ -42,20 +42,18 @@ export default function GenerationSettings({
   const { data: recentReadmes } = api.readme.getRecentReadmes.useQuery();
 
   return (
-    <div className="mx-auto mt-24 w-full max-w-4xl space-y-8">
-      <div className="space-y-4">
+    <div className="mx-auto mt-10 w-full max-w-4xl space-y-8">
+      <div className="space-y-10">
         <div className="flex justify-center">
           <RateLimitInfo rateLimitInfo={rateLimitInfo} status={status} />
         </div>
-        <h1 className="mt-4 text-center text-4xl font-bold">
-          README Generator
-        </h1>
-        <p className="text-center text-lg text-muted-foreground">
-          Generate a comprehensive README for your GitHub repository powered by
-          AI.
-        </p>
-      </div>
-      <div className="space-y-6">
+        <div className="flex flex-col items-center gap-2">
+          <h1 className="text-center text-4xl font-bold">README Generator</h1>
+          <p className="text-center text-lg text-muted-foreground">
+            Generate a README for your GitHub repository using AI that
+            understands your entire codebase.
+          </p>
+        </div>
         <form
           onSubmit={async (e) => {
             e.preventDefault();
@@ -64,11 +62,11 @@ export default function GenerationSettings({
           }}
         >
           <div className="flex flex-col gap-4">
-            <div className="relative">
+            <div className="relative flex">
               <Input
                 placeholder="https://github.com/username/repo"
                 className={cn(
-                  "h-14 pr-[7.5rem] text-lg",
+                  "pb-20 pl-4 pt-6 rounded-2xl",
                   formState.errors.repoUrl && "border-red-500",
                 )}
                 {...repoRegister}
@@ -76,51 +74,66 @@ export default function GenerationSettings({
               <Button
                 type="submit"
                 variant="default"
-                className="absolute right-1 top-1 h-12 bg-primary px-8 font-medium hover:bg-primary/90"
+                className="absolute right-3 top-3 h-8 w-8 bg-primary p-0 rounded-xl hover:bg-primary/90"
               >
-                Generate
+                <span className="sr-only">Generate</span>
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12 4L12 20M12 4L18 10M12 4L6 10"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </Button>
+              <div className="absolute bottom-3 left-3 flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setTemplateModalOpen(true)}
+                  className="flex items-center gap-2 text-muted-foreground rounded-xl"
+                >
+                  <LayoutTemplate className="h-4 w-4" />
+                  Choose Template
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setFileExclusionModalOpen(true)}
+                  className="flex items-center gap-2 text-muted-foreground rounded-xl"
+                >
+                  <MinusCircle className="h-4 w-4" />
+                  Exclude Files
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setCustomInstructionsModalOpen(true)}
+                  className="flex items-center gap-2 text-muted-foreground rounded-xl"
+                >
+                  <Settings className="h-4 w-4" />
+                  Custom Instructions
+                </Button>
+              </div>
             </div>
             {formState.errors.repoUrl?.message && (
               <p className="text-sm text-red-500">
                 {formState.errors.repoUrl.message}
               </p>
             )}
-            <div className="flex justify-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setTemplateModalOpen(true)}
-                className="flex items-center gap-2"
-              >
-                <LayoutTemplate className="h-4 w-4" />
-                Choose Template
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setFileExclusionModalOpen(true)}
-                className="flex items-center gap-2"
-              >
-                <MinusCircle className="h-4 w-4" />
-                Exclude Files
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setCustomInstructionsModalOpen(true)}
-                className="flex items-center gap-2"
-              >
-                <Settings className="h-4 w-4" />
-                Custom Instructions
-              </Button>
-            </div>
           </div>
         </form>
+        {recentReadmes && recentReadmes.length > 0 && (
+          <RecentReadmes readmes={recentReadmes} />
+        )}
       </div>
-      {recentReadmes && recentReadmes.length > 0 && (
-        <RecentReadmes readmes={recentReadmes} />
-      )}
       <div className="h-12" /> {/* Add bottom spacing */}
       <TemplateModal
         open={templateModalOpen}

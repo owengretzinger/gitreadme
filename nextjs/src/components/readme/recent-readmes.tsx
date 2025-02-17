@@ -15,7 +15,7 @@ export function RecentReadmes({ readmes }: RecentReadmesProps) {
 
   return (
     <div className="mt-16">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-muted-foreground">
           <span className="flex items-center gap-1">
             <FileText className="h-4 w-4 text-muted-foreground" />
@@ -31,12 +31,12 @@ export function RecentReadmes({ readmes }: RecentReadmesProps) {
           </span>
         </Link>
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {readmes.slice(0, 6).map((readme) => (
           <Link
             key={readme.id}
             href={`/${readme.repoPath}?v=${readme.version}`}
-            className="group flex flex-col gap-2 rounded-lg border bg-card p-4 transition-colors hover:bg-accent/50"
+            className="group flex flex-col gap-2 rounded-xl border bg-card p-4 transition-colors hover:bg-accent/50"
           >
             <FileText className="h-4 w-4 text-muted-foreground" />
             <div className="flex flex-col gap-1">

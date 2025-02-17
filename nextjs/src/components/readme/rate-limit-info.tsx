@@ -14,7 +14,7 @@ export function RateLimitInfo({ rateLimitInfo, status }: RateLimitInfoProps) {
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex w-[200px] flex-col items-center gap-2 rounded-lg border px-4 py-3">
+      <div className="flex w-[200px] flex-col items-center gap-2 rounded-xl border px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           <div className="text-sm">
             <span className="font-medium">{remaining}</span>
