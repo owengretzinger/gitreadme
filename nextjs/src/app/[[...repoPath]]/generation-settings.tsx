@@ -44,7 +44,7 @@ export default function GenerationSettings({
     <div className="mx-auto mt-10 w-full max-w-4xl space-y-8">
       <div className="space-y-10">
         <div className="flex justify-center">
-          <RateLimitInfo rateLimitInfo={rateLimitInfo} status={status} />
+          {/* <RateLimitInfo rateLimitInfo={rateLimitInfo} status={status} /> */}
         </div>
         <div className="flex flex-col items-center gap-2">
           <h1 className="text-center text-4xl font-bold">README Generator</h1>
@@ -65,7 +65,7 @@ export default function GenerationSettings({
               <Input
                 placeholder="https://github.com/username/repo"
                 className={cn(
-                  "pb-20 pl-4 pt-6 rounded-2xl",
+                  "rounded-2xl pb-20 pl-4 pt-6",
                   formState.errors.repoUrl && "border-red-500",
                 )}
                 {...repoRegister}
@@ -73,7 +73,7 @@ export default function GenerationSettings({
               <Button
                 type="submit"
                 variant="default"
-                className="absolute right-3 top-3 h-8 w-8 bg-primary p-0 rounded-xl hover:bg-primary/90"
+                className="absolute right-3 top-3 h-8 w-8 rounded-xl bg-primary p-0 hover:bg-primary/90"
                 disabled={!repoUrl || formState.isSubmitting}
               >
                 <span className="sr-only">Generate</span>
@@ -84,7 +84,7 @@ export default function GenerationSettings({
                   type="button"
                   variant="outline"
                   onClick={() => setTemplateModalOpen(true)}
-                  className="flex items-center gap-2 text-muted-foreground rounded-xl"
+                  className="flex items-center gap-2 rounded-xl text-muted-foreground"
                 >
                   <LayoutTemplate className="h-4 w-4" />
                   Choose Template
@@ -93,7 +93,7 @@ export default function GenerationSettings({
                   type="button"
                   variant="outline"
                   onClick={() => setFileExclusionModalOpen(true)}
-                  className="flex items-center gap-2 text-muted-foreground rounded-xl"
+                  className="flex items-center gap-2 rounded-xl text-muted-foreground"
                 >
                   <MinusCircle className="h-4 w-4" />
                   Exclude Files
@@ -102,11 +102,14 @@ export default function GenerationSettings({
                   type="button"
                   variant="outline"
                   onClick={() => setCustomInstructionsModalOpen(true)}
-                  className="flex items-center gap-2 text-muted-foreground rounded-xl"
+                  className="flex items-center gap-2 rounded-xl text-muted-foreground"
                 >
                   <Settings className="h-4 w-4" />
                   Custom Instructions
                 </Button>
+              </div>
+              <div className="absolute bottom-3 right-3">
+                <RateLimitInfo rateLimitInfo={rateLimitInfo} status={status} />
               </div>
             </div>
             {formState.errors.repoUrl?.message && (
