@@ -1,4 +1,4 @@
-import { FileText, MinusCircle, Settings } from "lucide-react";
+import { LayoutTemplate, MinusCircle, Settings } from "lucide-react";
 import { useState } from "react";
 import { CustomInstructionsModal } from "~/components/readme/modals/custom-instructions-modal";
 import { FileExclusionModal } from "~/components/readme/modals/file-exclusion-modal";
@@ -12,6 +12,8 @@ import { RateLimitInfo } from "~/components/readme/rate-limit-info";
 import { useSession } from "next-auth/react";
 import { ErrorType } from "~/types/errors";
 import { GenerationState } from "./use-readme-stream";
+import { RecentReadmes } from "~/components/readme/recent-readmes";
+import { api } from "~/trpc/react";
 
 export default function GenerationSettings({
   formState,
@@ -37,6 +39,7 @@ export default function GenerationSettings({
   const [customInstructionsModalOpen, setCustomInstructionsModalOpen] =
     useState(false);
   const { data: session, status } = useSession();
+  const { data: recentReadmes } = api.readme.getRecentReadmes.useQuery();
 
   return (
     <div className="mx-auto mt-24 w-full max-w-4xl space-y-8">
@@ -90,7 +93,7 @@ export default function GenerationSettings({
                 onClick={() => setTemplateModalOpen(true)}
                 className="flex items-center gap-2"
               >
-                <FileText className="h-4 w-4" />
+                <LayoutTemplate className="h-4 w-4" />
                 Choose Template
               </Button>
               <Button
@@ -115,7 +118,9 @@ export default function GenerationSettings({
           </div>
         </form>
       </div>
-      {/* {recentReadmes && <RecentReadmes readmes={recentReadmes.readmes} />} */}
+      {recentReadmes && recentReadmes.length > 0 && (
+        <RecentReadmes readmes={recentReadmes} />
+      )}
       <div className="h-12" /> {/* Add bottom spacing */}
       <TemplateModal
         open={templateModalOpen}

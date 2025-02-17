@@ -179,4 +179,15 @@ export const readmeRouter = createTRPCRouter({
       });
       return readme ?? null;
     }),
+
+  getRecentReadmes: publicProcedure
+    .query(async ({ ctx }) => {
+      const readmes = await ctx.db.query.generatedReadmes.findMany({
+        orderBy: (generatedReadmes, { desc }) => [
+          desc(generatedReadmes.createdAt),
+        ],
+        limit: 6,
+      });
+      return readmes;
+    }),
 });
