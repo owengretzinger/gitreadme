@@ -268,7 +268,7 @@ const useResetState = ({
   setReadmeGenerationError,
   setErrorModalOpen,
 }: ResetStateProps) => {
-  const queryClient = useQueryClient();
+  const utils = api.useUtils();
   const { status } = useSession();
 
   const resetStates = async () => {
@@ -282,8 +282,7 @@ const useResetState = ({
     setErrorModalOpen(false);
 
     // Clear all query caches
-    await queryClient.invalidateQueries();
-    await queryClient.resetQueries();
+    await utils.invalidate();
   };
 
   // Only reset when auth status changes (not on every session change)

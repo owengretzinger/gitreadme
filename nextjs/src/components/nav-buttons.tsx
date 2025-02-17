@@ -5,7 +5,7 @@ import { Button } from "./ui/button";
 import { ThemeToggle } from "./theme-toggle";
 import { UserAvatar } from "./user-avatar";
 import { type Session } from "next-auth";
-import { signOutAction } from "~/server/actions/auth";
+import { signOut } from "next-auth/react";
 import { Github } from "lucide-react";
 
 export function NavButtons({ 
@@ -29,19 +29,17 @@ export function NavButtons({
           <ThemeToggle />
         </div>
       {session?.user ? (
-        <form action={signOutAction}>
-          <Button
-            variant="ghost"
-            type="submit"
-            className="flex items-center gap-2"
-          >
-            <UserAvatar 
-              image={session.user.image}
-              name={session.user.name}
-            />
-            Sign out
-          </Button>
-        </form>
+        <Button
+          variant="ghost"
+          onClick={() => void signOut({ callbackUrl: "/" })}
+          className="flex items-center gap-2"
+        >
+          <UserAvatar 
+            image={session.user.image}
+            name={session.user.name}
+          />
+          Sign out
+        </Button>
       ) : (
         <Link href="/signin">
           <Button variant="ghost">Sign in</Button>
