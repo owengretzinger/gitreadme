@@ -49,6 +49,10 @@ export default function Readme() {
     console.log("readmeGenerator.repoUrl: ", readmeGenerator.repoUrl);
   }, [repoPathFromUrl, readmeGenerator.repoUrl]);
 
+  useEffect(() => {
+    console.log("readmeGenerator.readmeGenerationError: ", readmeGenerator.readmeGenerationError);
+  }, [readmeGenerator.readmeGenerationError]);
+
   return (
     <div className="p-4 lg:p-8">
       {!repoPathFromUrl && <GenerationSettings {...readmeGenerator} />}

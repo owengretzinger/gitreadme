@@ -68,6 +68,7 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
+- [ ] Fix bug preventing error modals from being shown
 - [ ] Fix invalid file path bug
 - [ ] Make default exclude patterns work for non-exact paths
 - [ ] New font
