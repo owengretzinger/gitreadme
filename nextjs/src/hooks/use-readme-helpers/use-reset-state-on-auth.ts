@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { api } from "~/trpc/react";
 import { type UseFormReturn } from "react-hook-form";
@@ -13,7 +13,7 @@ interface ResetStateProps {
   setErrorModalOpen: (open: boolean) => void;
 }
 
-export const useResetState = ({
+export const useResetStateOnAuth = ({
   form,
   setGenerationState,
   setReadmeContent,
@@ -22,6 +22,7 @@ export const useResetState = ({
 }: ResetStateProps) => {
   const utils = api.useUtils();
   const { status } = useSession();
+  const prevStatusRef = useRef(status);
 
   const resetStates = async () => {
     // Reset form to default values
@@ -37,9 +38,21 @@ export const useResetState = ({
     await utils.invalidate();
   };
 
-  // Only reset when auth status changes (not on every session change)
+  // Only reset on actual sign in/out transitions
   useEffect(() => {
-    void resetStates();
+    const isSigningIn =
+      prevStatusRef.current === "unauthenticated" && status === "authenticated";
+    const isSigningOut =
+      prevStatusRef.current === "authenticated" && status === "unauthenticated";
+
+    if (isSigningIn || isSigningOut) {
+      void resetStates();
+    }
+
+    // Don't update the ref during loading state to maintain the previous authenticated/unauthenticated state
+    if (status !== "loading") {
+      prevStatusRef.current = status;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 

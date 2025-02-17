@@ -1,7 +1,7 @@
 import { usePersistedForm } from "./use-readme-helpers/use-persisted-form";
 import { useFormActions } from "./use-readme-helpers/use-form-actions";
 import { useReadmeGeneration } from "./use-readme-helpers/use-readme-generation";
-import { useResetState } from "./use-readme-helpers/use-reset-state";
+import { useResetStateOnAuth } from "./use-readme-helpers/use-reset-state-on-auth";
 import { useReadmeStream } from "./use-readme-helpers/use-readme-stream";
 import { useLatestVersion } from "./use-readme-helpers/use-latest-version";
 import { useExistingReadme } from "./use-readme-helpers/use-existing-readme";
@@ -21,7 +21,7 @@ export const useReadme = () => {
     setErrorModalOpen,
   } = useReadmeStream();
 
-  useResetState({
+  useResetStateOnAuth({
     form,
     setGenerationState,
     setReadmeContent,

@@ -68,10 +68,12 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] Fix bug preventing error modals from being shown
+- [ ] Allow including "v" (i.e. "v13") when searching on dashboard
+- [ ] Improve generated README page UI
 - [ ] Fix invalid file path bug
 - [ ] Make default exclude patterns work for non-exact paths
 - [ ] New font
+- [ ] New logo
 - [ ] Add FAQ
 - [ ] Get a domain name
 - [ ] Film demo video

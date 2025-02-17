@@ -1,6 +1,5 @@
 import type { RateLimitInfo } from "~/server/api/rate-limit";
 
-
 export enum ErrorType {
   RATE_LIMIT = "RATE_LIMIT",
   TOKEN_LIMIT = "TOKEN_LIMIT",
