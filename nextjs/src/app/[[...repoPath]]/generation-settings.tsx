@@ -61,7 +61,7 @@ export default function GenerationSettings({
             await generateReadme();
           }}
         >
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
             <div className="relative flex">
               <Input
                 placeholder="https://github.com/username/repo"

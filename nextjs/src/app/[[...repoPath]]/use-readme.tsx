@@ -10,17 +10,7 @@ import { api } from "~/trpc/react";
 import { ErrorType } from "~/types/errors";
 
 const formSchema = z.object({
-  repoUrl: z.string().refine((url) => {
-    try {
-      const parsed = new URL(url);
-      return (
-        parsed.hostname === "github.com" &&
-        parsed.pathname.split("/").length >= 3
-      );
-    } catch {
-      return false;
-    }
-  }, "Please enter a valid GitHub repo URL"),
+  repoUrl: z.string(),
   templateId: z.string(),
   templateContent: z.string(),
   additionalContext: z.string(),
@@ -77,8 +67,19 @@ const useFormActions = (form: ReturnType<typeof usePersistedForm>) => {
   const getRepoPath = () => {
     const url = form.watch("repoUrl");
     if (!url) return undefined;
-    const urlObj = new URL(url);
-    return urlObj.pathname.slice(1);
+    try {
+      const urlObj = new URL(url);
+      if (
+        urlObj.hostname === "github.com" &&
+        urlObj.pathname.split("/").length >= 3
+      ) {
+        return urlObj.pathname.slice(1);
+      }
+    } catch {
+      // Return undefined if URL is invalid
+      return undefined;
+    }
+    return undefined;
   };
 
   return {
@@ -153,10 +154,39 @@ const useReadmeGeneration = (
   const getNextVersion = api.readme.getNextVersion.useMutation();
 
   const generateReadme = async () => {
+    const values = form.getValues();
+
+    // Validate URL before proceeding
+    try {
+      const urlObj = new URL(values.repoUrl);
+      if (urlObj.hostname !== "github.com") {
+        form.setError("repoUrl", {
+          type: "manual",
+          message:
+            "The URL provided is not a GitHub URL. It must start with https://github.com/",
+        });
+        return;
+      }
+      if (urlObj.pathname.split("/").length < 3) {
+        form.setError("repoUrl", {
+          type: "manual",
+          message:
+            "Could not parse the user/org and repo name. URL must be in the format https://github.com/username/repo",
+        });
+        return;
+      }
+    } catch {
+      form.setError("repoUrl", {
+        type: "manual",
+        message:
+          "Your input is not a URL. Please enter a valid GitHub repo URL.",
+      });
+      return;
+    }
+
     const result = await form.trigger();
     if (!result) return;
 
-    const values = form.getValues();
     const parsed = formSchema.safeParse(values);
     if (!parsed.success) return;
 
