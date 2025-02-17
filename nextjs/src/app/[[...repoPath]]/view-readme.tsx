@@ -3,10 +3,10 @@ import { Button } from "~/components/ui/button";
 import { ReadmeInfoCard } from "~/components/readme/readme-info-card";
 import { GeneratedReadme } from "~/components/readme/generated-readme";
 import { useRouter } from "next/navigation";
-import type { useReadme } from "./use-readme";
+import type { useReadme } from "../../hooks/use-readme";
 import { api } from "~/trpc/react";
 import { LoadingSteps } from "~/components/readme/loading-steps";
-import { GenerationState } from "./use-readme-stream";
+import { GenerationState } from "../../hooks/use-readme-helpers/use-readme-stream";
 
 const GENERATION_STEPS = [
   {

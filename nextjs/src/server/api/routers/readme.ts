@@ -30,14 +30,6 @@ export const readmeRouter = createTRPCRouter({
     );
   }),
 
-  incrementRateLimit: publicProcedure.mutation(async ({ ctx }) => {
-    const ipAddress =
-      ctx.headers.get("x-forwarded-for")?.split(",")[0] ??
-      ctx.headers.get("x-real-ip") ??
-      null;
-    return incrementRateLimit(ctx.db, ipAddress, ctx.session);
-  }),
-
   getNextVersion: publicProcedure
     .input(z.object({ repoPath: z.string() }))
     .mutation(async ({ input, ctx }) => {
@@ -70,10 +62,11 @@ export const readmeRouter = createTRPCRouter({
         null;
 
       console.log("Starting streaming README generation for:", input.repoUrl);
-      const startTime = performance.now();
       let generatedContent = "";
 
       try {
+        void incrementRateLimit(ctx.db, ipAddress, ctx.session);
+
         console.log("Packing repository...");
 
         // Pack repository using Python server
@@ -85,6 +78,9 @@ export const readmeRouter = createTRPCRouter({
         );
 
         if (!repoPackerResult.success) {
+          // Refund rate limit for any packing errors
+          await refundRateLimit(db, ipAddress, session);
+
           // Check if the error is a token limit exceeded error
           if (isTokenLimitError(repoPackerResult.error)) {
             const { files_analyzed, estimated_tokens, largest_files } =
@@ -115,7 +111,6 @@ export const readmeRouter = createTRPCRouter({
 
         for await (const chunk of stream) {
           generatedContent += chunk;
-          console.log("yielding ai chunk");
           yield "AI:" + chunk;
         }
 
@@ -127,14 +122,12 @@ export const readmeRouter = createTRPCRouter({
           userId: session?.user.id,
         });
 
-        const endTime = performance.now();
-        console.log(
-          `Total README generation process took ${(endTime - startTime).toFixed(2)}ms`,
-        );
-
         yield "DONE";
         return;
       } catch (error) {
+        // Refund rate limit for any unhandled errors
+        await refundRateLimit(db, ipAddress, session);
+
         if (error instanceof Error) {
           yield "ERROR:" + JSON.stringify(createServerError(error.message));
         } else {
@@ -143,8 +136,6 @@ export const readmeRouter = createTRPCRouter({
               createServerError("Failed to stream README content"),
             );
         }
-        // If there's an error, refund the rate limit
-        await refundRateLimit(db, ipAddress, session);
         return;
       }
     }),

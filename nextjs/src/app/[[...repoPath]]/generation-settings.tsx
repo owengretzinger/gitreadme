@@ -13,12 +13,12 @@ import { ErrorModal } from "~/components/readme/modals/error-modal";
 import { VideoTutorialModal } from "~/components/readme/modals/video-tutorial-modal";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { type useReadme } from "./use-readme";
+import { type useReadme } from "../../hooks/use-readme";
 import { cn } from "~/lib/utils";
 import { RateLimitInfo } from "~/components/readme/rate-limit-info";
 import { useSession } from "next-auth/react";
 import { ErrorType } from "~/types/errors";
-import { GenerationState } from "./use-readme-stream";
+import { GenerationState } from "../../hooks/use-readme-helpers/use-readme-stream";
 import { RecentReadmes } from "~/components/readme/recent-readmes";
 import Image from "next/image";
 

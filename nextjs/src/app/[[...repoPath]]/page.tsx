@@ -2,11 +2,11 @@
 
 import { useParams, useSearchParams } from "next/navigation";
 import GenerationSettings from "./generation-settings";
-import { useReadme } from "./use-readme";
+import { useReadme } from "../../hooks/use-readme";
 import ViewReadme from "./view-readme";
 import { useEffect } from "react";
 import { Toaster } from "~/components/ui/toaster";
-import { GenerationState } from "./use-readme-stream";
+import { GenerationState } from "../../hooks/use-readme-helpers/use-readme-stream";
 
 export default function Readme() {
   const params = useParams<{ repoPath: string | undefined }>();
@@ -43,15 +43,6 @@ export default function Readme() {
       }
     }
   }, [repoPathFromUrl, readmeGenerator, versionFromUrl]);
-
-  useEffect(() => {
-    console.log("repoPathFromUrl: ", repoPathFromUrl);
-    console.log("readmeGenerator.repoUrl: ", readmeGenerator.repoUrl);
-  }, [repoPathFromUrl, readmeGenerator.repoUrl]);
-
-  useEffect(() => {
-    console.log("readmeGenerator.readmeGenerationError: ", readmeGenerator.readmeGenerationError);
-  }, [readmeGenerator.readmeGenerationError]);
 
   return (
     <div className="p-4 lg:p-8">
