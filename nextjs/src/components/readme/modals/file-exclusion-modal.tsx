@@ -25,17 +25,18 @@ export function FileExclusionModal({
   onExclude,
   excludePatterns,
 }: FileExclusionModalProps) {
-  const [manualPaths, setManualPaths] = useState<string>(
-    excludePatterns.join("\n"),
-  );
+  const [text, setText] = useState<string>(excludePatterns.join("\n"));
+  const [error, setError] = useState<string | null>(null);
 
-  // Update manualPaths when excludePatterns prop changes
+  // Update the text and error when the modal opens
   useEffect(() => {
-    setManualPaths(excludePatterns.join("\n"));
-  }, [excludePatterns]);
+    setText(excludePatterns.join("\n"));
+    setError(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const toggleFile = (path: string, checked: boolean) => {
-    const paths = manualPaths.split("\n").filter((p) => p.trim() !== "");
+    const paths = text.split("\n").filter((p) => p.trim() !== "");
     let newPaths: string[];
 
     if (checked) {
@@ -45,8 +46,41 @@ export function FileExclusionModal({
     }
 
     const newManualPaths = newPaths.join("\n");
-    setManualPaths(newManualPaths);
+    setText(newManualPaths);
+    setError(null);
     onExclude(newPaths);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value;
+    setText(newValue);
+    setError(null);
+
+    const paths = newValue
+      .split("\n")
+      .map((path) => path.trim())
+      .filter((path) => path !== "");
+
+    const validRegex = /^[a-zA-Z0-9\s\-_./+*]*$/;
+
+    const [validPaths, invalidPaths] = paths.reduce<[string[], string[]]>(
+      ([valid, invalid], path) => {
+        if (validRegex.test(path)) {
+          return [[...valid, path], invalid];
+        }
+        return [valid, [...invalid, path]];
+      },
+      [[], []],
+    );
+
+    if (invalidPaths.length > 0) {
+      setError(
+        "Invalid file path(s): " +
+          invalidPaths.map((path) => `"${path}"`).join(", "),
+      );
+    }
+
+    onExclude(validPaths);
   };
 
   return (
@@ -56,7 +90,7 @@ export function FileExclusionModal({
           <DialogTitle>Exclude Files</DialogTitle>
           <p className="text-sm text-muted-foreground">
             Enter file paths to exclude (one per line). Supports glob patterns
-            like *.md and /**/*.csv
+            like *.md and /**/*.csv.
           </p>
         </DialogHeader>
 
@@ -77,7 +111,7 @@ export function FileExclusionModal({
                   <div key={file.path} className="flex items-center space-x-3">
                     <Checkbox
                       id={file.path}
-                      checked={manualPaths.split("\n").includes(file.path)}
+                      checked={text.split("\n").includes(file.path)}
                       onCheckedChange={(checked) =>
                         toggleFile(file.path, checked === true)
                       }
@@ -99,16 +133,20 @@ export function FileExclusionModal({
         )}
 
         <Textarea
-          value={manualPaths}
-          onChange={(e) => setManualPaths(e.target.value)}
-          onBlur={() => {
-            const paths = manualPaths
-              .split("\n")
-              .filter((path) => path.trim() !== "");
-            onExclude(paths);
-          }}
+          value={text}
+          onChange={handleChange}
           className="min-h-[300px] resize-none font-mono text-sm"
         />
+
+        {error && (
+          <div className="text-sm text-red-500">
+            <p>{error}</p>
+            <p>
+              Only alphanumeric characters, spaces, and the following symbols
+              are allowed: - _ . / + *
+            </p>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

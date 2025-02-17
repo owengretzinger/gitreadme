@@ -136,6 +136,13 @@ def normalize_github_url(url):
     return url
 
 
+def sanitize_exclude_patterns(patterns):
+    """Sanitize exclude patterns by escaping spaces with backslashes."""
+    if not patterns:
+        return []
+    return [pattern.replace(" ", "\\ ") for pattern in patterns]
+
+
 @app.route("/api/pack", methods=["POST"])
 @require_token
 def pack_repository():
@@ -146,7 +153,7 @@ def pack_repository():
     repo_url = data.get("repo_url")
     max_file_size = data.get("max_file_size", 10485760)  # Default 10MB
     max_tokens = data.get("max_tokens", 100000)  # Default 100k tokens
-    exclude_patterns = data.get("exclude_patterns", [])
+    exclude_patterns = sanitize_exclude_patterns(data.get("exclude_patterns", []))
 
     if not repo_url:
         return jsonify({"error": "repo_url is required"}), 400
