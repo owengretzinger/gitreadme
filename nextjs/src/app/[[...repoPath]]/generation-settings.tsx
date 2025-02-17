@@ -1,4 +1,4 @@
-import { LayoutTemplate, MinusCircle, Settings } from "lucide-react";
+import { ArrowUp, LayoutTemplate, MinusCircle, Settings } from "lucide-react";
 import { useState } from "react";
 import { CustomInstructionsModal } from "~/components/readme/modals/custom-instructions-modal";
 import { FileExclusionModal } from "~/components/readme/modals/file-exclusion-modal";
@@ -18,6 +18,7 @@ import { api } from "~/trpc/react";
 export default function GenerationSettings({
   formState,
   repoRegister,
+  repoUrl,
   selectedTemplate,
   setSelectedTemplate,
   templateContent,
@@ -75,23 +76,10 @@ export default function GenerationSettings({
                 type="submit"
                 variant="default"
                 className="absolute right-3 top-3 h-8 w-8 bg-primary p-0 rounded-xl hover:bg-primary/90"
+                disabled={!repoUrl || formState.isSubmitting}
               >
                 <span className="sr-only">Generate</span>
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M12 4L12 20M12 4L18 10M12 4L6 10"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <ArrowUp />
               </Button>
               <div className="absolute bottom-3 left-3 flex gap-2">
                 <Button
