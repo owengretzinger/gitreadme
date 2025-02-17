@@ -1,10 +1,9 @@
-import { type RateLimitInfo as RateLimitInfoType } from "~/hooks/use-readme-form";
 import { Progress } from "~/components/ui/progress";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-
+import { type RateLimitInfo } from "~/server/api/rate-limit";
 interface RateLimitInfoProps {
-  rateLimitInfo: RateLimitInfoType | undefined;
+  rateLimitInfo: RateLimitInfo | undefined;
   status: "authenticated" | "loading" | "unauthenticated";
 }
 

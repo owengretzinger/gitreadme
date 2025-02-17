@@ -2,11 +2,17 @@ import { and, eq, sql } from "drizzle-orm";
 import { type Session } from "next-auth";
 import { type DB } from "~/server/db";
 import { generationLimits } from "../db/schema";
-import { type RateLimitInfo } from "~/hooks/use-readme-form";
 import { createRateLimitError, type ApiErrorResponse } from "~/types/errors";
 
 const UNAUTHENTICATED_LIMIT = 3;
 const AUTHENTICATED_LIMIT = 20;
+
+export interface RateLimitInfo {
+  remaining: number;
+  total: number;
+  used: number;
+  isAuthenticated: boolean;
+}
 
 interface RateLimitResult {
   success: boolean;
@@ -45,6 +51,7 @@ export async function getCurrentRateLimit(
     });
 
     const count = ipLimit?.count ?? 0;
+
     return {
       remaining: UNAUTHENTICATED_LIMIT - count,
       total: UNAUTHENTICATED_LIMIT,
@@ -211,6 +218,7 @@ export async function incrementRateLimit(
         set: {
           count: sql`${generationLimits.count} + 1`,
         },
+        where: sql`${generationLimits.count} < ${AUTHENTICATED_LIMIT}`,
       })
       .returning();
 
@@ -235,6 +243,7 @@ export async function incrementRateLimit(
         set: {
           count: sql`${generationLimits.count} + 1`,
         },
+        where: sql`${generationLimits.count} < ${UNAUTHENTICATED_LIMIT}`,
       })
       .returning();
 

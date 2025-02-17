@@ -122,8 +122,12 @@ const useGenerationState = () => {
       queryClient.setQueryData(contentKey, updater),
     setError: (error: ApiErrorResponse | null) =>
       queryClient.setQueryData(errorKey, error),
-    setErrorModalOpen: (open: boolean) =>
-      queryClient.setQueryData(errorModalKey, open),
+    setErrorModalOpen: (open: boolean) => {
+      queryClient.setQueryData(errorModalKey, open);
+      if (!open) {
+        queryClient.setQueryData(errorKey, null);
+      }
+    },
   };
 };
 

@@ -43,7 +43,9 @@ export function ErrorModal({ error, open, onOpenChange, actionButton }: ErrorMod
         <DialogFooter className="flex gap-2">
           {actionButton && (
             <Button asChild>
-              <Link href={actionButton.href}>{actionButton.label}</Link>
+              <Link href={actionButton.href} onClick={() => onOpenChange(false)}>
+                {actionButton.label}
+              </Link>
             </Button>
           )}
           <Button variant="outline" onClick={() => onOpenChange(false)}>

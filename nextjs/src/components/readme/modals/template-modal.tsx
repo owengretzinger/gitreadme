@@ -1,9 +1,4 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "~/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "~/components/ui/dialog";
 import { TemplateSelection } from "../template-selection";
 import { TemplatePreview } from "../template-preview";
 import { type ViewMode } from "~/components/view-mode-toggle";
@@ -30,11 +25,9 @@ export function TemplateModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-[90vw] gap-6 overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Choose Template</DialogTitle>
-        </DialogHeader>
-        <div className="flex flex-col divide-y md:grid md:grid-cols-2 md:divide-x md:divide-y-0">
+      <DialogContent className="h-[90%] min-w-[90%] gap-6 overflow-y-auto">
+        <DialogTitle className="hidden">Choose Template</DialogTitle>
+        <div className="flex h-full flex-1 grow flex-col justify-start divide-y md:grid md:grid-cols-2 md:divide-x md:divide-y-0">
           <div className="pb-6 md:pb-0 md:pr-6">
             <TemplateSelection
               selectedTemplate={selectedTemplate}

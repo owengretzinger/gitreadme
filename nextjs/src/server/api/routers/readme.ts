@@ -4,18 +4,13 @@ import { generateReadmeWithAIStream } from "~/utils/vertex-ai";
 import { packRepository } from "~/utils/api-client";
 import { generatedReadmes } from "~/server/db/schema";
 import { and, eq } from "drizzle-orm";
-import {
-  getCurrentRateLimit,
-  incrementRateLimit,
-  refundRateLimit,
-} from "../rate-limit";
+import { incrementRateLimit, refundRateLimit } from "../rate-limit";
 import {
   createServerError,
   createTokenLimitError,
   isTokenLimitError,
 } from "~/types/errors";
 import { checkRateLimit } from "../rate-limit";
-import { createRateLimitError } from "../rate-limit";
 
 // Define a schema for file data
 const FileDataSchema = z.object({
@@ -26,33 +21,24 @@ const FileDataSchema = z.object({
 
 export const readmeRouter = createTRPCRouter({
   getRateLimit: publicProcedure.query(async ({ ctx }) => {
-    return getCurrentRateLimit(
+    const ipAddress = ctx.headers.get("x-forwarded-for")?.split(",")[0] ?? ctx.headers.get("x-real-ip") ?? null;
+    return checkRateLimit(
       ctx.db,
-      ctx.headers.get("x-real-ip"),
+      ipAddress,
       ctx.session,
-    );
+    ).then((result) => result.info);
   }),
 
-  startGeneration: publicProcedure.mutation(async ({ ctx }) => {
+  incrementRateLimit: publicProcedure.mutation(async ({ ctx }) => {
+    const ipAddress = ctx.headers.get("x-forwarded-for")?.split(",")[0] ?? ctx.headers.get("x-real-ip") ?? null;
     return incrementRateLimit(
       ctx.db,
-      ctx.headers.get("x-real-ip"),
+      ipAddress,
       ctx.session,
     );
   }),
 
-  // getNextVersion: publicProcedure
-  //   .input(z.object({ repoUrl: z.string().url() }))
-  //   .mutation(async ({ ctx, input }) => {
-  //     const repoPath = new URL(input.repoUrl).pathname.replace(/^\//, "");
-  //     const latestVersion = await ctx.db.query.generatedReadmes.findFirst({
-  //       where: eq(generatedReadmes.repoPath, repoPath),
-  //       orderBy: (generatedReadmes, { desc }) => [desc(generatedReadmes.version)],
-  //     });
-  //     return latestVersion ? latestVersion.version + 1 : 1;
-  //   }),
-
-    getNextVersion: publicProcedure
+  getNextVersion: publicProcedure
     .input(z.object({ repoPath: z.string() }))
     .mutation(async ({ input, ctx }) => {
       const latestVersion = await ctx.db.query.generatedReadmes.findFirst({
@@ -78,22 +64,7 @@ export const readmeRouter = createTRPCRouter({
     )
     .mutation(async function* ({ ctx, input }) {
       const { session, db } = ctx;
-      const ipAddress =
-        ctx.headers.get("x-forwarded-for")?.split(",")[0] ??
-        ctx.headers.get("x-real-ip") ??
-        null;
-
-      // Check rate limit first
-      const rateLimitResult = await checkRateLimit(db, ipAddress, session);
-      if (!rateLimitResult.allowed) {
-        yield "ERROR:" +
-          JSON.stringify(
-            createRateLimitError(rateLimitResult.info, "Rate limit exceeded"),
-          );
-        return;
-      }
-
-      yield "RATE_LIMIT:" + JSON.stringify(rateLimitResult.info);
+      const ipAddress = ctx.headers.get("x-forwarded-for")?.split(",")[0] ?? ctx.headers.get("x-real-ip") ?? null;
 
       console.log("Starting streaming README generation for:", input.repoUrl);
       const startTime = performance.now();
@@ -144,9 +115,6 @@ export const readmeRouter = createTRPCRouter({
           console.log("yielding ai chunk");
           yield "AI:" + chunk;
         }
-
-        // Increment rate limit counter
-        await incrementRateLimit(db, ipAddress, session);
 
         // Store the generated README in the database
         await db.insert(generatedReadmes).values({

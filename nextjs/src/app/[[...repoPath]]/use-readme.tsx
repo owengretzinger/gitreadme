@@ -8,7 +8,6 @@ import { useReadmeStream, GenerationState } from "./use-readme-stream";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "~/trpc/react";
 import { ErrorType } from "~/types/errors";
-import { type RateLimitInfo } from "~/hooks/use-readme-form";
 
 const formSchema = z.object({
   repoUrl: z.string().refine((url) => {
@@ -148,13 +147,7 @@ const useReadmeGeneration = (
     refetchOnWindowFocus: true,
     refetchOnMount: true,
   });
-
-  // Add mutation to start generation and get updated rate limit
-  const startGeneration = api.readme.startGeneration.useMutation({
-    onSuccess: (newRateLimit: RateLimitInfo) => {
-      utils.readme.getRateLimit.setData(undefined, () => newRateLimit);
-    },
-  });
+  const incrementRateLimit = api.readme.incrementRateLimit.useMutation();
 
   // Add mutation to get next version
   const getNextVersion = api.readme.getNextVersion.useMutation();
@@ -181,15 +174,17 @@ const useReadmeGeneration = (
       return;
     }
 
-    try {
-      
+    // Increment rate limit
+    void incrementRateLimit.mutateAsync().then(() => {
+      void utils.readme.getRateLimit.invalidate();
+    });
 
+    try {
       // Navigate immediately
       const repoPath = values.repoUrl.split("github.com/")[1];
       router.push(`/${repoPath}`);
 
       // Start these operations in parallel but don't block on them
-      void startGeneration.mutateAsync();
       void getNextVersion
         .mutateAsync({
           repoPath: getRepoPath()!,
