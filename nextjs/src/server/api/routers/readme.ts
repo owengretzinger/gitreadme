@@ -34,7 +34,7 @@ export const readmeRouter = createTRPCRouter({
     .input(z.object({ repoPath: z.string() }))
     .mutation(async ({ input, ctx }) => {
       const latestVersion = await ctx.db.query.generatedReadmes.findFirst({
-        where: eq(generatedReadmes.repoPath, input.repoPath),
+        where: eq(generatedReadmes.repoPath, input.repoPath.toLowerCase()),
         orderBy: (generatedReadmes, { desc }) => [
           desc(generatedReadmes.version),
         ],
@@ -116,7 +116,7 @@ export const readmeRouter = createTRPCRouter({
 
         // Store the generated README in the database
         await db.insert(generatedReadmes).values({
-          repoPath: new URL(input.repoUrl).pathname.replace(/^\//, ""),
+          repoPath: new URL(input.repoUrl).pathname.replace(/^\//, "").toLowerCase(),
           version: input.version,
           content: generatedContent,
           userId: session?.user.id,
@@ -148,13 +148,14 @@ export const readmeRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input, ctx }) => {
+      const normalizedRepoPath = input.repoPath.toLowerCase();
       const readme = await ctx.db.query.generatedReadmes.findFirst({
         where: input.version
           ? and(
-              eq(generatedReadmes.repoPath, input.repoPath),
+              eq(generatedReadmes.repoPath, normalizedRepoPath),
               eq(generatedReadmes.version, input.version),
             )
-          : eq(generatedReadmes.repoPath, input.repoPath),
+          : eq(generatedReadmes.repoPath, normalizedRepoPath),
         orderBy: !input.version
           ? (generatedReadmes, { desc }) => [desc(generatedReadmes.version)]
           : undefined,
@@ -166,7 +167,7 @@ export const readmeRouter = createTRPCRouter({
     .input(z.object({ repoPath: z.string() }))
     .query(async ({ input, ctx }) => {
       const readme = await ctx.db.query.generatedReadmes.findFirst({
-        where: eq(generatedReadmes.repoPath, input.repoPath),
+        where: eq(generatedReadmes.repoPath, input.repoPath.toLowerCase()),
         orderBy: (generatedReadmes, { desc }) => [
           desc(generatedReadmes.version),
         ],
