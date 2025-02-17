@@ -68,9 +68,10 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] New font
-- [ ] Film demo video
+- [ ] Optimize for mobile
 - [ ] Fix invalid file path bug
 - [ ] Make default exclude patterns work for non-exact paths
-- [ ] Get a domain name
+- [ ] New font
 - [ ] Add FAQ
+- [ ] Get a domain name
+- [ ] Film demo video
