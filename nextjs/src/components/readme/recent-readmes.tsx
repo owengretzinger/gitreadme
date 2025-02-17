@@ -1,19 +1,14 @@
-import { type RouterOutputs } from "~/trpc/react";
+import { api } from "~/trpc/react";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { ArrowRight, FileText } from "lucide-react";
 import { useSession } from "next-auth/react";
 
-type GeneratedReadme =
-  RouterOutputs["dashboard"]["getUserData"]["readmes"][number];
-
-interface RecentReadmesProps {
-  readmes: GeneratedReadme[];
-}
-
-export function RecentReadmes({ readmes }: RecentReadmesProps) {
+export function RecentReadmes() {
   const { status } = useSession();
-  if (readmes.length === 0) return null;
+  const { data: recentReadmes } = api.readme.getRecentReadmes.useQuery();
+
+  if (!recentReadmes || recentReadmes.length === 0) return <></>;
 
   return (
     <div className="mt-16">
@@ -34,7 +29,7 @@ export function RecentReadmes({ readmes }: RecentReadmesProps) {
         </Link>
       </div>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {readmes.slice(0, 6).map((readme) => (
+        {recentReadmes.slice(0, 6).map((readme) => (
           <Link
             key={readme.id}
             href={`/${readme.repoPath}?v=${readme.version}`}
@@ -42,7 +37,7 @@ export function RecentReadmes({ readmes }: RecentReadmesProps) {
           >
             <FileText className="h-4 w-4 text-muted-foreground" />
             <div className="flex flex-col gap-1">
-              <span className="line-clamp-1 font-medium text-sm">
+              <span className="line-clamp-1 text-sm font-medium">
                 {readme.repoPath}
               </span>
               <div className="text-xs text-muted-foreground">

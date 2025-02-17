@@ -21,21 +21,21 @@ const FileDataSchema = z.object({
 
 export const readmeRouter = createTRPCRouter({
   getRateLimit: publicProcedure.query(async ({ ctx }) => {
-    const ipAddress = ctx.headers.get("x-forwarded-for")?.split(",")[0] ?? ctx.headers.get("x-real-ip") ?? null;
-    return checkRateLimit(
-      ctx.db,
-      ipAddress,
-      ctx.session,
-    ).then((result) => result.info);
+    const ipAddress =
+      ctx.headers.get("x-forwarded-for")?.split(",")[0] ??
+      ctx.headers.get("x-real-ip") ??
+      null;
+    return checkRateLimit(ctx.db, ipAddress, ctx.session).then(
+      (result) => result.info,
+    );
   }),
 
   incrementRateLimit: publicProcedure.mutation(async ({ ctx }) => {
-    const ipAddress = ctx.headers.get("x-forwarded-for")?.split(",")[0] ?? ctx.headers.get("x-real-ip") ?? null;
-    return incrementRateLimit(
-      ctx.db,
-      ipAddress,
-      ctx.session,
-    );
+    const ipAddress =
+      ctx.headers.get("x-forwarded-for")?.split(",")[0] ??
+      ctx.headers.get("x-real-ip") ??
+      null;
+    return incrementRateLimit(ctx.db, ipAddress, ctx.session);
   }),
 
   getNextVersion: publicProcedure
@@ -64,7 +64,10 @@ export const readmeRouter = createTRPCRouter({
     )
     .mutation(async function* ({ ctx, input }) {
       const { session, db } = ctx;
-      const ipAddress = ctx.headers.get("x-forwarded-for")?.split(",")[0] ?? ctx.headers.get("x-real-ip") ?? null;
+      const ipAddress =
+        ctx.headers.get("x-forwarded-for")?.split(",")[0] ??
+        ctx.headers.get("x-real-ip") ??
+        null;
 
       console.log("Starting streaming README generation for:", input.repoUrl);
       const startTime = performance.now();
@@ -180,14 +183,14 @@ export const readmeRouter = createTRPCRouter({
       return readme ?? null;
     }),
 
-  getRecentReadmes: publicProcedure
-    .query(async ({ ctx }) => {
-      const readmes = await ctx.db.query.generatedReadmes.findMany({
-        orderBy: (generatedReadmes, { desc }) => [
-          desc(generatedReadmes.createdAt),
-        ],
-        limit: 6,
-      });
-      return readmes;
-    }),
+  getRecentReadmes: publicProcedure.query(async ({ ctx }) => {
+    const readmes = await ctx.db.query.generatedReadmes.findMany({
+      where: eq(generatedReadmes.userId, ctx.session?.user.id ?? ""),
+      orderBy: (generatedReadmes, { desc }) => [
+        desc(generatedReadmes.createdAt),
+      ],
+      limit: 6,
+    });
+    return readmes;
+  }),
 });

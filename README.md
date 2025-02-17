@@ -70,6 +70,7 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 - [ ] Fix invalid file path bug
 - [ ] Make default exclude patterns work for non-exact paths
+- [ ] Make dashboard look more like Claude
+- [ ] Reset all caches and state when auth state changes
 - [ ] Get a domain name
 - [ ] Add FAQ
-- [ ] Remove old stuff
