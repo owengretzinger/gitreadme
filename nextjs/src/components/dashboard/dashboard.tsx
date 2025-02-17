@@ -76,6 +76,7 @@ export function Dashboard() {
   const filteredReadmes = data.readmes.filter(
     (readme) =>
       readme.repoPath.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ("v" + readme.version.toString()).includes(searchQuery) ||
       readme.version.toString().includes(searchQuery),
   );
 

@@ -68,7 +68,6 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] Allow including "v" (i.e. "v13") when searching on dashboard
 - [ ] Improve generated README page UI
 - [ ] Fix invalid file path bug
 - [ ] Make default exclude patterns work for non-exact paths
