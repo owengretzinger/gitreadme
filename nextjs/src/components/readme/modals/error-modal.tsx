@@ -32,12 +32,14 @@ export function ErrorModal({ error, open, onOpenChange, actionButton }: ErrorMod
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-destructive">
+      <DialogContent className="border-destructive max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Error Generating README</DialogTitle>
-          <DialogDescription className="space-y-4 text-pretty pt-4">
-            {formatString(error.type)} {"Error: "}
-            {error.message}
+          <DialogDescription className="space-y-4 text-pretty pt-4 max-h-[60vh] overflow-y-auto">
+            <div className="space-y-2">
+              <p className="font-medium">{formatString(error.type)} {"Error "}</p>
+              <p className="text-muted-foreground whitespace-pre-wrap">{error.message}</p>
+            </div>
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex gap-2">

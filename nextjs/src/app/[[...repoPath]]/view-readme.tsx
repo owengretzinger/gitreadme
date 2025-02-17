@@ -32,9 +32,7 @@ export default function ViewReadme({
   readmeGenerationState,
   readmeContent,
   readmeGenerationError,
-  version,
   isLoadingExistingReadme,
-  setVersion,
   setReadmeContent,
   setReadmeGenerationState,
 }: ReturnType<typeof useReadme>) {
@@ -43,10 +41,9 @@ export default function ViewReadme({
   const { data: readmeInfo } = api.readme.getByRepoPath.useQuery(
     {
       repoPath: getRepoPath() ?? "",
-      version: version ?? undefined,
     },
     {
-      enabled: !!getRepoPath() && version !== null,
+      enabled: !!getRepoPath(),
     },
   );
 
@@ -58,7 +55,6 @@ export default function ViewReadme({
         <Button
           variant="ghost"
           onClick={async () => {
-            setVersion(null);
             setReadmeContent("");
             setReadmeGenerationState(GenerationState.NOT_STARTED);
             router.push("/");
@@ -93,9 +89,8 @@ export default function ViewReadme({
         <>
           <ReadmeInfoCard
             repoPath={getRepoPath() ?? "No repo path"}
-            version={version ?? 0}
-            createdAt={readmeInfo?.createdAt ?? new Date()}
-            permalink={`${typeof window !== "undefined" ? window.location.origin : ""}/${getRepoPath()}?v=${version}`}
+            createdAt={readmeInfo?.updatedAt ?? new Date()}
+            permalink={`${typeof window !== "undefined" ? window.location.origin : ""}/${getRepoPath()}`}
           />
           <GeneratedReadme
             content={readmeContent}

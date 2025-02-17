@@ -32,7 +32,7 @@ export function RecentReadmes() {
         {recentReadmes.slice(0, 6).map((readme) => (
           <Link
             key={readme.id}
-            href={`/${readme.repoPath}?v=${readme.version}`}
+            href={`/${readme.repoPath}`}
             className="group flex flex-col gap-2 rounded-xl border bg-card p-4 transition-colors hover:bg-accent/50"
           >
             <FileText className="h-4 w-4 text-muted-foreground" />
@@ -41,7 +41,6 @@ export function RecentReadmes() {
                 {readme.repoPath}
               </span>
               <div className="text-xs text-muted-foreground">
-                v{readme.version} ·{" "}
                 {readme.createdAt
                   ? formatDistanceToNow(new Date(readme.createdAt), {
                       addSuffix: true,

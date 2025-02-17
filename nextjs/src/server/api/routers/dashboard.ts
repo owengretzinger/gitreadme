@@ -30,7 +30,6 @@ export const dashboardRouter = createTRPCRouter({
     .input(z.object({
       id: z.string(),
       repoPath: z.string(),
-      version: z.number(),
     }))
     .mutation(async ({ ctx, input }) => {
       await ctx.db

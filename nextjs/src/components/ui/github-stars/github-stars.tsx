@@ -19,6 +19,7 @@ export const GithubStarsButton = ({
   return (
     <Link
       href={href}
+      target="_blank"
       className={cn(
         "group relative rounded-full bg-neutral-200 p-px dark:bg-neutral-800",
         className,

@@ -52,7 +52,6 @@ export class UnknownError implements GenerationError {
 //   error: null;
 //   data: {
 //     repoPath: string;
-//     version: number;
 //     id: string;
 //     userId: string | null;
 //     content: string;

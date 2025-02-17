@@ -1,30 +1,26 @@
 import { Card, CardContent } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
-import { Copy, Check, ExternalLink, History } from "lucide-react";
+import { Copy, Check, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 import { toast } from "~/hooks/use-toast";
 
 interface ReadmeInfoCardProps {
   repoPath: string;
-  version: number;
   createdAt: Date | null;
   permalink: string;
 }
 
 export function ReadmeInfoCard({
   repoPath,
-  version,
   createdAt,
   permalink,
 }: ReadmeInfoCardProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopyPermalink = async () => {
-    const url = new URL(permalink);
-    url.searchParams.set("v", version.toString());
     try {
-      await navigator.clipboard.writeText(url.toString());
+      await navigator.clipboard.writeText(permalink);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
@@ -79,15 +75,6 @@ export function ReadmeInfoCard({
             </div>
           </div>
           <div className="space-y-4">
-            <div>
-              <h2 className="text-sm font-medium text-muted-foreground">
-                Version
-              </h2>
-              <div className="flex items-center gap-2">
-                <History className="h-4 w-4 text-muted-foreground" />
-                <span>Version {version}</span>
-              </div>
-            </div>
             <div>
               <h2 className="text-sm font-medium text-muted-foreground">
                 Created

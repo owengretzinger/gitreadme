@@ -1,5 +1,5 @@
 import posthog from "posthog-js";
-import { type GenerationState } from "~/hooks/use-readme-form";
+import type { GenerationState } from "~/hooks/use-readme-helpers/use-readme-stream";
 
 export type ReadmeGenerationEvent = {
   repo_path: string;
@@ -8,13 +8,11 @@ export type ReadmeGenerationEvent = {
   has_uploaded_files: boolean;
   exclude_patterns: string[];
   generation_state: GenerationState;
-  version: number;
   time_taken?: number;
 };
 
 export type ReadmeViewEvent = {
   repo_path: string;
-  version: number;
   source: "dashboard" | "direct" | "shared";
   time_since_generation?: string;
 };
@@ -33,7 +31,8 @@ export type RateLimitEvent = {
 };
 
 export const trackReadmeGeneration = (event: ReadmeGenerationEvent) => {
-  const currentTotal = Number(posthog.get_property("total_readmes_generated")) || 0;
+  const currentTotal =
+    Number(posthog.get_property("total_readmes_generated")) || 0;
   posthog.capture("readme_generation", {
     ...event,
     $set: {
@@ -55,7 +54,10 @@ export const trackRateLimit = (event: RateLimitEvent) => {
   posthog.capture("rate_limit_reached", event);
 };
 
-export const trackDashboardView = (data: { total_readmes: number; generations_today: number }) => {
+export const trackDashboardView = (data: {
+  total_readmes: number;
+  generations_today: number;
+}) => {
   posthog.capture("dashboard_view", data);
 };
 
@@ -66,4 +68,4 @@ export const trackGenerationError = (error: {
   details?: Record<string, unknown>;
 }) => {
   posthog.capture("generation_error", error);
-}; 
+};

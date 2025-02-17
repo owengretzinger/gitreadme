@@ -3,7 +3,7 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { generateReadmeWithAIStream } from "~/utils/vertex-ai";
 import { packRepository } from "~/utils/api-client";
 import { generatedReadmes } from "~/server/db/schema";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { incrementRateLimit, refundRateLimit } from "../rate-limit";
 import {
   createServerError,
@@ -30,19 +30,6 @@ export const readmeRouter = createTRPCRouter({
     );
   }),
 
-  getNextVersion: publicProcedure
-    .input(z.object({ repoPath: z.string() }))
-    .mutation(async ({ input, ctx }) => {
-      const latestVersion = await ctx.db.query.generatedReadmes.findFirst({
-        where: eq(generatedReadmes.repoPath, input.repoPath.toLowerCase()),
-        orderBy: (generatedReadmes, { desc }) => [
-          desc(generatedReadmes.version),
-        ],
-      });
-      console.log("Latest version:", latestVersion?.version);
-      return latestVersion ? latestVersion.version + 1 : 1;
-    }),
-
   generateReadmeStream: publicProcedure
     .input(
       z.object({
@@ -51,7 +38,6 @@ export const readmeRouter = createTRPCRouter({
         additionalContext: z.string(),
         files: z.array(FileDataSchema).optional(),
         excludePatterns: z.array(z.string()).optional(),
-        version: z.number(),
       }),
     )
     .mutation(async function* ({ ctx, input }) {
@@ -114,13 +100,26 @@ export const readmeRouter = createTRPCRouter({
           yield "AI:" + chunk;
         }
 
-        // Store the generated README in the database
-        await db.insert(generatedReadmes).values({
-          repoPath: new URL(input.repoUrl).pathname.replace(/^\//, "").toLowerCase(),
-          version: input.version,
-          content: generatedContent,
-          userId: session?.user.id,
-        });
+        // Store or update the generated README in the database
+        const repoPath = new URL(input.repoUrl).pathname
+          .replace(/^\//, "")
+          .toLowerCase();
+
+        await db
+          .insert(generatedReadmes)
+          .values({
+            repoPath,
+            content: generatedContent,
+            userId: session?.user.id,
+          })
+          .onConflictDoUpdate({
+            target: generatedReadmes.repoPath,
+            set: {
+              content: generatedContent,
+              userId: session?.user.id,
+              updatedAt: new Date(),
+            },
+          });
 
         yield "DONE";
         return;
@@ -144,32 +143,14 @@ export const readmeRouter = createTRPCRouter({
     .input(
       z.object({
         repoPath: z.string(),
-        version: z.number().optional(),
       }),
     )
     .query(async ({ input, ctx }) => {
       const normalizedRepoPath = input.repoPath.toLowerCase();
       const readme = await ctx.db.query.generatedReadmes.findFirst({
-        where: input.version
-          ? and(
-              eq(generatedReadmes.repoPath, normalizedRepoPath),
-              eq(generatedReadmes.version, input.version),
-            )
-          : eq(generatedReadmes.repoPath, normalizedRepoPath),
-        orderBy: !input.version
-          ? (generatedReadmes, { desc }) => [desc(generatedReadmes.version)]
-          : undefined,
-      });
-      return readme ?? null;
-    }),
-
-  getMostRecentVersion: publicProcedure
-    .input(z.object({ repoPath: z.string() }))
-    .query(async ({ input, ctx }) => {
-      const readme = await ctx.db.query.generatedReadmes.findFirst({
-        where: eq(generatedReadmes.repoPath, input.repoPath.toLowerCase()),
+        where: eq(generatedReadmes.repoPath, normalizedRepoPath),
         orderBy: (generatedReadmes, { desc }) => [
-          desc(generatedReadmes.version),
+          desc(generatedReadmes.createdAt),
         ],
       });
       return readme ?? null;

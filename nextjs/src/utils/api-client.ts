@@ -171,6 +171,26 @@ export async function packRepository(
             };
             return errorResponse;
           }
+
+          // Handle timeout errors specifically
+          if (
+            typeof jsonError === "object" &&
+            jsonError !== null &&
+            "type" in jsonError &&
+            jsonError.type === "AsyncTimeoutError" &&
+            "error" in jsonError &&
+            typeof jsonError.error === "string" &&
+            jsonError.error.includes("Operation timed out")
+          ) {
+            const errorResponse: PackRepositoryErrorResponse = {
+              success: false,
+              error: createServerError(
+                "The repository is taking too long to process. This usually happens with a poor network connection or a large repository. Try excluding more files or try again later.",
+                response.status,
+              ),
+            };
+            return errorResponse;
+          }
         } catch {
           // If JSON parsing fails, treat as regular server error
         }

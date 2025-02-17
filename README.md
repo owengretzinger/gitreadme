@@ -68,9 +68,10 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] When generating a readme it should put the version in the query params
 - [ ] Fix bug where error shows for a split second on the view readme page before redirecting
 - [ ] Not refetching stuff when clicking logo in nav instead of back button
+- [ ] Make repo packer internal server more descriptive
+- [ ] Make pen in logo orange instead of yellow, make background lighter in favicon
 - [ ] New font
 - [ ] Improve generated README page UI
 - [ ] Add FAQ

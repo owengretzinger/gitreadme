@@ -38,7 +38,7 @@ export function Dashboard() {
       void utils.dashboard.getUserData.invalidate();
       toast({
         title: "README deleted",
-        description: `${variables.repoPath} version ${variables.version} was deleted successfully`,
+        description: `${variables.repoPath} was deleted successfully`,
       });
     },
     onError: () => {
@@ -65,19 +65,16 @@ export function Dashboard() {
   const handleDelete = (
     id: string,
     repoPath: string,
-    version: number,
     e: React.MouseEvent,
   ) => {
     e.preventDefault();
     e.stopPropagation();
-    deleteReadme.mutate({ id, repoPath, version });
+    deleteReadme.mutate({ id, repoPath });
   };
 
   const filteredReadmes = data.readmes.filter(
     (readme) =>
-      readme.repoPath.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ("v" + readme.version.toString()).includes(searchQuery) ||
-      readme.version.toString().includes(searchQuery),
+      readme.repoPath.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -105,7 +102,7 @@ export function Dashboard() {
           filteredReadmes.map((readme: GeneratedReadme) => (
             <Link
               key={readme.id}
-              href={`/${readme.repoPath}?v=${readme.version}`}
+              href={`/${readme.repoPath}`}
               className="group"
             >
               <Card className="transition-colors hover:bg-accent/50">
@@ -115,7 +112,6 @@ export function Dashboard() {
                       {readme.repoPath}
                     </span>
                     <div className="text-xs text-muted-foreground">
-                      v{readme.version} ·{" "}
                       {readme.createdAt
                         ? formatDistanceToNow(new Date(readme.createdAt), {
                             addSuffix: true,
@@ -131,7 +127,6 @@ export function Dashboard() {
                       handleDelete(
                         readme.id,
                         readme.repoPath,
-                        readme.version,
                         e,
                       )
                     }

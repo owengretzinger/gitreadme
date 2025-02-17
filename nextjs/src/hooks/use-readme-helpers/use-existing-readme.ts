@@ -4,7 +4,6 @@ import { GenerationState } from "./use-readme-stream";
 
 interface UseExistingReadmeProps {
   repoPath: string | undefined;
-  version: number | null;
   readmeContent: string;
   generationState: GenerationState;
   setReadmeContent: (content: string) => void;
@@ -12,7 +11,6 @@ interface UseExistingReadmeProps {
 
 export const useExistingReadme = ({
   repoPath,
-  version,
   readmeContent,
   generationState,
   setReadmeContent,
@@ -22,7 +20,6 @@ export const useExistingReadme = ({
     api.readme.getByRepoPath.useQuery(
       {
         repoPath: repoPath ?? "",
-        version: version ?? undefined,
       },
       {
         enabled:
@@ -43,4 +40,4 @@ export const useExistingReadme = ({
     existingReadme,
     isLoadingExistingReadme,
   };
-}; 
+};

@@ -1,19 +1,15 @@
 import { useRouter } from "next/navigation";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { api } from "~/trpc/react";
 import { ErrorType } from "~/types/errors";
 import { type UseFormReturn } from "react-hook-form";
 import { type ReadmeFormData, formSchema } from "./types";
 import { useReadmeStream } from "./use-readme-stream";
 
-export const useReadmeGeneration = (
-  form: UseFormReturn<ReadmeFormData>,
-  getRepoPath: () => string | undefined,
-) => {
+export const useReadmeGeneration = (form: UseFormReturn<ReadmeFormData>) => {
   const router = useRouter();
   const utils = api.useUtils();
   const queryClient = useQueryClient();
-  const versionKey = ["readmeVersion"] as const;
   const contentKey = ["readmeContent"] as const;
 
   const {
@@ -27,15 +23,6 @@ export const useReadmeGeneration = (
     setReadmeGenerationError,
   } = useReadmeStream();
 
-  const { data: version = null } = useQuery({
-    queryKey: versionKey,
-    queryFn: () => null as number | null,
-    enabled: false,
-  });
-
-  const setVersion = (version: number | null) =>
-    queryClient.setQueryData(versionKey, version);
-
   const setReadmeContent = (content: string) =>
     queryClient.setQueryData(contentKey, content);
 
@@ -44,9 +31,6 @@ export const useReadmeGeneration = (
     refetchOnWindowFocus: true,
     refetchOnMount: true,
   });
-
-  // Add mutation to get next version
-  const getNextVersion = api.readme.getNextVersion.useMutation();
 
   const generateReadme = async () => {
     const values = form.getValues();
@@ -104,22 +88,12 @@ export const useReadmeGeneration = (
       const repoPath = values.repoUrl.split("github.com/")[1];
       router.push(`/${repoPath}`);
 
-      // Start these operations in parallel but don't block on them
-      void getNextVersion
-        .mutateAsync({
-          repoPath: getRepoPath()!,
-        })
-        .then((nextVersion) => {
-          setVersion(nextVersion);
-          // Start streaming with the version
-          return generateReadmeStream.mutateAsync({
-            repoUrl: values.repoUrl,
-            templateContent: values.templateContent,
-            additionalContext: values.additionalContext,
-            excludePatterns: values.excludePatterns,
-            version: nextVersion,
-          });
-        });
+      return generateReadmeStream.mutateAsync({
+        repoUrl: values.repoUrl,
+        templateContent: values.templateContent,
+        additionalContext: values.additionalContext,
+        excludePatterns: values.excludePatterns,
+      });
     } catch (error) {
       console.error(error);
       // Rate limit will be refunded by the server if needed
@@ -135,8 +109,6 @@ export const useReadmeGeneration = (
     errorModalOpen,
     setErrorModalOpen,
     rateLimitInfo,
-    version,
-    setVersion,
     setReadmeContent,
     setGenerationState,
     setReadmeGenerationError,
