@@ -17,6 +17,7 @@ interface MarkdownDisplayProps {
     icon: LucideIcon;
     onClick: () => void;
     showInMode?: ViewMode;
+    text?: string;
   }>;
   className?: string;
   contentClassName?: string;
@@ -64,7 +65,7 @@ export function MarkdownDisplay({
         description ??
         visibleActions.length > 0 ??
         showViewModeToggle) && (
-        <div className="mb-4 gap-3 md:gap-0 flex flex-col md:flex-row md:items-center justify-between">
+        <div className="mb-4 flex flex-col justify-between gap-3 md:flex-row md:items-center md:gap-0">
           <div>
             {title && <h3 className="text-lg font-semibold">{title}</h3>}
             {description && (
@@ -73,7 +74,7 @@ export function MarkdownDisplay({
           </div>
           <div className="flex items-center gap-2">
             {isGenerating && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mr-4 font-medium">
+              <div className="mr-4 flex items-center gap-2 text-sm font-medium text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span>Streaming response</span>
               </div>
@@ -86,6 +87,7 @@ export function MarkdownDisplay({
                 key={index}
                 onClick={action.onClick}
                 icon={<action.icon className="h-4 w-4" />}
+                text={action.text}
               />
             ))}
           </div>

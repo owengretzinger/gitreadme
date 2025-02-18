@@ -1,9 +1,8 @@
-import { Card, CardContent } from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
-import { Copy, Check, ExternalLink } from "lucide-react";
+import { Link as LinkIcon, Check, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 import { toast } from "~/hooks/use-toast";
+import Link from "next/link";
 
 interface ReadmeInfoCardProps {
   repoPath: string;
@@ -33,61 +32,36 @@ export function ReadmeInfoCard({
   };
 
   return (
-    <Card className="mb-4">
-      <CardContent className="pt-6">
-        <div className="flex flex-col gap-6 md:grid md:grid-cols-2">
-          <div className="space-y-4">
-            <div>
-              <h2 className="text-sm font-medium text-muted-foreground">
-                Repository
-              </h2>
-              <div className="flex items-center gap-2">
-                <span>{repoPath}</span>
-                <a
-                  href={`https://github.com/${repoPath}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-              </div>
-            </div>
-            <div className="">
-              <h2 className="text-sm font-medium text-muted-foreground">
-                Permalink
-              </h2>
-              <div className="flex items-center gap-2">
-                <span className="max-w-full truncate">{permalink}</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCopyPermalink}
-                  className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
-                >
-                  {copied ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <h2 className="text-sm font-medium text-muted-foreground">
-                Created
-              </h2>
-              <p>
-                {createdAt
-                  ? format(new Date(createdAt), "MMMM d, yyyy 'at' h:mm a")
-                  : "Unknown"}
-              </p>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="flex flex-col gap-2 border-b pb-6">
+      <div className="flex flex-col gap-1">
+        <time className="block text-sm text-muted-foreground">
+          {createdAt
+            ? format(new Date(createdAt), "MMMM d, yyyy 'at' h:mm a")
+            : "Unknown"}
+        </time>
+
+        <Link
+          href={`https://github.com/${repoPath}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group flex items-center gap-2"
+        >
+          <h1 className="text-2xl font-semibold tracking-tight">{repoPath}</h1>
+          <ExternalLink className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-foreground" />
+        </Link>
+      </div>
+
+      <button
+        onClick={handleCopyPermalink}
+        className="group flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        {copied ? (
+          <Check className="h-4 w-4" />
+        ) : (
+          <LinkIcon className="h-4 w-4" />
+        )}
+        <span className="truncate">{permalink}</span>
+      </button>
+    </div>
   );
 }

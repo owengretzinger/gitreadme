@@ -37,6 +37,7 @@ export function GeneratedReadme({
         {
           icon: isCopied ? Check : Copy,
           onClick: handleCopy,
+          text: isCopied ? "Copied" : "Copy",
         },
       ]}
       className={cn(

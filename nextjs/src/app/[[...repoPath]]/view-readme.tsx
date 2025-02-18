@@ -48,18 +48,16 @@ export default function ViewReadme({
   );
 
   return (
-    <div className="">
-      <h1 className="mb-4 text-4xl font-bold">README Generator</h1>
-
-      <div className="mb-4">
+    <div className="mx-auto max-w-4xl flex flex-col gap-5">
+      <div className="">
         <Button
-          variant="ghost"
+          variant="link"
           onClick={async () => {
             setReadmeContent("");
             setReadmeGenerationState(GenerationState.NOT_STARTED);
             router.push("/");
           }}
-          className="gap-2"
+          className="gap-2 p-0"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to settings
