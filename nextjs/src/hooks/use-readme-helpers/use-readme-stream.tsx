@@ -199,6 +199,7 @@ const useStreamHandlers = (state: ReturnType<typeof useGenerationState>) => {
 export const useReadmeStream = () => {
   const state = useGenerationState();
   const { handleError, handleStreamChunk } = useStreamHandlers(state);
+  const utils = api.useUtils();
 
   const generateReadmeStream = api.readme.generateReadmeStream.useMutation({
     onMutate: () => {
@@ -232,10 +233,14 @@ export const useReadmeStream = () => {
           toast({
             description: "README generated successfully!",
           });
+          await utils.readme.getRecentReadmes.invalidate();
         }
-      } catch (error) {
-        console.error("Stream error:", error);
-        handleError(error as ApiErrorResponse);
+      } catch (err: unknown) {
+        console.error("Stream error:", err);
+        handleError({
+          type: ErrorType.UNKNOWN,
+          message: err instanceof Error ? err.message : "An unknown error occurred",
+        });
       }
     },
     onError: (error) => {

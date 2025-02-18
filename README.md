@@ -72,7 +72,6 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 - [ ] Optimize mobile nav
 - [ ] Fix inputted text overlapping with generate button on mobile
 - [ ] Fix New README button overlapping with header on mobile dashboard
-- [ ] Not refetching stuff when clicking logo in nav instead of back button
 - [ ] Make repo packer internal server more descriptive
 - [ ] Make pen in logo orange instead of yellow, make background lighter in favicon
 - [ ] Save to DB when editing generated README
