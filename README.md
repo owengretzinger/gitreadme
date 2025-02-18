@@ -72,8 +72,8 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 - [ ] Not refetching stuff when clicking logo in nav instead of back button
 - [ ] Make repo packer internal server more descriptive
 - [ ] Make pen in logo orange instead of yellow, make background lighter in favicon
+- [ ] Save to DB when editing generated README
 - [ ] New font
-- [ ] Improve generated README page UI
 - [ ] Add FAQ
 - [ ] Get a domain name
 - [ ] Film demo video

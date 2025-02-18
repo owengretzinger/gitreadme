@@ -48,7 +48,7 @@ export default function ViewReadme({
   );
 
   return (
-    <div className="mx-auto max-w-4xl flex flex-col gap-5">
+    <div className="mx-auto flex max-w-3xl flex-col gap-5">
       <div className="">
         <Button
           variant="link"
@@ -91,7 +91,7 @@ export default function ViewReadme({
             permalink={`${typeof window !== "undefined" ? window.location.origin : ""}/${getRepoPath()}`}
           />
           <GeneratedReadme
-            content={readmeContent}
+            initialContent={readmeContent}
             generationState={readmeGenerationState}
           />
         </>

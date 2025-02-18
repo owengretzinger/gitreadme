@@ -1,8 +1,6 @@
 import { Dialog, DialogContent, DialogTitle } from "~/components/ui/dialog";
 import { TemplateSelection } from "../template-selection";
-import { TemplatePreview } from "../template-preview";
-import { type ViewMode } from "~/components/view-mode-toggle";
-import { useState } from "react";
+import { MarkdownEditor } from "~/components/markdown-editor";
 
 interface TemplateModalProps {
   open: boolean;
@@ -21,8 +19,6 @@ export function TemplateModal({
   templateContent,
   onTemplateContentChange,
 }: TemplateModalProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>("edit");
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="h-[90%] min-w-[90%] gap-6 overflow-y-auto">
@@ -35,11 +31,11 @@ export function TemplateModal({
             />
           </div>
           <div className="pt-6 md:pl-6 md:pt-0">
-            <TemplatePreview
-              templateContent={templateContent}
-              viewMode={viewMode}
-              setViewMode={setViewMode}
-              onTemplateContentChange={onTemplateContentChange}
+            <MarkdownEditor
+              content={templateContent}
+              onChange={onTemplateContentChange}
+              minHeight="500px"
+              contentClassName="w-full"
             />
           </div>
         </div>

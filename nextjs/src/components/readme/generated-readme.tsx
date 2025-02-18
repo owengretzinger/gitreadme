@@ -1,49 +1,28 @@
-import { type ViewMode } from "~/components/view-mode-toggle";
-import { Copy, Check } from "lucide-react";
-import { useState, useCallback } from "react";
-import { MarkdownDisplay } from "~/components/markdown-display";
-import { cn } from "~/lib/utils";
+import { MarkdownEditor } from "~/components/markdown-editor";
 import { GenerationState } from "~/hooks/use-readme-helpers/use-readme-stream";
+import { useEffect, useState } from "react";
 
 interface GeneratedReadmeProps {
-  content: string | null;
+  initialContent: string | null;
   generationState: GenerationState;
 }
 
 export function GeneratedReadme({
-  content,
+  initialContent,
   generationState,
 }: GeneratedReadmeProps) {
-  const [isCopied, setIsCopied] = useState(false);
-  const [viewMode, setViewMode] = useState<ViewMode>("preview");
+  const [content, setContent] = useState(initialContent ?? "");
 
-  const handleCopy = useCallback(() => {
-    if (!content) return;
-    void navigator.clipboard.writeText(content).then(() => {
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    });
-  }, [content]);
+  useEffect(() => {
+    setContent(initialContent ?? "");
+  }, [initialContent]);
 
   return (
-    <MarkdownDisplay
-      title="Generated README"
-      description="Review and customize your generated README"
-      content={content ?? ""}
-      viewMode={viewMode}
-      setViewMode={setViewMode}
-      showViewModeToggle
-      actions={[
-        {
-          icon: isCopied ? Check : Copy,
-          onClick: handleCopy,
-          text: isCopied ? "Copied" : "Copy",
-        },
-      ]}
-      className={cn(
-        "min-h-[600px]",
-        generationState === GenerationState.STREAMING && "border-primary",
-      )}
+    <MarkdownEditor
+      content={content}
+      onChange={(value) => setContent(value)}
+      showCopyButton
+      minHeight="600px"
       isGenerating={
         generationState !== GenerationState.NOT_STARTED &&
         generationState !== GenerationState.COMPLETED
