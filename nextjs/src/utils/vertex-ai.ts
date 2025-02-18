@@ -100,9 +100,9 @@ export async function* generateReadmeWithAIStream(
 
       CRITICAL REQUIREMENTS:
       - Follow the template structure exactly
-      - Replace logos with this placeholder: https://github.com/user-attachments/assets/0ae1b6d5-1a62-4b41-b2c7-c595a0460497
-      - Replace demo videos with this placeholder: https://github.com/user-attachments/assets/3b6baea2-cb25-4670-86b8-094d69d2bf83
-      - Replace images with this placeholder: https://github.com/user-attachments/assets/79d3c0f6-21b6-413b-9f30-5117c6b60e7d
+      - Unless indicated otherwise, replace logos with this placeholder: https://github.com/user-attachments/assets/0ae1b6d5-1a62-4b41-b2c7-c595a0460497
+      - Replace videos with this placeholder: https://github.com/user-attachments/assets/f45c9ee9-ad2f-40f4-bb60-e9bbd1472c45
+      - Replace images with this placeholder: https://github.com/user-attachments/assets/721b7fb3-e480-4809-9023-fd48b82b1f8c
       - Keep any HTML tags and attributes from the template
       - Carefully analyze the repository contents to accurately describe the project
       - Wrap your response in \`\`\`md tags.
