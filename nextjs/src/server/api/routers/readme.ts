@@ -47,7 +47,10 @@ export const readmeRouter = createTRPCRouter({
         ctx.headers.get("x-real-ip") ??
         null;
 
-      console.log("Starting streaming README generation for:", input.repoUrl);
+      console.log(
+        "Starting streaming README generation for:",
+        input.repoUrl + "...",
+      );
       let generatedContent = "";
 
       try {

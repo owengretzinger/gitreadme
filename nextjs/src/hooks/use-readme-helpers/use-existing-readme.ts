@@ -33,11 +33,21 @@ export const useExistingReadme = ({
 
   // Set the content from the database if it exists
   useEffect(() => {
-    if (existingReadme && !readmeContent) {
+    if (
+      existingReadme &&
+      !readmeContent &&
+      generationState === GenerationState.NOT_STARTED
+    ) {
       setReadmeContent(existingReadme.content);
       setGenerationState(GenerationState.COMPLETED);
     }
-  }, [existingReadme, readmeContent, setGenerationState, setReadmeContent]);
+  }, [
+    existingReadme,
+    readmeContent,
+    generationState,
+    setGenerationState,
+    setReadmeContent,
+  ]);
 
   return {
     existingReadme,

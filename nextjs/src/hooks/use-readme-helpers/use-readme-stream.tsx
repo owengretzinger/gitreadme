@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { toast } from "~/hooks/use-toast";
 import { api } from "~/trpc/react";
 import { ErrorType, type ApiErrorResponse } from "~/types/errors";
@@ -145,8 +144,6 @@ const useStreamHandlers = (state: ReturnType<typeof useGenerationState>) => {
     rawChunk: string,
     hasStartedStreaming: boolean,
   ): Promise<{ hasStartedStreaming: boolean; hasError: boolean }> => {
-    console.log("Received chunk:", rawChunk);
-
     const chunk =
       rawChunk === "DONE_PACKING"
         ? { type: "STATUS_UPDATE" as const }
@@ -161,30 +158,23 @@ const useStreamHandlers = (state: ReturnType<typeof useGenerationState>) => {
             ? { type: "README_STREAM" as const, content: rawChunk.slice(3) }
             : { type: "UNKNOWN" as const, rawChunk };
 
-    console.log("Processed chunk:", chunk);
-
     switch (chunk.type) {
       case "STATUS_UPDATE":
-        console.log("Status update, setting state to WAITING_FOR_AI");
         state.setState(GenerationState.WAITING_FOR_AI);
         break;
 
       case "ERROR":
-        console.log("Error chunk received:", chunk.error);
         handleError(chunk.error);
         return { hasStartedStreaming, hasError: true };
 
       case "README_STREAM":
         if (!hasStartedStreaming) {
-          console.log("First content chunk, setting state to STREAMING");
           state.setState(GenerationState.STREAMING);
         }
-        console.log("Adding content:", chunk.content);
         state.setContent((prev: string | null) => (prev ?? "") + chunk.content);
         return { hasStartedStreaming: true, hasError: false };
 
       case "UNKNOWN":
-        console.log("Unknown chunk type:", chunk.rawChunk);
         break;
     }
     return { hasStartedStreaming, hasError: false };
@@ -203,7 +193,6 @@ export const useReadmeStream = () => {
 
   const generateReadmeStream = api.readme.generateReadmeStream.useMutation({
     onMutate: () => {
-      console.log("Stream mutation starting");
       state.setState(GenerationState.CONTACTING_SERVER);
       state.setContent("");
       state.setError(null);
@@ -211,7 +200,6 @@ export const useReadmeStream = () => {
     },
     async onSuccess(stream) {
       try {
-        console.log("Stream started, current state:", state.generationState);
         state.setState(GenerationState.PACKING_REPOSITORY);
         let hasStartedStreaming = false;
         let hasError = false;
@@ -224,11 +212,7 @@ export const useReadmeStream = () => {
           }
         }
 
-        console.log("Stream complete, state:", state.generationState);
-        console.log("Stream complete, error:", state.error);
-
         if (!hasError) {
-          console.log("Stream complete, setting state to COMPLETED");
           state.setState(GenerationState.COMPLETED);
           toast({
             description: "README generated successfully!",
@@ -252,12 +236,6 @@ export const useReadmeStream = () => {
       });
     },
   });
-
-  useEffect(() => {
-    console.log("readmeContent", state.readmeContent);
-    console.log("generationState", state.generationState);
-    console.log("error", state.error);
-  }, [state.readmeContent, state.generationState, state.error]);
 
   return {
     generationState: state.generationState,

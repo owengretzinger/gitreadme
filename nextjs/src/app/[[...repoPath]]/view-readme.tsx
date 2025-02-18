@@ -7,6 +7,7 @@ import { api } from "~/trpc/react";
 import { LoadingSteps } from "~/components/readme/loading-steps";
 import { GenerationState } from "../../hooks/use-readme-helpers/use-readme-stream";
 import Link from "next/link";
+import { useEffect } from "react";
 
 const GENERATION_STEPS = [
   {
@@ -42,6 +43,10 @@ export default function ViewReadme({
     },
   );
 
+  useEffect(() => {
+    console.log("readmeGenerationState", readmeGenerationState);
+  }, [readmeGenerationState]);
+
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-5">
       <div className="">
@@ -55,7 +60,8 @@ export default function ViewReadme({
         </Button>
       </div>
 
-      {isLoadingExistingReadme ? (
+      {isLoadingExistingReadme &&
+      readmeGenerationState !== GenerationState.CONTACTING_SERVER ? (
         <LoadingSteps
           steps={["Loading Existing README"]}
           currentStep={"Loading Existing README"}

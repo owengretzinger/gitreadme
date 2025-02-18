@@ -22,7 +22,6 @@ export default function PreviewGithubStars() {
           return;
         }
         const data = (await response.json()) as GitHubRepoResponse;
-        console.log("Stars:", data.stargazers_count);
         setStars(data.stargazers_count);
       } catch (error) {
         console.error("Error fetching stars:", error);
