@@ -12,6 +12,7 @@ export function GeneratedReadme({
   generationState,
 }: GeneratedReadmeProps) {
   const [content, setContent] = useState(initialContent ?? "");
+  const [hasBeenEdited, setHasBeenEdited] = useState(false);
 
   useEffect(() => {
     setContent(initialContent ?? "");
@@ -20,13 +21,17 @@ export function GeneratedReadme({
   return (
     <MarkdownEditor
       content={content}
-      onChange={(value) => setContent(value)}
+      onChange={(value) => {
+        setContent(value);
+        setHasBeenEdited(true);
+      }}
       showCopyButton
       minHeight="600px"
       isGenerating={
         generationState !== GenerationState.NOT_STARTED &&
         generationState !== GenerationState.COMPLETED
       }
+      showHasBeenEdited={hasBeenEdited}
     />
   );
 }

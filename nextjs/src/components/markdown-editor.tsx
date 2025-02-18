@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback, useState } from "react";
 import { ViewModeToggle, type ViewMode } from "~/components/view-mode-toggle";
 import { Textarea } from "~/components/ui/textarea";
-import { Check, Copy, Loader2 } from "lucide-react";
+import { Check, CircleAlert, Copy, Loader2 } from "lucide-react";
 import { cn } from "~/lib/utils";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
@@ -15,6 +15,7 @@ interface MarkdownEditorProps {
   isGenerating?: boolean;
   showCopyButton?: boolean;
   minHeight?: string;
+  showHasBeenEdited?: boolean;
 }
 
 export function MarkdownEditor({
@@ -25,6 +26,7 @@ export function MarkdownEditor({
   isGenerating = false,
   showCopyButton = false,
   minHeight,
+  showHasBeenEdited = false,
 }: MarkdownEditorProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("preview");
   const [isCopied, setIsCopied] = useState(false);
@@ -55,13 +57,19 @@ export function MarkdownEditor({
   return (
     <div className={cn(className, minHeight && `min-h-[${minHeight}]`)}>
       <div className="mb-4 flex items-center justify-between">
-        <div className="flex w-full items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+        <div className="flex w-full items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
             <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
             {isGenerating && (
               <div className="mr-4 flex items-center gap-2 text-sm font-medium text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span>Streaming response</span>
+              </div>
+            )}
+            {showHasBeenEdited && (
+              <div className="mr-4 flex items-center gap-2 text-sm text-muted-foreground">
+                <CircleAlert className="h-4 w-4" />
+                <span>Changes do not save to database</span>
               </div>
             )}
           </div>
