@@ -68,13 +68,13 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] Optimize mobile nav
 - [ ] Fix inputted text overlapping with generate button on mobile
 - [ ] Fix New README button overlapping with header on mobile dashboard
 - [ ] Make repo packer internal server more descriptive
 - [ ] Change GitHub link icon to GitHub logo
 - [ ] Make pen in logo orange instead of yellow, make background lighter in favicon
 - [ ] Save to DB when editing generated README
+- [ ] Improve mobile nav (star not showing up ?)
 - [ ] New font
 - [ ] Add FAQ
 - [ ] Get a domain name

@@ -34,7 +34,7 @@ export function MobileNav({ links, session }: MobileNavProps) {
           <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+      <SheetContent side="right" className="w-[300px] sm:w-[400px]" aria-describedby={undefined}>
         <SheetHeader>
           <SheetTitle>Menu</SheetTitle>
         </SheetHeader>
@@ -48,7 +48,7 @@ export function MobileNav({ links, session }: MobileNavProps) {
               {link.label}
             </Link>
           ))}
-          <div className="mt-4">
+          <div className="">
             <NavButtons session={session} />
           </div>
         </div>
