@@ -68,9 +68,10 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] Fix inputted text overlapping with generate button on mobile
+- [ ] Fix generation states
 - [ ] Fix New README button overlapping with header on mobile dashboard
 - [ ] Make repo packer internal server more descriptive
+- [ ] Add inline code block formatting
 - [ ] Change GitHub link icon to GitHub logo
 - [ ] Make pen in logo orange instead of yellow, make background lighter in favicon
 - [ ] Save to DB when editing generated README

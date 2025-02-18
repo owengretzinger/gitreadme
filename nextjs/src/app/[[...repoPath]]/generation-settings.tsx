@@ -100,7 +100,7 @@ export default function GenerationSettings({
               <Input
                 placeholder="https://github.com/username/repo"
                 className={cn(
-                  "rounded-2xl pb-28 pl-4 pt-6",
+                  "rounded-2xl pb-28 pl-4 pr-[52px] pt-7",
                   formState.errors.repoUrl && "border-red-500",
                 )}
                 {...repoRegister}

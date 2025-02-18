@@ -150,7 +150,7 @@ export const readmeRouter = createTRPCRouter({
       const readme = await ctx.db.query.generatedReadmes.findFirst({
         where: eq(generatedReadmes.repoPath, normalizedRepoPath),
         orderBy: (generatedReadmes, { desc }) => [
-          desc(generatedReadmes.createdAt),
+          desc(generatedReadmes.updatedAt),
         ],
       });
       return readme ?? null;
@@ -160,7 +160,7 @@ export const readmeRouter = createTRPCRouter({
     const readmes = await ctx.db.query.generatedReadmes.findMany({
       where: eq(generatedReadmes.userId, ctx.session?.user.id ?? ""),
       orderBy: (generatedReadmes, { desc }) => [
-        desc(generatedReadmes.createdAt),
+        desc(generatedReadmes.updatedAt),
       ],
       limit: 6,
     });

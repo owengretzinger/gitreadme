@@ -9,7 +9,7 @@ export const dashboardRouter = createTRPCRouter({
       // Get user's generated READMEs
       ctx.db.query.generatedReadmes.findMany({
         where: eq(generatedReadmes.userId, ctx.session.user.id),
-        orderBy: [desc(generatedReadmes.createdAt)],
+        orderBy: [desc(generatedReadmes.updatedAt)],
       }),
       // Get user's generation limits/usage
       ctx.db.query.generationLimits.findFirst({
@@ -21,7 +21,7 @@ export const dashboardRouter = createTRPCRouter({
       readmes,
       usageData: {
         generationsToday: usageData?.count ?? 0,
-        lastGenerated: readmes[0]?.createdAt ?? null,
+        lastGenerated: readmes[0]?.updatedAt ?? null,
       },
     };
   }),
