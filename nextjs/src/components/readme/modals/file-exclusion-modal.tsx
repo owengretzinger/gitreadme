@@ -13,7 +13,7 @@ import type { ApiErrorResponse } from "~/types/errors";
 interface FileExclusionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  largeFiles: Array<{ path: string; size_kb: number }>;
+  largeFiles: Array<{ path: string; tokens: number }>;
   onExclude: (paths: string[]) => void;
   excludePatterns: string[];
   generationError: ApiErrorResponse | null;
@@ -121,7 +121,7 @@ export function FileExclusionModal({
                     >
                       <span className="font-mono">{file.path}</span>
                       <span className="text-muted-foreground">
-                        {file.size_kb.toFixed(1)} KB
+                        {file.tokens.toLocaleString()} tokens
                       </span>
                     </label>
                   </div>

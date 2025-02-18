@@ -31,7 +31,6 @@ export default function ViewReadme({
   getRepoPath,
   readmeGenerationState,
   readmeContent,
-  readmeGenerationError,
   isLoadingExistingReadme,
 }: ReturnType<typeof useReadme>) {
   const { data: readmeInfo } = api.readme.getByRepoPath.useQuery(
@@ -56,17 +55,15 @@ export default function ViewReadme({
         </Button>
       </div>
 
-      {readmeGenerationError ? (
-        <div className="text-red-500">{readmeGenerationError.message}</div>
-      ) : isLoadingExistingReadme &&
-        readmeGenerationState === GenerationState.NOT_STARTED ? (
+      {isLoadingExistingReadme ? (
         <LoadingSteps
           steps={["Loading Existing README"]}
           currentStep={"Loading Existing README"}
         />
       ) : readmeGenerationState === GenerationState.CONTACTING_SERVER ||
         readmeGenerationState === GenerationState.PACKING_REPOSITORY ||
-        readmeGenerationState === GenerationState.WAITING_FOR_AI ? (
+        readmeGenerationState === GenerationState.WAITING_FOR_AI ||
+        readmeGenerationState === GenerationState.NOT_STARTED ? (
         <LoadingSteps
           steps={GENERATION_STEPS.map((step) => step.label)}
           currentStep={

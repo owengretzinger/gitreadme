@@ -35,6 +35,7 @@ export const useReadme = () => {
     readmeContent,
     generationState,
     setReadmeContent,
+    setGenerationState,
   });
 
   return {

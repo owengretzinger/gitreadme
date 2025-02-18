@@ -41,8 +41,8 @@ export function RecentReadmes() {
                 {readme.repoPath}
               </span>
               <div className="text-xs text-muted-foreground">
-                {readme.createdAt
-                  ? formatDistanceToNow(new Date(readme.createdAt), {
+                {readme.updatedAt
+                  ? formatDistanceToNow(new Date(readme.updatedAt), {
                       addSuffix: true,
                     })
                   : "unknown time"}

@@ -135,7 +135,7 @@ const useStreamHandlers = (state: ReturnType<typeof useGenerationState>) => {
 
   const handleError = (error: ApiErrorResponse) => {
     console.log("Error handling:", error);
-    state.setState(GenerationState.COMPLETED);
+    state.setState(GenerationState.NOT_STARTED);
     state.setError(error);
     state.setErrorModalOpen(true);
     router.push("/");
@@ -239,7 +239,8 @@ export const useReadmeStream = () => {
         console.error("Stream error:", err);
         handleError({
           type: ErrorType.UNKNOWN,
-          message: err instanceof Error ? err.message : "An unknown error occurred",
+          message:
+            err instanceof Error ? err.message : "An unknown error occurred",
         });
       }
     },

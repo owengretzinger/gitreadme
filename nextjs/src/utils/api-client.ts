@@ -15,7 +15,7 @@ interface ApiResponse {
   content?: string;
   largest_files?: Array<{
     path: string;
-    size_kb: number;
+    tokens: number;
   }>;
 }
 
@@ -25,13 +25,13 @@ interface TokenLimitServerResponse {
   estimated_tokens: number;
   largest_files: Array<{
     path: string;
-    size_kb: number;
+    tokens: number;
   }>;
 }
 
 interface FileSize {
   path: string;
-  size_kb: number;
+  tokens: number;
 }
 
 function isFileSize(value: unknown): value is FileSize {
@@ -39,7 +39,7 @@ function isFileSize(value: unknown): value is FileSize {
     typeof value === "object" &&
     value !== null &&
     typeof (value as { path: string }).path === "string" &&
-    typeof (value as { size_kb: number }).size_kb === "number"
+    typeof (value as { tokens: number }).tokens === "number"
   );
 }
 

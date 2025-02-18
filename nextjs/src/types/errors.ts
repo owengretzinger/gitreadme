@@ -24,7 +24,7 @@ export interface TokenLimitErrorResponse extends BaseErrorResponse {
   type: ErrorType.TOKEN_LIMIT;
   files_analyzed: number;
   estimated_tokens: number;
-  largest_files: Array<{ path: string; size_kb: number }>;
+  largest_files: Array<{ path: string; tokens: number }>;
 }
 
 export interface ServerErrorResponse extends BaseErrorResponse {
@@ -63,10 +63,10 @@ export const createRateLimitError = (
 export const createTokenLimitError = (
   files_analyzed: number,
   estimated_tokens: number,
-  largest_files: Array<{ path: string; size_kb: number }>,
+  largest_files: Array<{ path: string; tokens: number }>,
 ): TokenLimitErrorResponse => ({
   type: ErrorType.TOKEN_LIMIT,
-  message: `The repository content is ${estimated_tokens.toLocaleString()} tokens, which exceeds the limit of ${(100000).toLocaleString()} tokens. Please exclude some files and try again.`,
+  message: `The repository content is ~${estimated_tokens.toLocaleString()} tokens, which exceeds the limit of ${(100000).toLocaleString()} tokens. Please exclude some files and try again.`,
   files_analyzed,
   estimated_tokens,
   largest_files,

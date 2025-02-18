@@ -68,11 +68,11 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] Fix bug where error shows for a split second on the view readme page before redirecting
 - [ ] Optimize mobile nav
 - [ ] Fix inputted text overlapping with generate button on mobile
 - [ ] Fix New README button overlapping with header on mobile dashboard
 - [ ] Make repo packer internal server more descriptive
+- [ ] Change GitHub link icon to GitHub logo
 - [ ] Make pen in logo orange instead of yellow, make background lighter in favicon
 - [ ] Save to DB when editing generated README
 - [ ] New font

@@ -4,3 +4,4 @@ gunicorn
 python-dotenv
 Flask-Limiter
 requests
+tiktoken

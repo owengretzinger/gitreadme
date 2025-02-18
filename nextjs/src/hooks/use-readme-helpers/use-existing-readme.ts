@@ -7,6 +7,7 @@ interface UseExistingReadmeProps {
   readmeContent: string;
   generationState: GenerationState;
   setReadmeContent: (content: string) => void;
+  setGenerationState: (state: GenerationState) => void;
 }
 
 export const useExistingReadme = ({
@@ -14,6 +15,7 @@ export const useExistingReadme = ({
   readmeContent,
   generationState,
   setReadmeContent,
+  setGenerationState,
 }: UseExistingReadmeProps) => {
   // Query to load existing README
   const { data: existingReadme, isLoading: isLoadingExistingReadme } =
@@ -33,8 +35,9 @@ export const useExistingReadme = ({
   useEffect(() => {
     if (existingReadme && !readmeContent) {
       setReadmeContent(existingReadme.content);
+      setGenerationState(GenerationState.COMPLETED);
     }
-  }, [existingReadme, readmeContent, setReadmeContent]);
+  }, [existingReadme, readmeContent, setGenerationState, setReadmeContent]);
 
   return {
     existingReadme,

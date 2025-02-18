@@ -7,6 +7,7 @@ import requests
 import os
 import sys
 import traceback
+import tiktoken
 
 # Load environment variables
 load_dotenv()
@@ -20,6 +21,9 @@ limiter = Limiter(
     default_limits=["5 per second", "100 per minute"],
     storage_uri="memory://",
 )
+
+# Initialize tokenizer
+tokenizer = tiktoken.get_encoding("cl100k_base")  # Using the same encoding as GPT-4
 
 try:
     from gitingest import ingest
@@ -81,12 +85,13 @@ def parse_content(content):
 
 
 def get_largest_files(files, n=10):
+    """Get the files with the most tokens using tiktoken for accurate counting."""
     largest_files = sorted(
-        [(path, len(content)) for path, content in files.items()],
+        [(path, len(tokenizer.encode(content))) for path, content in files.items()],
         key=lambda x: x[1],
         reverse=True,
     )[:n]
-    return [{"path": path, "size_kb": size / 1024} for path, size in largest_files]
+    return [{"path": path, "tokens": tokens} for path, tokens in largest_files]
 
 
 def check_repo_access(repo_url):
