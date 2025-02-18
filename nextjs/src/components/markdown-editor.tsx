@@ -5,6 +5,7 @@ import { Check, CircleAlert, Copy, Loader2 } from "lucide-react";
 import { cn } from "~/lib/utils";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
+import rehypeSlug from "rehype-slug";
 import { ActionButton } from "./action-button";
 
 interface MarkdownEditorProps {
@@ -31,6 +32,7 @@ export function MarkdownEditor({
   const [viewMode, setViewMode] = useState<ViewMode>("preview");
   const [isCopied, setIsCopied] = useState(false);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const handleCopy = useCallback(() => {
     if (!content) return;
@@ -53,6 +55,29 @@ export function MarkdownEditor({
       resizeTextarea();
     }
   }, [content, viewMode]);
+
+  // Handle hash changes and initial load
+  useEffect(() => {
+    const scrollToHash = () => {
+      const hash = window.location.hash;
+      if (hash && contentRef.current) {
+        const id = hash.replace("#", "");
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+    };
+
+    // Scroll on hash change
+    window.addEventListener("hashchange", scrollToHash);
+    // Scroll on initial load
+    scrollToHash();
+
+    return () => {
+      window.removeEventListener("hashchange", scrollToHash);
+    };
+  }, [content]); // Re-run when content changes
 
   return (
     <div className={cn(className, minHeight && `min-h-[${minHeight}]`)}>
@@ -104,12 +129,15 @@ export function MarkdownEditor({
         />
       ) : (
         <div
+          ref={contentRef}
           className={cn(
             "prose prose-sm max-w-none dark:prose-invert",
             contentClassName,
           )}
         >
-          <ReactMarkdown rehypePlugins={[rehypeRaw]}>{content}</ReactMarkdown>
+          <ReactMarkdown rehypePlugins={[rehypeRaw, rehypeSlug]}>
+            {content}
+          </ReactMarkdown>
         </div>
       )}
     </div>

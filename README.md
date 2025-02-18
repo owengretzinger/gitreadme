@@ -68,7 +68,6 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] Make table of contents links work
 - [ ] Add inline code block formatting
 - [ ] Tell AI what the repo url is
 - [ ] Fix New README button overlapping with header on mobile dashboard
