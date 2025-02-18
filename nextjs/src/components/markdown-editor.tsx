@@ -57,9 +57,11 @@ export function MarkdownEditor({
   return (
     <div className={cn(className, minHeight && `min-h-[${minHeight}]`)}>
       <div className="mb-4 flex items-center justify-between">
-        <div className="flex w-full items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
+        <div className="flex w-full flex-col-reverse justify-between gap-4 sm:flex-row sm:items-center">
+          <div className="flex w-fit flex-col gap-4 sm:flex-row sm:items-center">
+            <div>
+              <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
+            </div>
             {isGenerating && (
               <div className="mr-4 flex items-center gap-2 text-sm font-medium text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />

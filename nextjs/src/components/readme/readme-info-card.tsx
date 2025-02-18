@@ -34,7 +34,7 @@ export function ReadmeInfoCard({
   return (
     <div className="flex flex-col gap-2 border-b pb-6">
       <div className="flex flex-col gap-1">
-        <time className="block text-sm text-muted-foreground">
+        <time className="block text-xs sm:text-sm text-muted-foreground">
           {createdAt
             ? format(new Date(createdAt), "MMMM d, yyyy 'at' h:mm a")
             : "Unknown"}
@@ -46,14 +46,14 @@ export function ReadmeInfoCard({
           rel="noopener noreferrer"
           className="group flex items-center gap-2"
         >
-          <h1 className="text-2xl font-semibold tracking-tight">{repoPath}</h1>
+          <h1 className="text-lg sm:text-2xl font-semibold tracking-tight">{repoPath}</h1>
           <ExternalLink className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-foreground" />
         </Link>
       </div>
 
       <button
         onClick={handleCopyPermalink}
-        className="group flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        className="group flex items-center gap-2 text-xs sm:text-sm text-muted-foreground hover:text-foreground"
       >
         {copied ? (
           <Check className="h-4 w-4" />
