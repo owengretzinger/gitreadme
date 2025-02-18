@@ -1,7 +1,6 @@
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -20,7 +19,12 @@ interface ErrorModalProps {
   };
 }
 
-export function ErrorModal({ error, open, onOpenChange, actionButton }: ErrorModalProps) {
+export function ErrorModal({
+  error,
+  open,
+  onOpenChange,
+  actionButton,
+}: ErrorModalProps) {
   if (!error) return null;
 
   function formatString(input: string): string {
@@ -32,20 +36,23 @@ export function ErrorModal({ error, open, onOpenChange, actionButton }: ErrorMod
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-destructive max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-h-[80vh] overflow-y-auto border-destructive">
         <DialogHeader>
           <DialogTitle>Error Generating README</DialogTitle>
-          <DialogDescription className="space-y-4 text-pretty pt-4 max-h-[60vh] overflow-y-auto">
-            <div className="space-y-2">
-              <p className="font-medium">{formatString(error.type)} {"Error "}</p>
-              <p className="text-muted-foreground whitespace-pre-wrap">{error.message}</p>
-            </div>
-          </DialogDescription>
+          <div className="max-h-[60vh] space-y-2 overflow-y-auto text-pretty pt-4 text-sm text-muted-foreground">
+            <p className="font-medium">
+              {formatString(error.type)} {"Error "}
+            </p>
+            <p className="whitespace-pre-wrap">{error.message}</p>
+          </div>
         </DialogHeader>
         <DialogFooter className="flex gap-2">
           {actionButton && (
             <Button asChild>
-              <Link href={actionButton.href} onClick={() => onOpenChange(false)}>
+              <Link
+                href={actionButton.href}
+                onClick={() => onOpenChange(false)}
+              >
                 {actionButton.label}
               </Link>
             </Button>

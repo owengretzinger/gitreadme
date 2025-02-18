@@ -1,4 +1,7 @@
 <div align="center">
+
+  <!-- REMOVE THIS IF YOU DON'T HAVE A LOGO -->
+
     <img src="https://github.com/user-attachments/assets/0ae1b6d5-1a62-4b41-b2c7-c595a0460497" alt="Logo" width="80" height="80">
 
 <h3 align="center">Project Title</h3>
@@ -10,14 +13,23 @@
   </p>
 </div>
 
-<!-- TABLE OF CONTENTS -->
+<!-- REMOVE THIS IF YOU DON'T HAVE A DEMO -->
+<!-- TIP: You can alternatively directly upload a video up to 100MB by dropping it in while editing the README on GitHub. This displays a video player directly on GitHub instead of making it so that you have to click an image/link -->
+<div align="center">
+  <a href="https://example.com">
+    <img src="https://github.com/user-attachments/assets/f45c9ee9-ad2f-40f4-bb60-e9bbd1472c45" alt="Project Demo">
+    <p>Watch Demo Video</p>
+  </a>
+</div>
+
+## Table of Contents
+
 <details>
   <summary>Table of Contents</summary>
   <ol>
     <li>
       <a href="#about-the-project">About The Project</a>
       <ul>
-        <li><a href="#demo">Demo</a></li>
         <li><a href="#key-features">Key Features</a></li>
       </ul>
     </li>
@@ -37,15 +49,6 @@
 
 Brief description of the project.
 
-### Demo
-
-<div align="center">
-  <a href="https://example.com">
-    <!-- Add your demo video, GIF, or screenshot here -->
-    <img src="https://github.com/user-attachments/assets/f45c9ee9-ad2f-40f4-bb60-e9bbd1472c45" alt="Project Demo">
-  </a>
-</div>
-
 ### Key Features
 
 - **Feature 1:** ...
@@ -58,6 +61,7 @@ Brief description of the project.
 
 (Insert the different technologies used in the project here — could split this into frontend, backend, etc)
 
+(Don't explain what well-known technologies like React are)
 
 ## Getting Started
 
@@ -86,6 +90,4 @@ Instructions for cloning the repo, installing packages, configuring environment 
 ## Acknowledgments
 
 - This README was created with [README Generator](https://github.com/owengretzinger/readme-generator) — an AI tool that understands your entire codebase.
-- Credit any collaborators or third-party assets
-- Don't include libraries or tools that should be in the architecture section, this is more for special mentions
-- Don't give thanks to the creators of common libraries like React, Next.js, etc.
+- (Only include unique things that you are sure should be specifically acknowledged. Don't include libraries or tools like React, Next.js, etc. Don't include services like Vercel, OpenAI, Google Cloud, JetBrains, etc. Stay on the safe side since more can be added later. Do not hallucinate.)
