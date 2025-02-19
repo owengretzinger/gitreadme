@@ -68,7 +68,6 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] Add inline code block formatting
 - [ ] Tell AI what the repo url is
 - [ ] Fix New README button overlapping with header on mobile dashboard
 - [ ] Make repo packer internal server more descriptive

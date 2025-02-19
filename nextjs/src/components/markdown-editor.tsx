@@ -3,10 +3,13 @@ import { ViewModeToggle, type ViewMode } from "~/components/view-mode-toggle";
 import { Textarea } from "~/components/ui/textarea";
 import { Check, CircleAlert, Copy, Loader2 } from "lucide-react";
 import { cn } from "~/lib/utils";
-import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import rehypeSlug from "rehype-slug";
 import { ActionButton } from "./action-button";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism";
+import ReactMarkdown from "react-markdown";
 
 interface MarkdownEditorProps {
   content: string;
@@ -69,15 +72,13 @@ export function MarkdownEditor({
       }
     };
 
-    // Scroll on hash change
     window.addEventListener("hashchange", scrollToHash);
-    // Scroll on initial load
     scrollToHash();
 
     return () => {
       window.removeEventListener("hashchange", scrollToHash);
     };
-  }, [content]); // Re-run when content changes
+  }, [content]);
 
   return (
     <div className={cn(className, minHeight && `min-h-[${minHeight}]`)}>
@@ -130,12 +131,43 @@ export function MarkdownEditor({
       ) : (
         <div
           ref={contentRef}
-          className={cn(
-            "prose prose-sm max-w-none dark:prose-invert",
-            contentClassName,
-          )}
+          className="prose prose-sm max-w-none dark:prose-invert [&_pre]:!bg-transparent [&_pre]:!p-0"
         >
-          <ReactMarkdown rehypePlugins={[rehypeRaw, rehypeSlug]}>
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeRaw, rehypeSlug]}
+            components={{
+              // @ts-expect-error - This is a valid assignment
+              code({ className, children, inline, ...rest }) {
+                const match = /language-(\w+)/.exec(className ?? "");
+                return !inline && match ? (
+                  <SyntaxHighlighter
+                    PreTag="div"
+                    language={match[1]}
+                    // @ts-expect-error - This is a valid assignment
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    style={dracula}
+                    customStyle={{ margin: 0 }}
+                    className="rounded-lg"
+                    {...rest}
+                  >
+                    {/* eslint-disable-next-line @typescript-eslint/no-base-to-string */}
+                    {String(children).replace(/\n$/, "")}
+                  </SyntaxHighlighter>
+                ) : (
+                  <code
+                    {...rest}
+                    className={cn(
+                      className,
+                      "rounded-md bg-muted px-1.5 py-0.5 font-mono text-xs before:content-none after:content-none",
+                    )}
+                  >
+                    {children}
+                  </code>
+                );
+              },
+            }}
+          >
             {content}
           </ReactMarkdown>
         </div>
