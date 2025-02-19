@@ -1,7 +1,5 @@
 <div align="center">
-
   <!-- REMOVE THIS IF YOU DON'T HAVE A LOGO -->
-
     <img src="https://github.com/user-attachments/assets/0ae1b6d5-1a62-4b41-b2c7-c595a0460497" alt="Logo" width="80" height="80">
 
 <h3 align="center">Project Title</h3>

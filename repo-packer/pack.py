@@ -174,7 +174,12 @@ def pack_repository():
     repo_url = data.get("repo_url")
     max_file_size = data.get("max_file_size", 10485760)  # Default 10MB
     max_tokens = data.get("max_tokens", 100000)  # Default 100k tokens
-    exclude_patterns = sanitize_exclude_patterns(data.get("exclude_patterns", []))
+    raw_exclude_patterns = data.get("exclude_patterns", [])
+    exclude_patterns = (
+        ",".join(sanitize_exclude_patterns(raw_exclude_patterns))
+        if raw_exclude_patterns
+        else None
+    )
 
     if not repo_url:
         return jsonify({"error": "repo_url is required"}), 400
