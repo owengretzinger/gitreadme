@@ -16,7 +16,7 @@ export function RateLimitInfo({ rateLimitInfo, status }: RateLimitInfoProps) {
       <span>
         {rateLimitInfo.remaining}/{rateLimitInfo.total} remaining today
       </span>
-      {status === "unauthenticated" && (
+      {!rateLimitInfo.isAuthenticated && (
         <>
           <span>.&nbsp;</span>
           <Link
