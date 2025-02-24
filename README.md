@@ -5,7 +5,7 @@
 
 <h3 align="center">README Generator</h3>
   <p align="center">
-    Generate READMEs and architecture diagrams using AI that understands your codebase
+    Generate READMEs using AI that understands your codebase
   </p>
 </div>
 
@@ -68,7 +68,6 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] Tell AI what the repo url is
 - [ ] Fix New README button overlapping with header on mobile dashboard
 - [ ] Make repo packer internal server more descriptive
 - [ ] Make pen in logo orange instead of yellow, make background lighter in favicon

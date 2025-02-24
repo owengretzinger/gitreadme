@@ -95,6 +95,7 @@ export const readmeRouter = createTRPCRouter({
           repoPackerResult.content,
           input.templateContent,
           input.additionalContext,
+          input.repoUrl,
           input.files,
         );
 

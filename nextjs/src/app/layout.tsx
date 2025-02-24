@@ -11,7 +11,7 @@ import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
   title: "README Generator",
-  description: "Your hackathon companion",
+  description: "Generate READMEs using AI that understands your codebase",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 

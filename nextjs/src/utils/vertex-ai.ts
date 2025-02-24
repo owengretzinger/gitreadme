@@ -53,6 +53,7 @@ export async function* generateReadmeWithAIStream(
   repoContent: string,
   templateContent: string,
   additionalContext: string,
+  repoUrl: string,
   files?: FileData[],
 ) {
   if (env.USE_MOCK_RESPONSES === "true") {
@@ -79,6 +80,10 @@ export async function* generateReadmeWithAIStream(
       <repository contents>
       ${repoContent}
       </repository contents>
+
+      <repository url>
+      ${repoUrl}
+      </repository url>
 
       <file contents uploaded by user>
       ${fileContents}
