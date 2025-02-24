@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback, useState } from "react";
 import { ViewModeToggle, type ViewMode } from "~/components/view-mode-toggle";
 import { Textarea } from "~/components/ui/textarea";
-import { Check, CircleAlert, Copy, Loader2 } from "lucide-react";
+import { Check, CircleAlert, Cloud, Copy, Loader2 } from "lucide-react";
 import { cn } from "~/lib/utils";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -19,7 +19,8 @@ interface MarkdownEditorProps {
   isGenerating?: boolean;
   showCopyButton?: boolean;
   minHeight?: string;
-  showHasBeenEdited?: boolean;
+  isSaving?: boolean;
+  lastSaved?: Date | null;
 }
 
 export function MarkdownEditor({
@@ -30,7 +31,8 @@ export function MarkdownEditor({
   isGenerating = false,
   showCopyButton = false,
   minHeight,
-  showHasBeenEdited = false,
+  isSaving = false,
+  lastSaved = null,
 }: MarkdownEditorProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("preview");
   const [isCopied, setIsCopied] = useState(false);
@@ -94,10 +96,13 @@ export function MarkdownEditor({
                 <span>Streaming response</span>
               </div>
             )}
-            {showHasBeenEdited && (
+            {(isSaving || lastSaved) && (
               <div className="mr-4 flex items-center gap-2 text-sm text-muted-foreground">
-                <CircleAlert className="h-4 w-4" />
-                <span>Changes do not save to database</span>
+                <Cloud className="h-4 w-4" />
+                {isSaving && <span>Saving changes...</span>}
+                {!isSaving && lastSaved && (
+                  <span>Last saved at {lastSaved.toLocaleTimeString()}</span>
+                )}
               </div>
             )}
           </div>

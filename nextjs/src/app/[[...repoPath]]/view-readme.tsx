@@ -88,6 +88,7 @@ export default function ViewReadme({
           <GeneratedReadme
             initialContent={readmeContent}
             generationState={readmeGenerationState}
+            repoPath={getRepoPath() ?? ""}
           />
         </>
       )}

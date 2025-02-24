@@ -170,4 +170,25 @@ export const readmeRouter = createTRPCRouter({
     });
     return readmes;
   }),
+
+  updateReadme: publicProcedure
+    .input(
+      z.object({
+        repoPath: z.string(),
+        content: z.string(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const normalizedRepoPath = input.repoPath.toLowerCase();
+      
+      await ctx.db
+        .update(generatedReadmes)
+        .set({
+          content: input.content,
+          updatedAt: new Date(),
+        })
+        .where(eq(generatedReadmes.repoPath, normalizedRepoPath));
+        
+      return { success: true };
+    }),
 });
