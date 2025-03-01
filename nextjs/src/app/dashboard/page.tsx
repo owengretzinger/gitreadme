@@ -27,15 +27,17 @@ export default async function DashboardPage() {
         </h2>
       </div>
       <Dashboard />
-      <div className="absolute right-4 top-0">
-        <Button variant="default">
-          <Link href="/">
-            <span className="flex items-center gap-2">
-              <CirclePlus className="h-4 w-4" />
-              New README
-            </span>
-          </Link>
-        </Button>
+      <div className="absolute left-0 top-0 h-[calc(100vh-6rem)] w-full sm:h-full">
+        <div className="absolute bottom-0 right-4 sm:top-0">
+          <Button variant="default">
+            <Link href="/">
+              <span className="flex items-center gap-2">
+                <CirclePlus className="h-4 w-4" />
+                New README
+              </span>
+            </Link>
+          </Button>
+        </div>
       </div>
       <Toaster />
     </div>

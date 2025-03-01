@@ -68,8 +68,6 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] Fix New README button overlapping with header on mobile dashboard
-- [ ] Make repo packer internal server more descriptive
 - [ ] Make pen in logo orange instead of yellow, make background lighter in favicon
 - [ ] Improve mobile nav (star not showing up ?)
 - [ ] New font
