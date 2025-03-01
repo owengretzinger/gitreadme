@@ -70,6 +70,5 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 - [ ] Ability to create multiple READMEs for the same repo using query params
 - [ ] PostHog
 - [ ] Add next steps/tips after README is generated
-- [ ] Add name to bottom of the page
 - [ ] Add more templates
 - [ ] Film demo video

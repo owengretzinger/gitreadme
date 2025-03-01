@@ -9,7 +9,7 @@ import { githubLink, tutorialLink } from "~/lib/links";
 
 export default function AboutPage() {
   return (
-    <div className="mx-auto w-full max-w-4xl py-8 md:py-12">
+    <div className="mx-auto w-full max-w-4xl py-8 md:py-12 px-4">
       <div className="mt-4 flex flex-col gap-10 sm:mt-10">
         <div className="flex flex-col items-center gap-4">
           <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-4">
@@ -25,7 +25,7 @@ export default function AboutPage() {
         <div className="mx-auto w-full">
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="item-1">
-              <AccordionTrigger className="text-lg font-medium">
+              <AccordionTrigger className="text-base sm:text-lg text-left font-medium">
                 How does it work?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
@@ -44,7 +44,7 @@ export default function AboutPage() {
             </AccordionItem>
 
             <AccordionItem value="item-2">
-              <AccordionTrigger className="text-lg font-medium">
+              <AccordionTrigger className="text-base sm:text-lg text-left font-medium">
                 Can I use gitreadme.dev with private repositories?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
@@ -63,7 +63,7 @@ export default function AboutPage() {
             </AccordionItem>
 
             <AccordionItem value="item-3">
-              <AccordionTrigger className="text-lg font-medium">
+              <AccordionTrigger className="text-base sm:text-lg text-left font-medium">
                 Is there a paid tier?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
@@ -76,7 +76,7 @@ export default function AboutPage() {
             </AccordionItem>
 
             <AccordionItem value="item-4">
-              <AccordionTrigger className="text-lg font-medium">
+              <AccordionTrigger className="text-base sm:text-lg text-left font-medium">
                 What is the best way to support this project?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
@@ -92,7 +92,7 @@ export default function AboutPage() {
             </AccordionItem>
 
             <AccordionItem value="item-5">
-              <AccordionTrigger className="text-lg font-medium">
+              <AccordionTrigger className="text-base sm:text-lg text-left font-medium">
                 Any tips for power users?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">

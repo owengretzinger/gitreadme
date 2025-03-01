@@ -8,6 +8,7 @@ import { TRPCReactProvider } from "~/trpc/react";
 import { Nav } from "~/components/nav";
 import { PostHogProvider } from "~/app/providers";
 import { SessionProvider } from "next-auth/react";
+import Footer from "~/components/footer";
 
 export const metadata: Metadata = {
   title: "gitreadme.dev",
@@ -39,6 +40,7 @@ export default function RootLayout({
                   <main className="mx-auto w-full max-w-7xl flex-1">
                     {children}
                   </main>
+                  <Footer className="absolute bottom-0 w-full" />
                 </div>
               </SessionProvider>
             </PostHogProvider>
