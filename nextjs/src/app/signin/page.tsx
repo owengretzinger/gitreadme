@@ -22,7 +22,15 @@ function SignInContent() {
     <Card className="pointer-events-auto mx-auto w-full max-w-[400px]">
       <CardHeader>
         <CardTitle className="text-center text-2xl font-semibold tracking-tight">
-          README Generator
+          <div className="flex items-center justify-center gap-2">
+            <Image
+              src="/logo.webp"
+              alt="gitreadme.dev Logo"
+              width={24}
+              height={24}
+            />
+            gitreadme.dev
+          </div>
         </CardTitle>
         <CardDescription className="text-center">
           Your AI-powered README generator

@@ -10,7 +10,7 @@ import { PostHogProvider } from "~/app/providers";
 import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
-  title: "README Generator",
+  title: "gitreadme.dev",
   description: "Generate READMEs using AI that understands your codebase",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };

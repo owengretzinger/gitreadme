@@ -1,4 +1,5 @@
 import {
+  ArrowRight,
   ArrowUp,
   LayoutTemplate,
   MinusCircle,
@@ -60,7 +61,7 @@ export default function GenerationSettings({
   return (
     <div className="mx-auto w-full max-w-4xl">
       <div className="mt-4 flex flex-col gap-10 sm:mt-10">
-        <div className="flex flex-col-reverse items-center gap-4 sm:flex-col">
+        <div className="flex flex-col items-center gap-4">
           <div className="flex justify-center">
             <div
               className="group flex cursor-pointer items-center gap-1.5 rounded-md bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-500 transition-all hover:scale-[1.06]"
@@ -71,22 +72,16 @@ export default function GenerationSettings({
             </div>
           </div>
           <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-4">
-            <Image
-              src={"/logo.webp"}
-              alt="README Generator"
-              width={50}
-              height={50}
-              className="dark:hidden"
-            />
-            <Image
-              src={"/logo.webp"}
-              alt="README Generator"
-              width={50}
-              height={50}
-              className="hidden dark:block"
-            />
-            <h1 className="text-center text-4xl font-bold">README Generator</h1>
+            <h1 className="text-pretty text-center text-3xl font-bold sm:text-4xl">
+              Repository to README
+            </h1>
           </div>
+          <p className="text-pretty text-center text-muted-foreground">
+            Instantly generate high-quality README files using AI that looks at
+            your <br className="hidden md:block" />
+            entire codebase to automatically recognize key features,
+            installation instructions, and more.
+          </p>
         </div>
         <form
           onSubmit={async (e) => {

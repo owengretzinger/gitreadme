@@ -30,19 +30,11 @@ export async function Nav() {
           <Link href="/" className="flex items-center gap-2">
             <Image
               src="/logo.webp"
-              alt="HackMate Logo"
+              alt="gitreadme.dev Logo"
               width={24}
               height={24}
-              className="dark:hidden"
             />
-            <Image
-              src="/logo.webp"
-              alt="HackMate Logo"
-              width={24}
-              height={24}
-              className="hidden dark:block"
-            />
-            <span className="font-bold">README Generator</span>
+            <span className="font-bold">gitreadme.dev</span>
           </Link>
           <div className="hidden items-center text-sm font-medium sm:flex">
             {links.map((link) => (

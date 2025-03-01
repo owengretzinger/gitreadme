@@ -87,5 +87,5 @@ Instructions for cloning the repo, installing packages, configuring environment 
 
 ## Acknowledgments
 
-- This README was created with [README Generator](https://github.com/owengretzinger/readme-generator) — an AI tool that understands your entire codebase.
+- This README was created using [gitreadme.dev](https://gitreadme.dev) — an AI tool that looks at your entire codebase to instantly generate high-quality README files.
 - (Only include unique things that you are sure should be specifically acknowledged. Don't include libraries or tools like React, Next.js, etc. Don't include services like Vercel, OpenAI, Google Cloud, JetBrains, etc. Stay on the safe side since more can be added later. Do not hallucinate.)

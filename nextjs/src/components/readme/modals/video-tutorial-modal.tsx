@@ -24,7 +24,7 @@ export function VideoTutorialModal({
           <iframe
             className="h-full w-full rounded-lg"
             src="https://www.youtube.com/embed/your-video-id"
-            title="README Generator Tutorial"
+            title="gitreadme.dev Tutorial"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           />

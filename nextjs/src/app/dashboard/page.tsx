@@ -1,16 +1,10 @@
 import { auth } from "~/server/auth";
 import { redirect } from "next/navigation";
 import { Dashboard } from "~/components/dashboard/dashboard";
-import { type Metadata } from "next";
 import { Toaster } from "~/components/ui/toaster";
 import { Button } from "~/components/ui/button";
 import { CirclePlus } from "lucide-react";
 import Link from "next/link";
-
-export const metadata: Metadata = {
-  title: "Dashboard | README Generator",
-  description: "View your generated READMEs and usage statistics",
-};
 
 export default async function DashboardPage() {
   const session = await auth();

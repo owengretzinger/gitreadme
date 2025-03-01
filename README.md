@@ -1,11 +1,9 @@
 <div align="center">
-  <a href="https://readme-generator-psi.vercel.app/readme">
-    <img src="https://readme-generator-psi.vercel.app/favicon.ico" alt="HackMate Logo" width="80" height="80">
-  </a>
+  <img src="https://gitreadme.dev/favicon.ico" alt="gitreadme.dev Logo" width="80" height="80">
 
-<h3 align="center">README Generator</h3>
+<h3 align="center"><a href="https://gitreadme.dev">gitreadme.dev</a></h3>
   <p align="center">
-    Generate READMEs using AI that understands your codebase
+    Instantly generate high-quality README files using AI that understands your codebase
   </p>
 </div>
 
