@@ -2,21 +2,27 @@ import { usePersistedForm } from "./use-readme-helpers/use-persisted-form";
 import { useFormActions } from "./use-readme-helpers/use-form-actions";
 import { useReadmeGeneration } from "./use-readme-helpers/use-readme-generation";
 import { useResetStateOnAuth } from "./use-readme-helpers/use-reset-state-on-auth";
-import { useReadmeStream } from "./use-readme-helpers/use-readme-stream";
-import { useExistingReadme } from "./use-readme-helpers/use-existing-readme";
+import {
+  GenerationState,
+  useReadmeStream,
+} from "./use-readme-helpers/use-readme-stream";
 import { ErrorType, type TokenLimitErrorResponse } from "~/types/errors";
+import { api } from "~/trpc/react";
 
 export const useReadme = () => {
   const form = usePersistedForm();
   const formActions = useFormActions(form);
   const generation = useReadmeGeneration(form);
+
   const {
     generationState,
     readmeContent,
+    shortId,
     generationError,
     setGenerationState,
     setReadmeContent,
     setReadmeGenerationError,
+    setShortId,
     errorModalOpen,
     setErrorModalOpen,
   } = useReadmeStream();
@@ -27,16 +33,18 @@ export const useReadme = () => {
     setReadmeContent,
     setReadmeGenerationError,
     setErrorModalOpen,
+    setShortId,
   });
 
-  // Handle existing readme
-  const { isLoadingExistingReadme } = useExistingReadme({
-    repoPath: formActions.getRepoPath(),
-    readmeContent,
-    generationState,
-    setReadmeContent,
-    setGenerationState,
+  const loadExistingReadme = api.readme.getByShortId.useMutation({
+    onSuccess: (data) => {
+      setReadmeContent(data.content);
+      setGenerationState(GenerationState.COMPLETED);
+      setShortId(data.shortId);
+      formActions.setRepoUrlFromPath(data.repoPath);
+    },
   });
+  const isLoadingExistingReadme = loadExistingReadme.isPending;
 
   return {
     // Form state and actions
@@ -46,8 +54,11 @@ export const useReadme = () => {
 
     // Generation
     generateReadme: generation.generateReadme,
+    loadExistingReadme,
+    isLoadingExistingReadme,
     readmeGenerationState: generationState,
     readmeContent,
+    shortId,
     readmeGenerationError: generationError,
     setReadmeGenerationState: setGenerationState,
     errorModalOpen,
@@ -55,6 +66,7 @@ export const useReadme = () => {
     setGenerationState,
     setReadmeContent,
     setReadmeGenerationError,
+    setShortId,
 
     // Rate limit info
     rateLimitInfo: generation.rateLimitInfo,
@@ -62,8 +74,5 @@ export const useReadme = () => {
       generationError?.type === ErrorType.TOKEN_LIMIT
         ? (generationError as TokenLimitErrorResponse).largest_files
         : null,
-
-    // Loading state
-    isLoadingExistingReadme,
   };
 };

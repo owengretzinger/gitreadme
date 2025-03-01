@@ -114,6 +114,7 @@ export const generatedReadmes = createTable("generated_readme", {
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   repoPath: varchar("repo_path", { length: 255 }).notNull(),
+  shortId: varchar("short_id", { length: 6 }).notNull(),
   content: text("content").notNull(),
   userId: varchar("user_id", { length: 255 }).references(() => users.id),
   createdAt: timestamp("created_at", {
@@ -125,7 +126,7 @@ export const generatedReadmes = createTable("generated_readme", {
     withTimezone: true,
   }).default(sql`CURRENT_TIMESTAMP`),
 }, (table) => ({
-  repoPathIdx: uniqueIndex("repo_path_idx").on(table.repoPath),
+  compoundIndex: uniqueIndex("repo_path_short_id_idx").on(table.repoPath, table.shortId),
 }));
 
 export const generatedReadmesRelations = relations(generatedReadmes, ({ one }) => ({

@@ -67,7 +67,8 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] Ability to create multiple READMEs for the same repo using query params
+- [ ] Don't save changes until fully generated
+- [ ] If you create a README and then log in, associate the README with account?
 - [ ] PostHog
 - [ ] Add next steps/tips after README is generated
 - [ ] Add more templates

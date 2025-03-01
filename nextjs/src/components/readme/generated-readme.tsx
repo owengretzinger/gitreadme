@@ -8,19 +8,25 @@ interface GeneratedReadmeProps {
   initialContent: string | null;
   generationState: GenerationState;
   repoPath: string;
+  shortId: string;
 }
 
 export function GeneratedReadme({
   initialContent,
   generationState,
   repoPath,
+  shortId,
 }: GeneratedReadmeProps) {
   const [content, setContent] = useState(initialContent ?? "");
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const contentIdRef = useRef<string>(`${repoPath}-${shortId}`);
 
   // Use a ref to track the last saved content to prevent unnecessary saves
   const lastSavedContentRef = useRef<string>(initialContent ?? "");
+  
+  // Lock to prevent saving when navigating between READMEs
+  const isProcessingContentChangeRef = useRef(false);
 
   const debouncedContent = useDebounce(content, 1000); // Debounce for 1 second
 
@@ -31,38 +37,75 @@ export function GeneratedReadme({
       // Update lastSavedContentRef when save is successful
       lastSavedContentRef.current = debouncedContent;
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Error saving README:", error);
       setIsSaving(false);
     },
   });
 
+  // Handle initialContent changes (when navigating between READMEs)
   useEffect(() => {
-    setContent(initialContent ?? "");
-    // Also update the ref when initialContent changes
-    if (initialContent !== null) {
+    const currentContentId = `${repoPath}-${shortId}`;
+    
+    // Only reset content if README identity has changed
+    if (currentContentId !== contentIdRef.current) {
+      isProcessingContentChangeRef.current = true;
+      contentIdRef.current = currentContentId;
+      
+      // Cancel any pending saves
+      setIsSaving(false);
+      
+      // Reset content and saved state for new README
+      setContent(initialContent ?? "");
+      lastSavedContentRef.current = initialContent ?? "";
+      setLastSaved(null);
+      
+      // Re-enable saving after a short delay
+      setTimeout(() => {
+        isProcessingContentChangeRef.current = false;
+      }, 300);
+    } else if (initialContent !== null && initialContent !== content) {
+      // Same README but content updated externally (like during generation)
+      setContent(initialContent);
       lastSavedContentRef.current = initialContent;
     }
-  }, [initialContent]);
+  }, [initialContent, repoPath, shortId, content]);
 
   // Save changes to the database when content changes after debounce
   useEffect(() => {
-    // Only trigger update if content has been edited, there's a repoPath,
-    // and the debounced content differs from what was last saved
+    // Skip saving during README navigation or content reset
+    if (isProcessingContentChangeRef.current) {
+      return;
+    }
+    
+    // Only trigger update if:
+    // 1. Content changed
+    // 2. We have repoPath and shortId
+    // 3. Not already saving
+    // 4. The content differs from what was last saved
     if (
       repoPath &&
+      shortId &&
       debouncedContent !== lastSavedContentRef.current &&
-      !isSaving // Prevent save if already saving
+      !isSaving
     ) {
       setIsSaving(true);
-      updateReadmeMutation.mutate({ repoPath, content: debouncedContent });
+      updateReadmeMutation.mutate({ 
+        repoPath, 
+        shortId, 
+        content: debouncedContent 
+      });
     }
-  }, [debouncedContent, repoPath, isSaving, updateReadmeMutation]);
+  }, [debouncedContent, repoPath, shortId, isSaving, updateReadmeMutation]);
 
   return (
     <MarkdownEditor
       content={content}
       onChange={(value) => {
-        setContent(value);
+        // Skip content updates while processing README changes
+        if (!isProcessingContentChangeRef.current) {
+          setContent(value);
+        }
       }}
       showCopyButton
       minHeight="600px"

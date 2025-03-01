@@ -1,8 +1,9 @@
 import { api } from "~/trpc/react";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
-import { ArrowRight, FileText } from "lucide-react";
+import { ArrowRight, FileText, Tag } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { Badge } from "~/components/ui/badge";
 
 export function RecentReadmes() {
   const { status } = useSession();
@@ -32,15 +33,20 @@ export function RecentReadmes() {
         {recentReadmes.slice(0, 6).map((readme) => (
           <Link
             key={readme.id}
-            href={`/${readme.repoPath}`}
+            href={`/${readme.repoPath}/${readme.shortId}`}
             className="group flex flex-col gap-2 rounded-xl border bg-card p-4 transition-colors hover:bg-accent/50"
           >
             <FileText className="h-4 w-4 text-muted-foreground" />
             <div className="flex flex-col gap-1">
-              <span className="line-clamp-1 text-sm font-medium">
+              <div className="line-clamp-1 text-sm font-medium">
                 {readme.repoPath}
-              </span>
-              <div className="text-xs text-muted-foreground">
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span className="flex items-center">
+                  <Tag className="mr-1 h-3 w-3" />
+                  {readme.shortId}
+                </span>
+                <span className="text-xs">•</span>
                 {readme.updatedAt
                   ? formatDistanceToNow(new Date(readme.updatedAt), {
                       addSuffix: true,

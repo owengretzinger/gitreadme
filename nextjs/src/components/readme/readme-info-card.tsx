@@ -8,12 +8,14 @@ interface ReadmeInfoCardProps {
   repoPath: string;
   createdAt: Date | null;
   permalink: string;
+  shortId?: string;
 }
 
 export function ReadmeInfoCard({
   repoPath,
   createdAt,
   permalink,
+  shortId,
 }: ReadmeInfoCardProps) {
   const [copied, setCopied] = useState(false);
 

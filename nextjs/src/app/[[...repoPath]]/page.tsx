@@ -1,46 +1,77 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useParams } from "next/navigation";
 import GenerationSettings from "./generation-settings";
 import { useReadme } from "../../hooks/use-readme";
 import ViewReadme from "./view-readme";
 import { useEffect } from "react";
-import { Toaster } from "~/components/ui/toaster";
 import { GenerationState } from "../../hooks/use-readme-helpers/use-readme-stream";
+import ReadmeLoading from "./readme-loading";
 
 export default function Readme() {
-  const params = useParams<{ repoPath: string | undefined }>();
-  const repoPathFromUrl = Array.isArray(params.repoPath)
-    ? params.repoPath.join("/")
-    : params.repoPath!;
-
   const readmeGenerator = useReadme();
 
-  // logic for loading existing readme from db based on the url
+  const params = useParams<{ repoPath: string[] | undefined }>();
+  const pathSegments = params.repoPath ?? [];
+
+  const repoPath =
+    pathSegments.length >= 2
+      ? pathSegments[0] + "/" + pathSegments[1]
+      : undefined;
+  const shortId =
+    pathSegments.length >= 3
+      ? pathSegments[2]
+      : (readmeGenerator.shortId ?? undefined);
+
   useEffect(() => {
-    if (repoPathFromUrl) {
-      // currentRepoPath is the cached repo path
-      const currentRepoPath = readmeGenerator.repoUrl?.split("github.com/")[1];
+    const repoChanged = readmeGenerator.getRepoPath() !== repoPath;
+    const shortIdChanged = readmeGenerator.shortId !== shortId;
 
-      // Check if we need to update anything
-      const needsUrlUpdate = currentRepoPath !== repoPathFromUrl;
-
-      if (needsUrlUpdate) {
-        // Reset state if URL is changing
-        readmeGenerator.setReadmeContent("");
-        readmeGenerator.setReadmeGenerationState(GenerationState.NOT_STARTED);
-        readmeGenerator.setRepoUrl(`https://github.com/${repoPathFromUrl}`);
-      }
+    if (repoChanged || shortIdChanged) {
+      // Force reset state if we've navigated to a different readme
+      readmeGenerator.setGenerationState(GenerationState.NOT_STARTED);
+      readmeGenerator.setReadmeContent("");
+      readmeGenerator.setReadmeGenerationError(null);
+      if (shortId) readmeGenerator.setShortId(shortId);
+      if (repoPath) readmeGenerator.setRepoUrlFromPath(repoPath);
     }
-  }, [repoPathFromUrl, readmeGenerator]);
 
-  return (
-    <div className="p-4 lg:p-8">
-      {!repoPathFromUrl && <GenerationSettings {...readmeGenerator} />}
-      {repoPathFromUrl && readmeGenerator.repoUrl && (
-        <ViewReadme {...readmeGenerator} />
-      )}
-      <Toaster />
-    </div>
-  );
+    if (
+      repoPath &&
+      shortId &&
+      readmeGenerator.readmeGenerationState === GenerationState.NOT_STARTED
+    ) {
+      // opened existing readme, load from db
+      readmeGenerator.loadExistingReadme.mutate({
+        repoPath,
+        shortId,
+      });
+    } else if (
+      repoPath &&
+      readmeGenerator.readmeGenerationState === GenerationState.NOT_STARTED
+    ) {
+      // opened new readme, generate
+      void readmeGenerator.generateReadme();
+    } else {
+      // generation settings page
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [repoPath, shortId]);
+
+  // return <ReadmeLoading {...readmeGenerator} />;
+
+  if (!repoPath) {
+    return <GenerationSettings {...readmeGenerator} />;
+  } else if (
+    repoPath &&
+    shortId &&
+    (readmeGenerator.readmeGenerationState === GenerationState.COMPLETED ||
+      readmeGenerator.readmeGenerationState === GenerationState.STREAMING)
+  ) {
+    return <ViewReadme {...readmeGenerator} />;
+  } else {
+    return <ReadmeLoading {...readmeGenerator} />;
+  }
 }

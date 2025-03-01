@@ -77,6 +77,7 @@ const useGenerationState = () => {
   const contentKey = ["readmeContent"] as const;
   const errorKey = ["readmeError"] as const;
   const errorModalKey = ["readmeErrorModal"] as const;
+  const shortIdKey = ["readmeShortId"] as const;
 
   const { data: generationState = GenerationState.NOT_STARTED } = useQuery({
     queryKey: stateKey,
@@ -102,17 +103,25 @@ const useGenerationState = () => {
     enabled: false,
   });
 
+  const { data: shortId = "" } = useQuery({
+    queryKey: shortIdKey,
+    queryFn: () => "",
+    enabled: false,
+  });
+
   return {
     // State
     generationState,
     readmeContent,
     error,
     errorModalOpen,
+    shortId,
     // Keys
     stateKey,
     contentKey,
     errorKey,
     errorModalKey,
+    shortIdKey,
     // Actions
     setState: (state: GenerationState) =>
       queryClient.setQueryData(stateKey, state),
@@ -126,6 +135,8 @@ const useGenerationState = () => {
         queryClient.setQueryData(errorKey, null);
       }
     },
+    setShortId: (id: string) => 
+      queryClient.setQueryData(shortIdKey, id),
   };
 };
 
@@ -156,7 +167,9 @@ const useStreamHandlers = (state: ReturnType<typeof useGenerationState>) => {
             }
           : rawChunk.startsWith("AI:")
             ? { type: "README_STREAM" as const, content: rawChunk.slice(3) }
-            : { type: "UNKNOWN" as const, rawChunk };
+            : rawChunk.startsWith("SHORT_ID:")
+              ? { type: "SHORT_ID" as const, id: rawChunk.slice(9) }
+              : { type: "UNKNOWN" as const, rawChunk };
 
     switch (chunk.type) {
       case "STATUS_UPDATE":
@@ -173,6 +186,12 @@ const useStreamHandlers = (state: ReturnType<typeof useGenerationState>) => {
         }
         state.setContent((prev: string | null) => (prev ?? "") + chunk.content);
         return { hasStartedStreaming: true, hasError: false };
+        
+      case "SHORT_ID":
+        state.setShortId(chunk.id);
+        const currentURL = window.location.pathname.split('/').slice(0, 3).join('/');
+        window.history.pushState({}, "", currentURL + `/${chunk.id}`);
+        break;
 
       case "UNKNOWN":
         break;
@@ -240,11 +259,13 @@ export const useReadmeStream = () => {
   return {
     generationState: state.generationState,
     readmeContent: state.readmeContent,
+    shortId: state.shortId,
     generateReadmeStream,
     generationError: state.error,
     setGenerationState: state.setState,
     setReadmeContent: state.setContent,
     setReadmeGenerationError: state.setError,
+    setShortId: state.setShortId,
     errorModalOpen: state.errorModalOpen,
     setErrorModalOpen: state.setErrorModalOpen,
   };

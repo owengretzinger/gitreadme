@@ -37,7 +37,7 @@ export default function RootLayout({
               <SessionProvider>
                 <div className="relative flex min-h-screen flex-col">
                   <Nav />
-                  <main className="mx-auto w-full max-w-7xl flex-1">
+                  <main className="mx-auto w-full max-w-7xl flex-1 h-full flex flex-col">
                     {children}
                   </main>
                   <Footer className="absolute bottom-0 w-full" />

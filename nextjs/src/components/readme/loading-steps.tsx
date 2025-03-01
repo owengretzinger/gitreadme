@@ -13,9 +13,9 @@ export function LoadingSteps({
   const translateY = -currentStepIndex * 24;
 
   return (
-    <div className="flex min-h-[250px] flex-col items-center justify-center">
+    <div className="flex min-h-[600px] h-full flex-col flex-1 items-center justify-center">
       <div
-        className="relative flex flex-col items-start gap-3 transition-all duration-500 ease-in-out"
+        className="relative h-[300px] flex flex-col items-start gap-3 transition-all duration-500 ease-in-out"
         style={{
           transform: `translateY(${translateY}px)`,
         }}

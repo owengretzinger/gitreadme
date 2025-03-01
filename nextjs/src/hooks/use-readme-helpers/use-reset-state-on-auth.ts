@@ -11,6 +11,7 @@ interface ResetStateProps {
   setReadmeContent: (content: string) => void;
   setReadmeGenerationError: (error: null) => void;
   setErrorModalOpen: (open: boolean) => void;
+  setShortId: (id: string) => void;
 }
 
 export const useResetStateOnAuth = ({
@@ -19,6 +20,7 @@ export const useResetStateOnAuth = ({
   setReadmeContent,
   setReadmeGenerationError,
   setErrorModalOpen,
+  setShortId,
 }: ResetStateProps) => {
   const utils = api.useUtils();
   const { status } = useSession();
@@ -33,6 +35,7 @@ export const useResetStateOnAuth = ({
     setReadmeContent("");
     setReadmeGenerationError(null);
     setErrorModalOpen(false);
+    setShortId("");
 
     // Clear all query caches
     await utils.invalidate();

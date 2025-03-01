@@ -84,7 +84,7 @@ export const useReadmeGeneration = (form: UseFormReturn<ReadmeFormData>) => {
     }
 
     try {
-      // Navigate immediately
+      // Navigate directly to the repo path
       const repoPath = values.repoUrl.split("github.com/")[1];
       router.push(`/${repoPath}`);
 

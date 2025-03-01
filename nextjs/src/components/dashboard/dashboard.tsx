@@ -5,11 +5,12 @@ import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { Card } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
-import { Trash2, Search } from "lucide-react";
+import { Trash2, Search, Tag } from "lucide-react";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useToast } from "~/hooks/use-toast";
 import { Input } from "~/components/ui/input";
 import { useState } from "react";
+import { Badge } from "~/components/ui/badge";
 
 type GeneratedReadme =
   RouterOutputs["dashboard"]["getUserData"]["readmes"][number];
@@ -62,19 +63,14 @@ export function Dashboard() {
     );
   }
 
-  const handleDelete = (
-    id: string,
-    repoPath: string,
-    e: React.MouseEvent,
-  ) => {
+  const handleDelete = (id: string, repoPath: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     deleteReadme.mutate({ id, repoPath });
   };
 
-  const filteredReadmes = data.readmes.filter(
-    (readme) =>
-      readme.repoPath.toLowerCase().includes(searchQuery.toLowerCase()),
+  const filteredReadmes = data.readmes.filter((readme) =>
+    readme.repoPath.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -102,16 +98,21 @@ export function Dashboard() {
           filteredReadmes.map((readme: GeneratedReadme) => (
             <Link
               key={readme.id}
-              href={`/${readme.repoPath}`}
+              href={`/${readme.repoPath}/${readme.shortId}`}
               className="group"
             >
               <Card className="transition-colors hover:bg-accent/50">
                 <div className="flex items-center justify-between p-4">
                   <div className="flex flex-col gap-1">
-                    <span className="line-clamp-1 text-sm font-medium">
+                    <div className="line-clamp-1 text-sm font-medium">
                       {readme.repoPath}
-                    </span>
-                    <div className="text-xs text-muted-foreground">
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <span className="flex items-center">
+                        <Tag className="mr-1 h-3 w-3" />
+                        {readme.shortId}
+                      </span>
+                      <span className="text-xs">•</span>
                       {readme.updatedAt
                         ? formatDistanceToNow(new Date(readme.updatedAt), {
                             addSuffix: true,
@@ -123,13 +124,7 @@ export function Dashboard() {
                     variant="ghost"
                     size="icon"
                     className="opacity-0 group-hover:opacity-100"
-                    onClick={(e) =>
-                      handleDelete(
-                        readme.id,
-                        readme.repoPath,
-                        e,
-                      )
-                    }
+                    onClick={(e) => handleDelete(readme.id, readme.repoPath, e)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

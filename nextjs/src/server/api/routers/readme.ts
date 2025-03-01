@@ -3,7 +3,7 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { generateReadmeWithAIStream } from "~/utils/vertex-ai";
 import { packRepository } from "~/utils/api-client";
 import { generatedReadmes } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { incrementRateLimit, refundRateLimit } from "../rate-limit";
 import {
   createServerError,
@@ -11,6 +11,7 @@ import {
   isTokenLimitError,
 } from "~/types/errors";
 import { checkRateLimit } from "../rate-limit";
+import { generateUniqueShortId } from "~/utils/short-id";
 
 // Define a schema for file data
 const FileDataSchema = z.object({
@@ -58,6 +59,14 @@ export const readmeRouter = createTRPCRouter({
 
         console.log("Packing repository...");
 
+        // Extract repository path
+        const repoPath = new URL(input.repoUrl).pathname
+          .replace(/^\//, "")
+          .toLowerCase();
+
+        // Always generate a new unique shortId for each README generation
+        const shortId = await generateUniqueShortId(db, repoPath);
+
         // Pack repository using Python server
         const repoPackerResult = await packRepository(
           input.repoUrl,
@@ -88,6 +97,8 @@ export const readmeRouter = createTRPCRouter({
         }
 
         yield "DONE_PACKING";
+        // Send the shortId to the client for URL updates
+        yield "SHORT_ID:" + shortId;
 
         // Generate README using Vertex AI with streaming
         console.log("Generating content with Vertex AI...");
@@ -104,26 +115,13 @@ export const readmeRouter = createTRPCRouter({
           yield "AI:" + chunk;
         }
 
-        // Store or update the generated README in the database
-        const repoPath = new URL(input.repoUrl).pathname
-          .replace(/^\//, "")
-          .toLowerCase();
-
-        await db
-          .insert(generatedReadmes)
-          .values({
-            repoPath,
-            content: generatedContent,
-            userId: session?.user.id,
-          })
-          .onConflictDoUpdate({
-            target: generatedReadmes.repoPath,
-            set: {
-              content: generatedContent,
-              userId: session?.user.id,
-              updatedAt: new Date(),
-            },
-          });
+        // Always create a new README entry with a new shortId
+        await db.insert(generatedReadmes).values({
+          repoPath,
+          shortId,
+          content: generatedContent,
+          userId: session?.user.id,
+        });
 
         yield "DONE";
         return;
@@ -143,21 +141,26 @@ export const readmeRouter = createTRPCRouter({
       }
     }),
 
-  getByRepoPath: publicProcedure
+  getByShortId: publicProcedure
     .input(
       z.object({
         repoPath: z.string(),
+        shortId: z.string(),
       }),
     )
-    .query(async ({ input, ctx }) => {
-      const normalizedRepoPath = input.repoPath.toLowerCase();
+    .mutation(async ({ input, ctx }) => {
       const readme = await ctx.db.query.generatedReadmes.findFirst({
-        where: eq(generatedReadmes.repoPath, normalizedRepoPath),
-        orderBy: (generatedReadmes, { desc }) => [
-          desc(generatedReadmes.updatedAt),
-        ],
+        where: and(
+          eq(generatedReadmes.repoPath, input.repoPath),
+          eq(generatedReadmes.shortId, input.shortId),
+        ),
       });
-      return readme ?? null;
+
+      if (!readme) {
+        throw new Error("README not found");
+      }
+
+      return readme;
     }),
 
   getRecentReadmes: publicProcedure.query(async ({ ctx }) => {
@@ -175,20 +178,26 @@ export const readmeRouter = createTRPCRouter({
     .input(
       z.object({
         repoPath: z.string(),
+        shortId: z.string(),
         content: z.string(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
       const normalizedRepoPath = input.repoPath.toLowerCase();
-      
+
       await ctx.db
         .update(generatedReadmes)
         .set({
           content: input.content,
           updatedAt: new Date(),
         })
-        .where(eq(generatedReadmes.repoPath, normalizedRepoPath));
-        
+        .where(
+          and(
+            eq(generatedReadmes.repoPath, normalizedRepoPath),
+            eq(generatedReadmes.shortId, input.shortId),
+          ),
+        );
+
       return { success: true };
     }),
 });
