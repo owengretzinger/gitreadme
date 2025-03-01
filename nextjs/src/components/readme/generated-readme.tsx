@@ -24,7 +24,7 @@ export function GeneratedReadme({
 
   // Use a ref to track the last saved content to prevent unnecessary saves
   const lastSavedContentRef = useRef<string>(initialContent ?? "");
-  
+
   // Lock to prevent saving when navigating between READMEs
   const isProcessingContentChangeRef = useRef(false);
 
@@ -46,30 +46,31 @@ export function GeneratedReadme({
   // Handle initialContent changes (when navigating between READMEs)
   useEffect(() => {
     const currentContentId = `${repoPath}-${shortId}`;
-    
+
     // Only reset content if README identity has changed
     if (currentContentId !== contentIdRef.current) {
       isProcessingContentChangeRef.current = true;
       contentIdRef.current = currentContentId;
-      
+
       // Cancel any pending saves
       setIsSaving(false);
-      
+
       // Reset content and saved state for new README
       setContent(initialContent ?? "");
       lastSavedContentRef.current = initialContent ?? "";
       setLastSaved(null);
-      
+
       // Re-enable saving after a short delay
       setTimeout(() => {
         isProcessingContentChangeRef.current = false;
       }, 300);
-    } else if (initialContent !== null && initialContent !== content) {
+    } else if (initialContent !== null && initialContent !== content && generationState !== GenerationState.COMPLETED) {
       // Same README but content updated externally (like during generation)
+      // Only update if generation is not complete, to avoid overwriting user edits
       setContent(initialContent);
       lastSavedContentRef.current = initialContent;
     }
-  }, [initialContent, repoPath, shortId, content]);
+  }, [initialContent, repoPath, shortId, content, generationState]);
 
   // Save changes to the database when content changes after debounce
   useEffect(() => {
@@ -78,6 +79,11 @@ export function GeneratedReadme({
       return;
     }
     
+    // Skip saving if we're still generating the README
+    if (generationState !== GenerationState.COMPLETED && generationState !== GenerationState.NOT_STARTED) {
+      return;
+    }
+
     // Only trigger update if:
     // 1. Content changed
     // 2. We have repoPath and shortId
@@ -90,19 +96,26 @@ export function GeneratedReadme({
       !isSaving
     ) {
       setIsSaving(true);
-      updateReadmeMutation.mutate({ 
-        repoPath, 
-        shortId, 
-        content: debouncedContent 
+      updateReadmeMutation.mutate({
+        repoPath,
+        shortId,
+        content: debouncedContent,
       });
     }
-  }, [debouncedContent, repoPath, shortId, isSaving, updateReadmeMutation]);
+  }, [
+    debouncedContent,
+    repoPath,
+    shortId,
+    isSaving,
+    updateReadmeMutation,
+    generationState,
+  ]);
 
   return (
     <MarkdownEditor
       content={content}
       onChange={(value) => {
-        // Skip content updates while processing README changes
+        // Allow content updates unless we're explicitly processing README changes
         if (!isProcessingContentChangeRef.current) {
           setContent(value);
         }

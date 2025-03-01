@@ -67,7 +67,7 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] Don't save changes until fully generated
+- [ ] Should only be able to edit your own readmes
 - [ ] If you create a README and then log in, associate the README with account?
 - [ ] PostHog
 - [ ] Add next steps/tips after README is generated

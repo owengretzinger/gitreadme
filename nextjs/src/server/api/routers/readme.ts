@@ -3,7 +3,7 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { generateReadmeWithAIStream } from "~/utils/vertex-ai";
 import { packRepository } from "~/utils/api-client";
 import { generatedReadmes } from "~/server/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { incrementRateLimit, refundRateLimit } from "../rate-limit";
 import {
   createServerError,
@@ -115,7 +115,7 @@ export const readmeRouter = createTRPCRouter({
           yield "AI:" + chunk;
         }
 
-        // Always create a new README entry with a new shortId
+        // Only save the README to the database once generation is complete
         await db.insert(generatedReadmes).values({
           repoPath,
           shortId,
