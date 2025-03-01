@@ -10,8 +10,11 @@ export default function ViewReadme({
   readmeGenerationState,
   readmeContent,
   shortId,
+  loadExistingReadme,
 }: ReturnType<typeof useReadme>) {
   const permalinkPath = `/${getRepoPath()}/${shortId}`;
+  // Get isOwner from the loadExistingReadme.data
+  const isOwner = loadExistingReadme.data?.isOwner ?? false;
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-5 pb-20">
@@ -27,7 +30,7 @@ export default function ViewReadme({
       </div>
       <ReadmeInfoCard
         repoPath={getRepoPath() ?? "No repo path"}
-        createdAt={new Date()}
+        createdAt={loadExistingReadme.data?.createdAt ?? new Date()}
         permalink={`${typeof window !== "undefined" ? window.location.origin : ""}${permalinkPath}`}
         shortId={shortId}
       />
@@ -36,6 +39,7 @@ export default function ViewReadme({
         generationState={readmeGenerationState}
         repoPath={getRepoPath() ?? ""}
         shortId={shortId ?? ""}
+        isOwner={isOwner}
       />
     </div>
   );

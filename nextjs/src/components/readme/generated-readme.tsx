@@ -9,6 +9,7 @@ interface GeneratedReadmeProps {
   generationState: GenerationState;
   repoPath: string;
   shortId: string;
+  isOwner?: boolean;
 }
 
 export function GeneratedReadme({
@@ -16,6 +17,7 @@ export function GeneratedReadme({
   generationState,
   repoPath,
   shortId,
+  isOwner = true,
 }: GeneratedReadmeProps) {
   const [content, setContent] = useState(initialContent ?? "");
   const [isSaving, setIsSaving] = useState(false);
@@ -84,6 +86,11 @@ export function GeneratedReadme({
       return;
     }
 
+    // Skip saving if user is not the owner
+    if (!isOwner) {
+      return;
+    }
+
     // Only trigger update if:
     // 1. Content changed
     // 2. We have repoPath and shortId
@@ -109,14 +116,15 @@ export function GeneratedReadme({
     isSaving,
     updateReadmeMutation,
     generationState,
+    isOwner,
   ]);
 
   return (
     <MarkdownEditor
       content={content}
       onChange={(value) => {
-        // Allow content updates unless we're explicitly processing README changes
-        if (!isProcessingContentChangeRef.current) {
+        // Allow content updates only if user is the owner and not processing README changes
+        if (!isProcessingContentChangeRef.current && isOwner) {
           setContent(value);
         }
       }}
@@ -128,6 +136,7 @@ export function GeneratedReadme({
       }
       isSaving={isSaving}
       lastSaved={lastSaved}
+      readOnly={!isOwner}
     />
   );
 }

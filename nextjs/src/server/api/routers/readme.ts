@@ -160,7 +160,11 @@ export const readmeRouter = createTRPCRouter({
         throw new Error("README not found");
       }
 
-      return readme;
+      // Add isOwner field to indicate if the current user is the owner of the readme
+      return {
+        ...readme,
+        isOwner: ctx.session?.user.id === readme.userId,
+      };
     }),
 
   getRecentReadmes: publicProcedure.query(async ({ ctx }) => {

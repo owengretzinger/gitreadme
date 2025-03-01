@@ -1,5 +1,5 @@
 import { Button } from "./ui/button";
-import { Eye, Edit } from "lucide-react";
+import { Eye, Edit, Code } from "lucide-react";
 import { cn } from "~/lib/utils";
 
 export type ViewMode = "preview" | "edit";
@@ -36,9 +36,10 @@ const ToggleButton = ({
 interface ViewModeToggleProps {
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
+  isOwner?: boolean;
 }
 
-export function ViewModeToggle({ viewMode, setViewMode }: ViewModeToggleProps) {
+export function ViewModeToggle({ viewMode, setViewMode, isOwner = true }: ViewModeToggleProps) {
   return (
     <div className="inline-flex items-center rounded-lg bg-secondary p-1">
       <ToggleButton
@@ -51,9 +52,9 @@ export function ViewModeToggle({ viewMode, setViewMode }: ViewModeToggleProps) {
       <ToggleButton
         active={viewMode === "edit"}
         onClick={() => setViewMode("edit")}
-        icon={<Edit className="h-4 w-4" />}
+        icon={isOwner ? <Edit className="h-4 w-4" /> : <Code className="h-4 w-4" />}
       >
-        Edit
+        {isOwner ? "Edit" : "Raw"}
       </ToggleButton>
     </div>
   );

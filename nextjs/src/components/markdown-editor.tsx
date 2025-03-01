@@ -21,6 +21,7 @@ interface MarkdownEditorProps {
   minHeight?: string;
   isSaving?: boolean;
   lastSaved?: Date | null;
+  readOnly?: boolean;
 }
 
 export function MarkdownEditor({
@@ -33,6 +34,7 @@ export function MarkdownEditor({
   minHeight,
   isSaving = false,
   lastSaved = null,
+  readOnly = false,
 }: MarkdownEditorProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("preview");
   const [isCopied, setIsCopied] = useState(false);
@@ -88,7 +90,7 @@ export function MarkdownEditor({
         <div className="flex w-full flex-col-reverse justify-between gap-4 sm:flex-row sm:items-center">
           <div className="flex w-fit flex-col gap-4 sm:flex-row sm:items-center">
             <div>
-              <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
+              <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} isOwner={!readOnly} />
             </div>
             {isGenerating && (
               <div className="mr-4 flex items-center gap-2 text-sm font-medium text-muted-foreground">
@@ -128,6 +130,7 @@ export function MarkdownEditor({
           value={content}
           onChange={(e) => onChange?.(e.target.value)}
           onInput={resizeTextarea}
+          readOnly={readOnly}
           className={cn(
             "w-full resize-none overflow-hidden border-none font-mono focus:ring-0 focus-visible:ring-0",
             contentClassName,
