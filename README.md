@@ -68,9 +68,8 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] Make pen in logo orange instead of yellow, make background lighter in favicon
-- [ ] Improve mobile nav (star not showing up ?)
-- [ ] New font
+- [ ] Change name everywhere
+- [ ] Ability to create multiple READMEs for the same repo using query params
+- [ ] PostHog
 - [ ] Add FAQ
-- [ ] Get a domain name
 - [ ] Film demo video

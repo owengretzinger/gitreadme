@@ -72,14 +72,14 @@ export default function GenerationSettings({
           </div>
           <div className="flex flex-col items-center gap-2 sm:flex-row sm:gap-4">
             <Image
-              src={"/light_logo.png"}
+              src={"/logo.webp"}
               alt="README Generator"
               width={50}
               height={50}
               className="dark:hidden"
             />
             <Image
-              src={"/dark_logo.png"}
+              src={"/logo.webp"}
               alt="README Generator"
               width={50}
               height={50}
