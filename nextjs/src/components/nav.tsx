@@ -7,8 +7,8 @@ import { MobileNav } from "./mobile-nav";
 
 const publicLinks = [
   {
-    href: "/faq",
-    label: "FAQ",
+    href: "/about",
+    label: "About",
   },
 ];
 

@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
-
+import { tutorialLink } from "~/lib/links";
 interface VideoTutorialModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -23,7 +23,7 @@ export function VideoTutorialModal({
         <div className="aspect-video">
           <iframe
             className="h-full w-full rounded-lg"
-            src="https://www.youtube.com/embed/your-video-id"
+            src={tutorialLink}
             title="gitreadme.dev Tutorial"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
@@ -32,4 +32,4 @@ export function VideoTutorialModal({
       </DialogContent>
     </Dialog>
   );
-} 
+}

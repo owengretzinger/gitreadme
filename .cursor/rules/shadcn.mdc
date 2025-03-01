@@ -1,0 +1,6 @@
+---
+description: Use shadcn whenever possible
+globs: src/**/*.tsx, components/**/*.tsx
+alwaysApply: false
+---
+Use shadcn for UI whenever possible. Use `npx shadcn@latest add <component>` to add new components (NOT shadcn-ui).

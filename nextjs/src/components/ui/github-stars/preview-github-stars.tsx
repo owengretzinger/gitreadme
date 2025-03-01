@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { GithubStarsButton } from "./github-stars";
-
-const REPO_URL = "https://github.com/owengretzinger/readme-generator";
-
+import { githubLink } from "~/lib/links";
 interface GitHubRepoResponse {
   stargazers_count: number;
 }
@@ -15,7 +13,7 @@ export default function PreviewGithubStars() {
   useEffect(() => {
     const fetchStars = async () => {
       try {
-        const apiUrl = REPO_URL.replace("github.com", "api.github.com/repos");
+        const apiUrl = githubLink.replace("github.com", "api.github.com/repos");
         const response = await fetch(apiUrl);
         if (!response.ok) {
           console.error("Failed to fetch stars:", response.statusText);
@@ -32,7 +30,7 @@ export default function PreviewGithubStars() {
   }, []);
 
   return (
-    <GithubStarsButton href={REPO_URL} starNumber={stars}>
+    <GithubStarsButton href={githubLink} starNumber={stars}>
       Star on GitHub
     </GithubStarsButton>
   );
