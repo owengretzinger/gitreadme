@@ -40,11 +40,12 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 ### Key Features
 
 - **AI-Powered README Generation:** Generates README files using AI that understands your codebase.
-- **Architecture Diagram Generation:** Creates architecture diagrams to visualize the structure of your project.
-- **Integration with Vertex AI:** Leverages Google Cloud Vertex AI for AI-powered features.
-- **Next.js Frontend:** Modern and responsive user interface built with Next.js.
-- **TRPC API:** Type-safe API communication between frontend and backend.
-- **Authentication:** Secure user authentication using NextAuth.js and Google Provider.
+- **Customizable Templates:** Allows users to select from a variety of README templates to customize the look and feel of their README files.
+- **File Exclusion:** Allows users to exclude specific files from the analysis process to reduce token count and improve accuracy.
+- **Additional Instructions:** Allows users to provide additional instructions to the AI to further customize the generated README files.
+- **Rate Limiting:** Implements rate limiting to prevent abuse and ensure fair usage for all users.
+- **User Authentication:** Secure user authentication using NextAuth.js and Google Provider.
+- **Dashboard:** Allows users to view and manage their generated README files.
 
 ## Architecture
 
@@ -68,7 +69,6 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 - [ ] Ability to create multiple READMEs for the same repo using query params
 - [ ] PostHog
-- [ ] Add FAQ
 - [ ] Add next steps/tips after README is generated
 - [ ] Add name to bottom of the page
 - [ ] Add more templates
