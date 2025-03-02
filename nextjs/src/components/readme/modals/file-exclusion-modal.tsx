@@ -3,6 +3,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "~/components/ui/dialog";
 import { Textarea } from "~/components/ui/textarea";
 import { ScrollArea } from "~/components/ui/scroll-area";
@@ -90,6 +91,9 @@ export function FileExclusionModal({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Exclude Files</DialogTitle>
+          <DialogDescription className="sr-only">
+            Specify files or patterns to exclude from the README generation.
+          </DialogDescription>
         </DialogHeader>
 
         {largeFiles.length > 0 && (
