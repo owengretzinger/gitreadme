@@ -33,7 +33,6 @@ export default function Readme() {
       // Force reset state if we've navigated to a different readme
       readmeGenerator.setGenerationState(GenerationState.NOT_STARTED);
       readmeGenerator.setReadmeContent("");
-      readmeGenerator.setReadmeGenerationError(null);
       readmeGenerator.setJustGenerated(false);
       if (shortId) readmeGenerator.setShortId(shortId);
       if (repoPath) readmeGenerator.setRepoUrlFromPath(repoPath);
@@ -60,8 +59,6 @@ export default function Readme() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [repoPath, shortId]);
-
-  // return <ReadmeLoading {...readmeGenerator} />;
 
   if (!repoPath) {
     return <GenerationSettings {...readmeGenerator} />;

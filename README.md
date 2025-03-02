@@ -67,7 +67,6 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] If you create a README and then log in, associate the README with account?
 - [ ] PostHog
 - [ ] Add next steps/tips after README is generated
 - [ ] Add more templates
