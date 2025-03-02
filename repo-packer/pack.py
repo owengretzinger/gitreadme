@@ -154,12 +154,11 @@ def sanitize_exclude_patterns(patterns):
     for pattern in patterns:
         # Escape spaces
         pattern = pattern.replace(" ", "\\ ")
+        sanitized.append(pattern)
 
         # Add **/ prefix if pattern doesn't start with / or **/
         if not pattern.startswith("/") and not pattern.startswith("**/"):
-            pattern = "**/" + pattern
-
-        sanitized.append(pattern)
+            sanitized.append("**/" + pattern)
 
     return sanitized
 
