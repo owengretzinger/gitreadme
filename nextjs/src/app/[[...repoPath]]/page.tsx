@@ -34,6 +34,7 @@ export default function Readme() {
       readmeGenerator.setGenerationState(GenerationState.NOT_STARTED);
       readmeGenerator.setReadmeContent("");
       readmeGenerator.setReadmeGenerationError(null);
+      readmeGenerator.setJustGenerated(false);
       if (shortId) readmeGenerator.setShortId(shortId);
       if (repoPath) readmeGenerator.setRepoUrlFromPath(repoPath);
     }

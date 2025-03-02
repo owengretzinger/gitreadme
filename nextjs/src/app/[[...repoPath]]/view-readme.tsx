@@ -11,10 +11,11 @@ export default function ViewReadme({
   readmeContent,
   shortId,
   loadExistingReadme,
+  justGenerated,
 }: ReturnType<typeof useReadme>) {
   const permalinkPath = `/${getRepoPath()}/${shortId}`;
-  // Get isOwner from the loadExistingReadme.data
-  const isOwner = loadExistingReadme.data?.isOwner ?? false;
+  // Get isOwner from the loadExistingReadme.data or if just generated
+  const isOwner = (loadExistingReadme.data?.isOwner ?? false) || (justGenerated ?? false);
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-5 pb-20">

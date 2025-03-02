@@ -78,6 +78,7 @@ const useGenerationState = () => {
   const errorKey = ["readmeError"] as const;
   const errorModalKey = ["readmeErrorModal"] as const;
   const shortIdKey = ["readmeShortId"] as const;
+  const justGeneratedKey = ["readmeJustGenerated"] as const;
 
   const { data: generationState = GenerationState.NOT_STARTED } = useQuery({
     queryKey: stateKey,
@@ -109,6 +110,12 @@ const useGenerationState = () => {
     enabled: false,
   });
 
+  const { data: justGenerated = false } = useQuery({
+    queryKey: justGeneratedKey,
+    queryFn: () => false,
+    enabled: false,
+  });
+
   return {
     // State
     generationState,
@@ -116,12 +123,14 @@ const useGenerationState = () => {
     error,
     errorModalOpen,
     shortId,
+    justGenerated,
     // Keys
     stateKey,
     contentKey,
     errorKey,
     errorModalKey,
     shortIdKey,
+    justGeneratedKey,
     // Actions
     setState: (state: GenerationState) =>
       queryClient.setQueryData(stateKey, state),
@@ -137,6 +146,8 @@ const useGenerationState = () => {
     },
     setShortId: (id: string) => 
       queryClient.setQueryData(shortIdKey, id),
+    setJustGenerated: (value: boolean) =>
+      queryClient.setQueryData(justGeneratedKey, value),
   };
 };
 
@@ -216,6 +227,7 @@ export const useReadmeStream = () => {
       state.setContent("");
       state.setError(null);
       state.setErrorModalOpen(false);
+      state.setJustGenerated(true);
     },
     async onSuccess(stream) {
       try {
@@ -260,12 +272,14 @@ export const useReadmeStream = () => {
     generationState: state.generationState,
     readmeContent: state.readmeContent,
     shortId: state.shortId,
+    justGenerated: state.justGenerated,
     generateReadmeStream,
     generationError: state.error,
     setGenerationState: state.setState,
     setReadmeContent: state.setContent,
     setReadmeGenerationError: state.setError,
     setShortId: state.setShortId,
+    setJustGenerated: state.setJustGenerated,
     errorModalOpen: state.errorModalOpen,
     setErrorModalOpen: state.setErrorModalOpen,
   };

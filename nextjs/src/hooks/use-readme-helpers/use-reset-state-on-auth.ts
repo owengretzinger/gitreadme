@@ -12,6 +12,7 @@ interface ResetStateProps {
   setReadmeGenerationError: (error: null) => void;
   setErrorModalOpen: (open: boolean) => void;
   setShortId: (id: string) => void;
+  setJustGenerated?: (value: boolean) => void;
 }
 
 export const useResetStateOnAuth = ({
@@ -21,6 +22,7 @@ export const useResetStateOnAuth = ({
   setReadmeGenerationError,
   setErrorModalOpen,
   setShortId,
+  setJustGenerated,
 }: ResetStateProps) => {
   const utils = api.useUtils();
   const { status } = useSession();
@@ -36,6 +38,9 @@ export const useResetStateOnAuth = ({
     setReadmeGenerationError(null);
     setErrorModalOpen(false);
     setShortId("");
+    if (setJustGenerated) {
+      setJustGenerated(false);
+    }
 
     // Clear all query caches
     await utils.invalidate();

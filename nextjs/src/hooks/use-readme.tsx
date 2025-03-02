@@ -18,11 +18,13 @@ export const useReadme = () => {
     generationState,
     readmeContent,
     shortId,
+    justGenerated,
     generationError,
     setGenerationState,
     setReadmeContent,
     setReadmeGenerationError,
     setShortId,
+    setJustGenerated,
     errorModalOpen,
     setErrorModalOpen,
   } = useReadmeStream();
@@ -34,6 +36,7 @@ export const useReadme = () => {
     setReadmeGenerationError,
     setErrorModalOpen,
     setShortId,
+    setJustGenerated,
   });
 
   const loadExistingReadme = api.readme.getByShortId.useMutation({
@@ -41,6 +44,7 @@ export const useReadme = () => {
       setReadmeContent(data.content);
       setGenerationState(GenerationState.COMPLETED);
       setShortId(data.shortId);
+      setJustGenerated(false);
       formActions.setRepoUrlFromPath(data.repoPath);
     },
   });
@@ -59,6 +63,7 @@ export const useReadme = () => {
     readmeGenerationState: generationState,
     readmeContent,
     shortId,
+    justGenerated,
     readmeGenerationError: generationError,
     setReadmeGenerationState: setGenerationState,
     errorModalOpen,
@@ -67,6 +72,7 @@ export const useReadme = () => {
     setReadmeContent,
     setReadmeGenerationError,
     setShortId,
+    setJustGenerated,
 
     // Rate limit info
     rateLimitInfo: generation.rateLimitInfo,
