@@ -75,7 +75,7 @@ export const useReadmeGeneration = (form: UseFormReturn<ReadmeFormData>) => {
     if (rateLimitInfo && rateLimitInfo.remaining <= 0) {
       const errorMessage = rateLimitInfo.isAuthenticated
         ? `You have reached your daily limit of ${rateLimitInfo.total} generations. Please try again tomorrow.`
-        : `Please sign in to get 20 free generations per day.`;
+        : `Please sign in to get 15 free generations per day.`;
 
       setReadmeGenerationError({
         type: ErrorType.RATE_LIMIT,

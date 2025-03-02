@@ -4,8 +4,8 @@ import { type DB } from "~/server/db";
 import { generationLimits } from "../db/schema";
 import { createRateLimitError, type ApiErrorResponse } from "~/types/errors";
 
-const UNAUTHENTICATED_LIMIT = 3;
-const AUTHENTICATED_LIMIT = 20;
+const UNAUTHENTICATED_LIMIT = 2;
+const AUTHENTICATED_LIMIT = 15;
 
 export interface RateLimitInfo {
   remaining: number;

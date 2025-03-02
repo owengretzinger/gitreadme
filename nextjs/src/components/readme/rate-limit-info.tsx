@@ -24,7 +24,7 @@ export function RateLimitInfo({ rateLimitInfo, status }: RateLimitInfoProps) {
             className="text-center text-xs text-primary hover:underline"
           >
             <span className="flex items-center justify-center gap-1">
-              Sign in to get 20/day free <ArrowRight className="h-3 w-3" />
+              Sign in to get 15/day free <ArrowRight className="h-3 w-3" />
             </span>
           </Link>
         </>
