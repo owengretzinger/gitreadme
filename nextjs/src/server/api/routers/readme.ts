@@ -12,6 +12,7 @@ import {
 } from "~/types/errors";
 import { checkRateLimit } from "../rate-limit";
 import { generateUniqueShortId } from "~/utils/short-id";
+import { TRPCError } from "@trpc/server";
 
 // Define a schema for file data
 const FileDataSchema = z.object({
@@ -157,7 +158,10 @@ export const readmeRouter = createTRPCRouter({
       });
 
       if (!readme) {
-        throw new Error("README not found");
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'README not found',
+        });
       }
 
       // Add isOwner field to indicate if the current user is the owner of the readme

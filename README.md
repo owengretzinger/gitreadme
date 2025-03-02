@@ -75,7 +75,3 @@ Reach out via email (owengretzinger@gmail.com) or LinkedIn (https://www.linkedin
 If this tool was helpful to you, please give it a star!
 
 [![Star History Chart](https://api.star-history.com/svg?repos=owengretzinger/gitreadme&type=Date)](https://star-history.com/#owengretzinger/gitreadme&Date)
-
-## Todo
-
-- [ ] doesn't handle error when directly opening an invalid readme url

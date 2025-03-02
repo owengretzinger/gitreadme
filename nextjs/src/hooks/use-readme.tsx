@@ -27,6 +27,7 @@ export const useReadme = () => {
     setJustGenerated,
     errorModalOpen,
     setErrorModalOpen,
+    handleError,
   } = useReadmeStream();
 
   useResetStateOnAuth({
@@ -48,12 +49,10 @@ export const useReadme = () => {
       formActions.setRepoUrlFromPath(data.repoPath);
     },
     onError: (error) => {
-      setReadmeGenerationError({
-        type: ErrorType.INTERNAL,
+      handleError({
+        type: ErrorType.README_NOT_FOUND,
         message: error.message,
       });
-      setErrorModalOpen(true);
-      setGenerationState(GenerationState.NOT_STARTED);
     },
   });
   const isLoadingExistingReadme = loadExistingReadme.isPending;
