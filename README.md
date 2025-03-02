@@ -67,6 +67,5 @@ This project was originally built as part of [HackMate](https://github.com/oweng
 
 ## Todo
 
-- [ ] Add next steps/tips after README is generated
 - [ ] Add more templates
 - [ ] Film demo video
