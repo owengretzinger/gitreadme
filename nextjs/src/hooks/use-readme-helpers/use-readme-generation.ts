@@ -23,16 +23,20 @@ export const useReadmeGeneration = (form: UseFormReturn<ReadmeFormData>) => {
     setErrorModalOpen,
     setGenerationState,
     setReadmeGenerationError,
+    handleError,
   } = useReadmeStream();
 
   const setReadmeContent = (content: string) =>
     queryClient.setQueryData(contentKey, content);
 
   // Add rate limit query
-  const { data: rateLimitInfo } = api.readme.getRateLimit.useQuery(undefined, {
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-  });
+  const { data: rateLimitInfo, refetch: refetchRateLimit } =
+    api.readme.getRateLimit.useQuery(undefined, {
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
+      staleTime: 0, // Ensure we always get fresh data
+      gcTime: 0, // Don't cache the result (modern equivalent of cacheTime)
+    });
 
   const generateReadme = async () => {
     const values = form.getValues();
@@ -71,17 +75,30 @@ export const useReadmeGeneration = (form: UseFormReturn<ReadmeFormData>) => {
     const parsed = formSchema.safeParse(values);
     if (!parsed.success) return;
 
-    // Check rate limit before proceeding
-    if (rateLimitInfo && rateLimitInfo.remaining <= 0) {
-      const errorMessage = rateLimitInfo.isAuthenticated
-        ? `You have reached your daily limit of ${rateLimitInfo.total} generations. Please try again tomorrow.`
-        : `Please sign in to get 15 free generations per day.`;
+    // Wait for rate limit info before proceeding
+    let currentRateLimitInfo = rateLimitInfo;
+    if (!currentRateLimitInfo) {
+      try {
+        // Explicitly fetch rate limit info and wait for it
+        const response = await refetchRateLimit();
+        currentRateLimitInfo = response.data;
+      } catch (error) {
+        console.error("Failed to fetch rate limit info:", error);
+        // Continue without rate limit check if there's an error
+      }
+    }
 
-      setReadmeGenerationError({
+    // Check rate limit before proceeding with valid data
+    if (
+      currentRateLimitInfo &&
+      typeof currentRateLimitInfo.remaining === "number" &&
+      currentRateLimitInfo.remaining <= 0
+    ) {
+      handleError({
         type: ErrorType.RATE_LIMIT,
-        message: errorMessage,
+        message:
+          "You have reached your daily limit. Please sign in if you haven't already to get 15 free generations per day, or try again tomorrow.",
       });
-      setErrorModalOpen(true);
       return;
     }
 

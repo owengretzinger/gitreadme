@@ -294,5 +294,6 @@ export const useReadmeStream = () => {
     setJustGenerated: state.setJustGenerated,
     errorModalOpen: state.errorModalOpen,
     setErrorModalOpen: state.setErrorModalOpen,
+    handleError,
   };
 };

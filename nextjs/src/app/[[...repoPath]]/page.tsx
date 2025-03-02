@@ -58,6 +58,7 @@ export default function Readme() {
       readmeGenerator.readmeGenerationState === GenerationState.NOT_STARTED
     ) {
       // opened new readme, generate
+      readmeGenerator.setGenerationState(GenerationState.CONTACTING_SERVER);
       void readmeGenerator.generateReadme();
     } else {
       // generation settings page

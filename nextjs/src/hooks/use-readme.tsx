@@ -47,6 +47,14 @@ export const useReadme = () => {
       setJustGenerated(false);
       formActions.setRepoUrlFromPath(data.repoPath);
     },
+    onError: (error) => {
+      setReadmeGenerationError({
+        type: ErrorType.INTERNAL,
+        message: error.message,
+      });
+      setErrorModalOpen(true);
+      setGenerationState(GenerationState.NOT_STARTED);
+    },
   });
   const isLoadingExistingReadme = loadExistingReadme.isPending;
 
