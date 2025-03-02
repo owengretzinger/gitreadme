@@ -1,5 +1,4 @@
 import {
-  ArrowRight,
   ArrowUp,
   LayoutTemplate,
   MinusCircle,
@@ -93,7 +92,7 @@ export default function GenerationSettings({
           <div className="flex flex-col gap-1">
             <div className="relative flex">
               <Input
-                placeholder="https://github.com/username/repo"
+                placeholder="https://github.com/owner/repo"
                 className={cn(
                   "rounded-2xl pb-28 pl-4 pr-[52px] pt-7",
                   formState.errors.repoUrl && "border-red-500",

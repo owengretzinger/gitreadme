@@ -56,7 +56,7 @@ export const useReadmeGeneration = (form: UseFormReturn<ReadmeFormData>) => {
         form.setError("repoUrl", {
           type: "manual",
           message:
-            "Could not parse the user/org and repo name. URL must be in the format https://github.com/username/repo",
+            "Could not parse the user/org and repo name. URL must be in the format https://github.com/owner/repo",
         });
         return;
       }
