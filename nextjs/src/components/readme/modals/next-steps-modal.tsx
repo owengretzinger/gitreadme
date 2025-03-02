@@ -6,6 +6,7 @@ import {
   LayoutPanelTop,
   Youtube,
   Github,
+  Star,
 } from "lucide-react";
 import {
   Dialog,
@@ -122,8 +123,27 @@ export function NextStepsModal({
 
             <div>
               <h3 className="flex items-center gap-2 font-medium">
+                <Star className="h-4 w-4 text-primary" />
+                Create a star history chart
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Use{" "}
+                <Link
+                  href="https://star-history.com/"
+                  className="text-primary hover:underline"
+                  target="_blank"
+                >
+                  star-history.com
+                </Link>{" "}
+                to create a chart of the number of stars on your repository over
+                time.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="flex items-center gap-2 font-medium">
                 <Github className="h-4 w-4 text-primary" />
-                Star the repository
+                Star this project
               </h3>
               <p className="text-sm text-muted-foreground">
                 If you found this tool useful, consider giving it a{" "}
