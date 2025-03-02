@@ -33,17 +33,17 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TRPCReactProvider>
-            <PostHogProvider>
-              <SessionProvider>
+            <SessionProvider>
+              <PostHogProvider>
                 <div className="relative flex min-h-screen flex-col">
                   <Nav />
-                  <main className="mx-auto w-full max-w-7xl flex-1 h-full flex flex-col">
+                  <main className="mx-auto flex h-full w-full max-w-7xl flex-1 flex-col">
                     {children}
                   </main>
                   <Footer className="absolute bottom-0 w-full" />
                 </div>
-              </SessionProvider>
-            </PostHogProvider>
+              </PostHogProvider>
+            </SessionProvider>
           </TRPCReactProvider>
         </ThemeProvider>
       </body>

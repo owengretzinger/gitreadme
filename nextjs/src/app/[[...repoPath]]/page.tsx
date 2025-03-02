@@ -9,6 +9,7 @@ import ViewReadme from "./view-readme";
 import { useEffect } from "react";
 import { GenerationState } from "../../hooks/use-readme-helpers/use-readme-stream";
 import ReadmeLoading from "./readme-loading";
+import { trackReadmeView } from "~/lib/posthog";
 
 export default function Readme() {
   const readmeGenerator = useReadme();
@@ -47,6 +48,10 @@ export default function Readme() {
       readmeGenerator.loadExistingReadme.mutate({
         repoPath,
         shortId,
+      });
+      trackReadmeView({
+        repo_path: repoPath,
+        short_id: shortId,
       });
     } else if (
       repoPath &&

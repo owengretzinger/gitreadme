@@ -3,6 +3,7 @@ import { api } from "~/trpc/react";
 import { ErrorType, type ApiErrorResponse } from "~/types/errors";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { trackGenerationError } from "~/lib/posthog";
 
 export enum GenerationState {
   NOT_STARTED = "NOT_STARTED",
@@ -144,8 +145,7 @@ const useGenerationState = () => {
         queryClient.setQueryData(errorKey, null);
       }
     },
-    setShortId: (id: string) => 
-      queryClient.setQueryData(shortIdKey, id),
+    setShortId: (id: string) => queryClient.setQueryData(shortIdKey, id),
     setJustGenerated: (value: boolean) =>
       queryClient.setQueryData(justGeneratedKey, value),
   };
@@ -160,6 +160,15 @@ const useStreamHandlers = (state: ReturnType<typeof useGenerationState>) => {
     state.setError(error);
     state.setErrorModalOpen(true);
     router.push("/");
+
+    // Track the error
+    const pathname = window.location.pathname;
+    const repoPath = pathname.startsWith("/") ? pathname.slice(1) : pathname;
+    trackGenerationError({
+      repo_path: repoPath || "",
+      error_type: error.type,
+      message: error.message,
+    });
   };
 
   const handleStreamChunk = async (
@@ -197,10 +206,13 @@ const useStreamHandlers = (state: ReturnType<typeof useGenerationState>) => {
         }
         state.setContent((prev: string | null) => (prev ?? "") + chunk.content);
         return { hasStartedStreaming: true, hasError: false };
-        
+
       case "SHORT_ID":
         state.setShortId(chunk.id);
-        const currentURL = window.location.pathname.split('/').slice(0, 3).join('/');
+        const currentURL = window.location.pathname
+          .split("/")
+          .slice(0, 3)
+          .join("/");
         window.history.pushState({}, "", currentURL + `/${chunk.id}`);
         break;
 

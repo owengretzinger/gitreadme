@@ -5,6 +5,8 @@ import { ErrorType } from "~/types/errors";
 import { type UseFormReturn } from "react-hook-form";
 import { type ReadmeFormData, formSchema } from "./types";
 import { useReadmeStream } from "./use-readme-stream";
+import { trackReadmeGeneration } from "~/lib/posthog";
+import { templates } from "~/components/readme-templates/readme-templates";
 
 export const useReadmeGeneration = (form: UseFormReturn<ReadmeFormData>) => {
   const router = useRouter();
@@ -85,8 +87,19 @@ export const useReadmeGeneration = (form: UseFormReturn<ReadmeFormData>) => {
 
     try {
       // Navigate directly to the repo path
-      const repoPath = values.repoUrl.split("github.com/")[1];
+      const repoPath = values.repoUrl.split("github.com/")[1]!;
       router.push(`/${repoPath}`);
+
+      trackReadmeGeneration({
+        repo_path: repoPath,
+        template_id: values.templateId,
+        edited_template:
+          values.templateContent !==
+          templates.find((t) => t.id === values.templateId)?.content,
+        added_additional_context:
+          !!values.additionalContext &&
+          values.additionalContext.trim().length > 0,
+      });
 
       return generateReadmeStream.mutateAsync({
         repoUrl: values.repoUrl,
