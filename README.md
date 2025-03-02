@@ -64,8 +64,3 @@ This project was originally built as part of [HackMate](https://github.com/oweng
   - Python
   - gitingest
   - Google Cloud Run
-
-## Todo
-
-- [ ] Add more templates
-- [ ] Film demo video

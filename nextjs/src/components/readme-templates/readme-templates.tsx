@@ -1,8 +1,8 @@
-import minimal from "./minimal.md";
 import othneildrew from "./othneildrew.md";
-import louis3797 from "./louis3797.md";
 import owen from "./owen.md";
 import none from "./none.md";
+import textOnly from "./text-only.md";
+
 export type ReadmeTemplate = {
   readonly id: string;
   readonly name: string;
@@ -19,24 +19,17 @@ export const templates: readonly [ReadmeTemplate, ...ReadmeTemplate[]] = [
     content: owen,
   },
   {
-    id: "minimal",
-    name: "Minimal",
-    description:
-      "Concise, focusing on essential information, no visual elements",
-    content: minimal,
+    id: "text-only",
+    name: "Text Only",
+    description: "Like Owen's, but no visual elements, just text.",
+    content: textOnly,
   },
   {
     id: "othneildrew",
-    name: "Othneil Drew's Best README Template",
+    name: 'Othneil Drew\'s "Best README Template"',
     description:
       "Badges, hero section, table of contents, top contributors, etc.",
     content: othneildrew,
-  },
-  {
-    id: "louis3797",
-    name: "Louis3797's Awesome README Template",
-    description: "Badges, emojis",
-    content: louis3797,
   },
   {
     id: "none",
