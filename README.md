@@ -7,12 +7,7 @@
   </p>
 </div>
 
-<!-- <div align="center">
-  <a href="https://example.com">
-    <img src="https://github.com/user-attachments/assets/f45c9ee9-ad2f-40f4-bb60-e9bbd1472c45" alt="Project Demo">
-    <p>Watch Demo Video</p>
-  </a>
-</div> -->
+https://github.com/user-attachments/assets/bb7f6a81-e8a3-4b2f-993e-7df225dfb90f
 
 <!-- TABLE OF CONTENTS -->
 <details>
