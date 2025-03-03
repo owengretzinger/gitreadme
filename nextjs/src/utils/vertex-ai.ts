@@ -54,7 +54,6 @@ export async function* generateReadmeWithAIStream(
   templateContent: string,
   additionalContext: string,
   repoUrl: string,
-  files?: FileData[],
 ) {
   if (env.USE_MOCK_RESPONSES === "true") {
     await new Promise((resolve) => setTimeout(resolve, 300));
@@ -68,50 +67,38 @@ export async function* generateReadmeWithAIStream(
   }
 
   try {
-    // Process uploaded files
-    const fileContents =
-      files
-        ?.map(
-          (file) => `File: ${file.name} (${file.type})\n${file.content}\n---\n`,
-        )
-        .join("\n") ?? "";
-
     const readmePrompt = `
       <repository contents>
       ${repoContent}
       </repository contents>
 
-      <repository url>
-      ${repoUrl}
-      </repository url>
-
-      <file contents uploaded by user>
-      ${fileContents}
-      </file contents uploaded by user>
-
       <template content>
       ${templateContent}
       </template content>
 
-      <additional instructions>
+      <repository url>
+      ${repoUrl}
+      </repository url>
+
+      <additional instructions provided by the user>
       ${additionalContext}
-      </additional instructions>
+      </additional instructions provided by the user>
 
       You are an expert technical writer tasked with creating a comprehensive README.md file for a GitHub repository.
 
       CRITICAL REQUIREMENTS:
       - Follow the template structure exactly
-      - Unless indicated otherwise, replace logos with this placeholder: https://github.com/user-attachments/assets/0ae1b6d5-1a62-4b41-b2c7-c595a0460497
-      - Replace videos with this placeholder: https://github.com/user-attachments/assets/f45c9ee9-ad2f-40f4-bb60-e9bbd1472c45
-      - Replace images with this placeholder: https://github.com/user-attachments/assets/721b7fb3-e480-4809-9023-fd48b82b1f8c
-      - Keep any HTML tags, markdown comments, and attributes from the template
       - If the project's README contains meaningful information like screenshots, diagrams, etc., include them somewhere in the generated README
+      - Use this as a placeholder for logos unless the logo was provided by the user or is from the existing README: https://github.com/user-attachments/assets/0ae1b6d5-1a62-4b41-b2c7-c595a0460497
+      - Use this as a placeholder for videos unless the video was provided by the user or is from the existing README: https://github.com/user-attachments/assets/f45c9ee9-ad2f-40f4-bb60-e9bbd1472c45
+      - Use this as a placeholder for images unless the image was provided by the user or is from the existing README: https://github.com/user-attachments/assets/721b7fb3-e480-4809-9023-fd48b82b1f8c
+      - Keep any HTML tags, markdown comments, and attributes from the template
       - Carefully analyze the repository contents to accurately describe the project
       - WRAP YOUR RESPONSE IN MD TAGS BY STARTING THE RESPONSE WITH "\`\`\`md" AND ENDING WITH "\`\`\`"
 
-      Analyze the repository contents and the file contents uploaded by the user. Then create a README.md file, taking into account any additional instructions provided.
+      Analyze the repository contents. Then create a README.md file, taking into account any additional instructions provided.
 
-      Please respond with the README.md file now:
+      Please respond with the README.md file immediately:
       `;
 
     const result = await model.generateContentStream(readmePrompt);
