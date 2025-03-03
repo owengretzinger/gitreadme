@@ -12,7 +12,7 @@ export const useFormActions = (form: UseFormReturn<ReadmeFormData>) => {
         urlObj.hostname === "github.com" &&
         urlObj.pathname.split("/").length >= 3
       ) {
-        return urlObj.pathname.slice(1);
+        return urlObj.pathname.slice(1).toLowerCase();
       }
     } catch {
       // Return undefined if URL is invalid
@@ -26,7 +26,7 @@ export const useFormActions = (form: UseFormReturn<ReadmeFormData>) => {
     setRepoUrl: (url: string) => form.setValue("repoUrl", url),
     getRepoPath,
     setRepoUrlFromPath: (path: string) => {
-      form.setValue("repoUrl", `https://github.com/${path}`);
+      form.setValue("repoUrl", `https://github.com/${path.toLowerCase()}`);
     },
     repoRegister: form.register("repoUrl"),
     selectedTemplate: form.watch("templateId"),

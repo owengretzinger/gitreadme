@@ -19,7 +19,7 @@ export default function Readme() {
 
   const repoPath =
     pathSegments.length >= 2
-      ? pathSegments[0] + "/" + pathSegments[1]
+      ? (pathSegments[0] + "/" + pathSegments[1]).toLowerCase()
       : undefined;
   const shortId =
     pathSegments.length >= 3

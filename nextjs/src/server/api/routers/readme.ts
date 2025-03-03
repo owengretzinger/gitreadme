@@ -150,17 +150,19 @@ export const readmeRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      const normalizedRepoPath = input.repoPath.toLowerCase();
+
       const readme = await ctx.db.query.generatedReadmes.findFirst({
         where: and(
-          eq(generatedReadmes.repoPath, input.repoPath),
+          eq(generatedReadmes.repoPath, normalizedRepoPath),
           eq(generatedReadmes.shortId, input.shortId),
         ),
       });
 
       if (!readme) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'README not found',
+          code: "NOT_FOUND",
+          message: "README not found",
         });
       }
 
