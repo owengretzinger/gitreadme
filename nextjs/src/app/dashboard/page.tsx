@@ -22,7 +22,7 @@ export default async function DashboardPage() {
       </div>
       <Dashboard />
       <div className="absolute left-0 top-0 h-[calc(100vh-6rem)] w-full sm:h-full pointer-events-none">
-        <div className="absolute bottom-0 right-4 sm:top-0">
+        <div className="absolute bottom-0 right-4 sm:top-0 pointer-events-auto">
           <Button variant="default">
             <Link href="/">
               <span className="flex items-center gap-2">
