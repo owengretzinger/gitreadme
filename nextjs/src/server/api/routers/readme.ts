@@ -38,7 +38,6 @@ export const readmeRouter = createTRPCRouter({
         repoUrl: z.string().url(),
         templateContent: z.string(),
         additionalContext: z.string(),
-        files: z.array(FileDataSchema).optional(),
         excludePatterns: z.array(z.string()).optional(),
       }),
     )
@@ -108,7 +107,6 @@ export const readmeRouter = createTRPCRouter({
           input.templateContent,
           input.additionalContext,
           input.repoUrl,
-          input.files,
         );
 
         for await (const chunk of stream) {

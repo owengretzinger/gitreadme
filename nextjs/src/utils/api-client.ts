@@ -6,6 +6,7 @@ import {
   createUnauthorizedError,
   createRepositoryAccessError,
   createRepositoryNotFoundError,
+  createConnectionError,
 } from "~/types/errors";
 
 interface ApiResponse {
@@ -137,11 +138,33 @@ export async function packRepository(
 
     // Handle forbidden (likely GitHub access issue)
     if (response.status === 403) {
-      const errorResponse: PackRepositoryErrorResponse = {
-        success: false,
-        error: createRepositoryAccessError(),
-      };
-      return errorResponse;
+      try {
+        // Try to parse the response body to see if it's actually from our repo-packer service
+        const responseText = await response.text();
+        
+        // Check if response is empty or very short, which is likely from a misconfigured backend
+        if (!responseText || responseText.length < 10) {
+          const errorResponse: PackRepositoryErrorResponse = {
+            success: false,
+            error: createConnectionError(),
+          };
+          return errorResponse;
+        }
+        
+        // If we have a proper response body, it's likely a genuine repo access error
+        const errorResponse: PackRepositoryErrorResponse = {
+          success: false,
+          error: createRepositoryAccessError(),
+        };
+        return errorResponse;
+      } catch {
+        // If we can't parse the response, assume it's a connection error
+        const errorResponse: PackRepositoryErrorResponse = {
+          success: false, 
+          error: createConnectionError(),
+        };
+        return errorResponse;
+      }
     }
 
     // Handle not found
@@ -265,7 +288,7 @@ export async function packRepository(
     console.error("Failed to connect to server:", error);
     const errorResponse: PackRepositoryErrorResponse = {
       success: false,
-      error: createServerError("Failed to connect to server"),
+      error: createConnectionError(),
     };
     return errorResponse;
   }

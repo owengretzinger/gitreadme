@@ -8,6 +8,7 @@ export enum ErrorType {
   REPOSITORY_NOT_FOUND = "REPOSITORY_NOT_FOUND",
   README_NOT_FOUND = "README_NOT_FOUND",
   INTERNAL = "INTERNAL",
+  CONNECTION_ERROR = "CONNECTION_ERROR",
   UNKNOWN = "UNKNOWN",
 }
 
@@ -34,10 +35,15 @@ export interface ServerErrorResponse extends BaseErrorResponse {
   details?: unknown;
 }
 
+export interface ConnectionErrorResponse extends BaseErrorResponse {
+  type: ErrorType.CONNECTION_ERROR;
+}
+
 export type ApiErrorResponse =
   | RateLimitErrorResponse
   | TokenLimitErrorResponse
   | ServerErrorResponse
+  | ConnectionErrorResponse
   | BaseErrorResponse;
 
 export const isRateLimitError = (
@@ -98,4 +104,10 @@ export const createServerError = (
   message,
   status,
   details,
+});
+
+export const createConnectionError = (): ConnectionErrorResponse => ({
+  type: ErrorType.CONNECTION_ERROR,
+  message:
+    "Failed to connect to the server. This could be due to internet connectivity issues, a server that's temporarily down, or incorrect configuration. Please try again later or contact me if the issue persists.",
 });
