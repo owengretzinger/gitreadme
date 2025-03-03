@@ -79,7 +79,8 @@ export default function GenerationSettings({
             Instantly generate high-quality README files using AI that looks at
             your <br className="hidden md:block" />
             entire codebase to automatically recognize key features,
-            installation instructions, and more.
+            installation instructions, and more. <br className="hidden md:block" />
+            Enter a GitHub URL or just the repository path (e.g., owner/repo).
           </p>
         </div>
         <form
@@ -92,7 +93,7 @@ export default function GenerationSettings({
           <div className="flex flex-col gap-1">
             <div className="relative flex">
               <Input
-                placeholder="https://github.com/owner/repo"
+                placeholder="https://github.com/owner/repo, or owner/repo"
                 className={cn(
                   "rounded-2xl pb-28 pl-4 pr-[52px] pt-7",
                   formState.errors.repoUrl && "border-red-500",

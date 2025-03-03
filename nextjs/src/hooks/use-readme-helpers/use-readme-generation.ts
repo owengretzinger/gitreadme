@@ -41,32 +41,42 @@ export const useReadmeGeneration = (form: UseFormReturn<ReadmeFormData>) => {
   const generateReadme = async () => {
     const values = form.getValues();
 
-    // Validate URL before proceeding
-    try {
-      const urlObj = new URL(values.repoUrl);
-      if (urlObj.hostname !== "github.com") {
+    // Validate input before proceeding
+    const repoUrl = values.repoUrl;
+    let repoPath: string | undefined;
+
+    // Check if input is in the format "owner/repo"
+    if (/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(repoUrl)) {
+      repoPath = repoUrl.toLowerCase();
+    } else {
+      // Try to parse as a URL
+      try {
+        const urlObj = new URL(repoUrl);
+        if (urlObj.hostname !== "github.com") {
+          form.setError("repoUrl", {
+            type: "manual",
+            message:
+              "The URL provided is not a GitHub URL. It must start with https://github.com/",
+          });
+          return;
+        }
+        if (urlObj.pathname.split("/").length < 3) {
+          form.setError("repoUrl", {
+            type: "manual",
+            message:
+              "Could not parse the user/org and repo name. URL must be in the format https://github.com/owner/repo",
+          });
+          return;
+        }
+        repoPath = urlObj.pathname.slice(1).toLowerCase();
+      } catch {
         form.setError("repoUrl", {
           type: "manual",
           message:
-            "The URL provided is not a GitHub URL. It must start with https://github.com/",
+            "Please enter a valid GitHub URL (https://github.com/owner/repo) or repository path (owner/repo).",
         });
         return;
       }
-      if (urlObj.pathname.split("/").length < 3) {
-        form.setError("repoUrl", {
-          type: "manual",
-          message:
-            "Could not parse the user/org and repo name. URL must be in the format https://github.com/owner/repo",
-        });
-        return;
-      }
-    } catch {
-      form.setError("repoUrl", {
-        type: "manual",
-        message:
-          "Your input is not a URL. Please enter a valid GitHub repo URL.",
-      });
-      return;
     }
 
     const result = await form.trigger();
@@ -104,7 +114,6 @@ export const useReadmeGeneration = (form: UseFormReturn<ReadmeFormData>) => {
 
     try {
       // Navigate directly to the repo path
-      const repoPath = values.repoUrl.split("github.com/")[1]!;
       router.push(`/${repoPath}`);
 
       trackReadmeGeneration({
@@ -119,7 +128,7 @@ export const useReadmeGeneration = (form: UseFormReturn<ReadmeFormData>) => {
       });
 
       return generateReadmeStream.mutateAsync({
-        repoUrl: values.repoUrl,
+        repoUrl: repoPath.includes("github.com") ? values.repoUrl : `https://github.com/${repoPath}`,
         templateContent: values.templateContent,
         additionalContext: values.additionalContext,
         excludePatterns: values.excludePatterns,
