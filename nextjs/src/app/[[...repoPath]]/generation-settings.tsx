@@ -79,8 +79,7 @@ export default function GenerationSettings({
             Instantly generate high-quality README files using AI that looks at
             your <br className="hidden md:block" />
             entire codebase to automatically recognize key features,
-            installation instructions, and more. <br className="hidden md:block" />
-            Enter a GitHub URL or just the repository path (e.g., owner/repo).
+            installation instructions, and more.
           </p>
         </div>
         <form
