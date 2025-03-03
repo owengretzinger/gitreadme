@@ -202,7 +202,7 @@ def pack_repository():
 
     try:
         # Get repository contents
-        summary, _, content = ingest(
+        summary, tree, content = ingest(
             normalized_url,
             max_file_size=max_file_size,
             exclude_patterns=exclude_patterns,
@@ -233,6 +233,11 @@ def pack_repository():
                 ),
                 400,
             )
+
+        content = f"{tree}\n\n{content}"
+
+        # with open("content.txt", "w") as f:
+        #     f.write(content)
 
         # Return successful response with contents
         return jsonify(
