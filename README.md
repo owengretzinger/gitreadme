@@ -21,8 +21,8 @@ https://github.com/user-attachments/assets/bb7f6a81-e8a3-4b2f-993e-7df225dfb90f
       </ul>
     </li>
     <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#getting-started">Getting Started</a></li>
     <li><a href="#support-feedback">Support & Feedback</a></li>
-    <li><a href="#todo">Todo</a></li>
   </ol>
 </details>
 
@@ -62,6 +62,64 @@ gitreadme.dev was originally built as part of [HackMate](https://github.com/owen
   - Python
   - gitingest
   - Google Cloud Run
+
+## Getting Started
+
+### Repo Packing Service
+
+1. Create venv (Python 3.10+) and install dependencies
+
+   ```sh
+   cd repo-packer
+   ```
+
+   ```sh
+   python -m venv venv
+   ```
+
+   ```sh
+   source venv/bin/activate
+   ```
+
+   ```sh
+   pip install -r requirements.txt
+   ```
+
+2. Create `.env` file based on `.env.example` and add a `REPO_PACKER_TOKEN` variable (used to authenticate between nextjs app and repo packing service).
+
+3. Run the service
+   ```sh
+   python pack.py
+   ```
+
+### Next.js App
+
+1. Install dependencies for Next.js app
+
+   ```sh
+   cd nextjs
+   ```
+
+   ```sh
+   pnpm install
+   ```
+
+2. Set up database
+
+   - Create a new database on Neon (or local)
+
+3. Set up Google Cloud Project
+
+   - Enable Vertex AI API
+   - Create service account and download key as `key.json` (some fields used in the next step)
+   - Set up Google Auth
+
+4. Create `.env` file based on `.env.example` and fill in the required environment variables.
+
+5. Run the development server
+   ```sh
+   pnpm dev
+   ```
 
 ## Support & Feedback
 
