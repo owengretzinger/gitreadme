@@ -11,6 +11,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
@@ -32,6 +33,9 @@ export function NextStepsModal({
             <Lightbulb className="h-5 w-5 text-amber-500" />
             Tips for next steps
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Tips for next steps after generating a README.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5">

@@ -1,6 +1,7 @@
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
@@ -19,6 +20,9 @@ export function VideoTutorialModal({
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>Video Tutorial</DialogTitle>
+          <DialogDescription className="sr-only">
+            A video tutorial for gitreadme.dev.
+          </DialogDescription>
         </DialogHeader>
         <div className="aspect-video">
           <iframe

@@ -1,6 +1,7 @@
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -39,6 +40,9 @@ export function ErrorModal({
       <DialogContent className="max-h-[80vh] overflow-y-auto border-destructive">
         <DialogHeader>
           <DialogTitle>Error Generating README</DialogTitle>
+          <DialogDescription className="sr-only">
+            Error generating README. Please try again.
+          </DialogDescription>
           <div className="max-h-[60vh] space-y-2 overflow-y-auto text-pretty pt-4 text-sm text-muted-foreground">
             <p className="font-medium">
               {formatString(error.type)} {"Error "}

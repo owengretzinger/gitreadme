@@ -1,6 +1,7 @@
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "~/components/ui/dialog";
@@ -27,6 +28,9 @@ export function CustomInstructionsModal({
           <p className="text-sm text-muted-foreground">
             Write anything else you want the AI to know about the project.
           </p>
+          <DialogDescription className="sr-only">
+            Write anything else you want the AI to know about the project.
+          </DialogDescription>
         </DialogHeader>
 
         <Textarea
