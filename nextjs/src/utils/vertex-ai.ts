@@ -1,4 +1,4 @@
-import { VertexAI } from "@google-cloud/vertexai";
+import { FinishReason, VertexAI } from "@google-cloud/vertexai";
 import { env } from "../env.js";
 import { EXAMPLE_README } from "./mock-ai-responses";
 
@@ -121,7 +121,10 @@ export async function* generateReadmeWithAIStream(
           yield firstChunkBuffer;
         }
 
-        text = text.replace(/```\n?$/g, "");
+        if (chunk.candidates?.[0]?.finishReason === FinishReason.STOP) {
+          text = text.replace(/```\n?$/g, "");
+        }
+
         yield text;
       }
     }
