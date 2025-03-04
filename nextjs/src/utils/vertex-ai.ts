@@ -26,7 +26,7 @@ const vertex_ai = new VertexAI({
 const model = vertex_ai.preview.getGenerativeModel({
   model: "gemini-2.0-flash-001",
   generationConfig: {
-    maxOutputTokens: 16384,
+    maxOutputTokens: 8193,
     temperature: 0.4,
     topP: 0.8,
     topK: 40,
